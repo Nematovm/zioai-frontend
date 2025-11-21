@@ -1,0 +1,466 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4{
+    font-family: 'Roboto Slab', serif;
+}
+
+a {
+    text-decoration: none !important;
+}
+
+:root {
+    --third-font: 'Saira', sans-serif;
+    --secondary-font: 'Kanit', sans-serif;
+    --footer-color: linear-gradient(90deg,rgba(239, 246, 253, 1) 0%, rgba(240, 253, 244, 1) 50%);
+    --primary-color: linear-gradient(151deg,rgba(93, 156, 245, 1) 0%, rgba(44, 170, 154, 1) 60%, rgba(35, 195, 101, 1) 100%);
+    --header-color: linear-gradient(90deg,rgba(240, 246, 255, 1) 0%, rgba(255, 255, 255, 1) 50%)
+}
+
+body {
+    background: linear-gradient(135deg, #e6f3ff, #ffffff);
+    font-family: "Inter", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    padding: 20px;
+}
+
+.back-home {
+    width: 40px;
+    height: 40px;
+    border: 1px solid gray;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    color: black;
+    z-index: 10;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.login-logo .main-logo {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-logo .main-logo i {
+    font-size: 40px;
+}
+
+.login-logo .navbar-brand .nav-title {
+    font-size: 40px;
+    margin: 0;
+}
+
+.main-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.main-section h4 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.main-section p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0 20px 35px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+}
+
+h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.input-box {
+    position: relative;
+    margin-bottom: 22px;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 12px 10px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    font-size: 16px;
+    background: transparent;
+    transition: 0.2s;
+}
+
+.input-box input:focus {
+    border-color: #2ebf91;
+}
+
+.input-box label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    transition: 0.3s;
+}
+
+/* FIXED: Faqat focus bo'lganda yoki placeholder-shown bo'lmaganda yuqoriga ko'tariladi */
+.input-box input:focus + label,
+.input-box input:not(:placeholder-shown) + label {
+    top: -5px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 0 5px;
+    font-size: 12px;
+    color: #2ebf91;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #2ebf91, #28a2e2);
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    font-family: var(--third-font);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(46,191,145,0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.switch-link {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 15px;
+    font-family: var(--third-font);
+}
+
+.switch-link a {
+    color: #2ebf91;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ============================================
+   RESPONSIVE STYLES FOR MOBILE
+   ============================================ */
+
+/* Tablet va kichik ekranlar (768px va undan kichik) */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .auth-container {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .login-logo .main-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .login-logo .main-logo i {
+        font-size: 35px;
+    }
+
+    .login-logo .navbar-brand .nav-title {
+        font-size: 35px;
+    }
+
+    .main-section h4 {
+        font-size: 22px;
+    }
+
+    .main-section p {
+        font-size: 15px;
+    }
+
+    .auth-card {
+        padding: 30px 25px;
+    }
+}
+
+/* Mobile telefonlar (480px va undan kichik) */
+@media screen and (max-width: 480px) {
+    body {
+        padding: 10px;
+        min-height: 100vh;
+    }
+
+    .back-home {
+        width: 35px;
+        height: 35px;
+        left: 8px;
+        top: 8px;
+        font-size: 14px;
+    }
+
+    .auth-container {
+        padding: 10px;
+        gap: 12px;
+        max-width: 100%;
+    }
+
+    .login-logo {
+        gap: 8px;
+    }
+
+    .login-logo .main-logo {
+        width: 45px;
+        height: 45px;
+    }
+
+    .login-logo .main-logo i {
+        font-size: 30px;
+    }
+
+    .login-logo .navbar-brand .nav-title {
+        font-size: 30px;
+    }
+
+    .main-section h4 {
+        font-size: 20px;
+    }
+
+    .main-section p {
+        font-size: 14px;
+    }
+
+    .auth-card {
+        padding: 25px 20px;
+        border-radius: 16px;
+        max-width: 100%;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    .input-box {
+        margin-bottom: 18px;
+    }
+
+    .input-box input {
+        padding: 11px 10px;
+        font-size: 15px;
+        border-radius: 8px;
+    }
+
+    .input-box label {
+        font-size: 15px;
+    }
+
+    .input-box input:focus + label,
+    .input-box input:not(:placeholder-shown) + label {
+        font-size: 11px;
+    }
+
+    .btn-primary {
+        padding: 13px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .switch-link {
+        font-size: 14px;
+        margin-top: 12px;
+    }
+}
+
+/* Juda kichik ekranlar (360px va undan kichik) */
+@media screen and (max-width: 360px) {
+    body {
+        padding: 8px;
+    }
+
+    .back-home {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .auth-container {
+        gap: 10px;
+        padding: 5px;
+    }
+
+    .login-logo .main-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .login-logo .main-logo i {
+        font-size: 26px;
+    }
+
+    .login-logo .navbar-brand .nav-title {
+        font-size: 26px;
+    }
+
+    .main-section h4 {
+        font-size: 18px;
+    }
+
+    .main-section p {
+        font-size: 13px;
+    }
+
+    .auth-card {
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    .input-box input {
+        padding: 10px 8px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .switch-link {
+        font-size: 13px;
+    }
+}
+
+/* Qo'shimcha kichik ekranlar uchun */
+@media screen and (max-width: 320px) {
+    .auth-container {
+        padding: 5px;
+    }
+    
+    .auth-card {
+        padding: 18px 14px;
+    }
+    
+    .login-logo .navbar-brand .nav-title {
+        font-size: 24px;
+    }
+    
+    .main-section h4 {
+        font-size: 16px;
+    }
+}
+
+/* Landscape orientatsiya uchun (telefonlar gorizontal holatda) */
+@media screen and (max-height: 600px) and (orientation: landscape) {
+    body {
+        padding: 10px;
+    }
+
+    .auth-container {
+        gap: 10px;
+    }
+
+    .login-logo .main-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .login-logo .main-logo i {
+        font-size: 28px;
+    }
+
+    .login-logo .navbar-brand .nav-title {
+        font-size: 28px;
+    }
+
+    .main-section {
+        gap: 5px;
+    }
+
+    .main-section h4 {
+        font-size: 18px;
+    }
+
+    .main-section p {
+        font-size: 13px;
+    }
+
+    .auth-card {
+        padding: 20px;
+    }
+
+    .input-box {
+        margin-bottom: 15px;
+    }
+
+    .btn-primary {
+        padding: 11px;
+    }
+}

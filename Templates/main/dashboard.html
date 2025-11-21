@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZiyoAI - Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="/frontend/Static/dashboard.css" />
+  </head>
+  <body>
+    <!-- Logout Modal -->
+    <div class="logout-modal-overlay" id="logoutModal">
+      <div class="logout-modal">
+        <div class="logout-modal-icon">
+          <i class="bi bi-box-arrow-right"></i>
+        </div>
+        <h3>Log Out?</h3>
+        <p>Are you sure you want to log out of your account?</p>
+        <div class="logout-modal-buttons">
+          <button class="logout-modal-btn cancel" id="cancelLogout">Cancel</button>
+          <button class="logout-modal-btn confirm" id="confirmLogout">Log Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner-wrapper">
+      <div class="spinner-grow" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- MOTIVATSIYA NOTIFICATION -->
+    <div id="motivationToast" class="motivation-toast">
+      <div class="motivation-icon">🌟</div>
+      <div class="motivation-text"></div>
+      <button class="motivation-close" onclick="closeMotivation()">×</button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <header class="sidebar-header">
+        <div class="nav-left">
+          <div class="main-logo"><i class="bi bi-stars"></i></div>
+          <a class="navbar-brand"><h3 class="nav-title">ZiyoAI</h3></a>
+        </div>
+        <button class="toggler sidebar-toggler">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button class="toggler menu-toggler">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </header>
+      <nav class="sidebar-nav">
+        <ul class="nav-list primary-nav">
+          <li class="nav-item">
+            <a class="nav-link active" data-tool="dashboard">
+              <span class="nav-icon material-symbols-outlined">dashboard</span>
+              <span class="nav-lebel">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="homework">
+              <span class="nav-icon material-symbols-outlined">book_ribbon</span>
+              <span class="nav-lebel">Homework Fixer</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="grammar">
+              <span class="nav-icon material-symbols-outlined">ink_pen</span>
+              <span class="nav-lebel">Grammar Checker</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="vocabulary">
+              <span class="nav-icon material-symbols-outlined">book_3</span>
+              <span class="nav-lebel">Vocabulary Builder</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="quiz">
+              <span class="nav-icon material-symbols-outlined">quiz</span>
+              <span class="nav-lebel">Quiz Generator</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="calculate">
+              <span class="nav-icon material-symbols-outlined">calculate</span>
+              <span class="nav-lebel">Math Solver</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="clinical_notes">
+              <span class="nav-icon material-symbols-outlined"
+                >clinical_notes</span
+              >
+              <span class="nav-lebel">Study Assistant</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="article">
+              <span class="nav-icon material-symbols-outlined">article</span>
+              <span class="nav-lebel">Resume Builder</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="chat_bubble">
+              <span class="nav-icon material-symbols-outlined"
+                >chat_bubble</span
+              >
+              <span class="nav-lebel">IELTS Feedback</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="nav-list secondary-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-tool="Profile">
+              <span class="nav-icon material-symbols-outlined">account_circle</span>
+              <span class="nav-lebel">Profile</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="javascript:void(0);" class="nav-link" id="logoutBtn">
+              <span class="nav-icon material-symbols-outlined">logout</span>
+              <span class="nav-lebel">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+      
+
+        <!-- Header Section - YANGILANGAN -->
+    <section class="header-section">
+      <div class="header_section_left">
+        <h2 id="headerTitle">Welcome back, <span id="userName">Student</span>!</h2>
+      <p id="headerSubtitle">Select a tool below to get started</p>
+      </div>
+
+    
+      <div class="mini-timer">
+          <div class="timer-display" id="miniTimerDisplay">25:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn start" id="miniStartBtn" onclick="startMiniTimer()">
+              <i class="bi bi-play-fill"></i>
+            </button>
+            <button class="timer-btn pause" id="miniPauseBtn" onclick="pauseMiniTimer()" style="display: none;">
+              <i class="bi bi-pause-fill"></i>
+            </button>
+            <button class="timer-btn reset" onclick="resetMiniTimer()">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="timer-btn settings" onclick="openTimerSettings()">
+              <i class="bi bi-gear-fill"></i>
+            </button>
+          </div>
+          <div class="timer-label" id="timerLabel">Pomodoro</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIMER SETTINGS MODAL -->
+    <div class="timer-modal-overlay" id="timerSettingsModal">
+      <div class="timer-modal">
+        <div class="timer-modal-header">
+          <h3>⚙️ Timer Settings</h3>
+          <button class="timer-modal-close" onclick="closeTimerSettings()">×</button>
+        </div>
+        <div class="timer-modal-body">
+          <div class="setting-group">
+            <label>🍅 Pomodoro Duration</label>
+            <div class="time-selector">
+              <button class="time-option" onclick="setPomodoroTime(15)">15 min</button>
+              <button class="time-option active" onclick="setPomodoroTime(25)">25 min</button>
+              <button class="time-option" onclick="setPomodoroTime(30)">30 min</button>
+              <button class="time-option" onclick="setPomodoroTime(45)">45 min</button>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>☕ Break Duration</label>
+            <div class="time-selector">
+              <button class="time-option active" onclick="setBreakTime(5)">5 min</button>
+              <button class="time-option" onclick="setBreakTime(10)">10 min</button>
+              <button class="time-option" onclick="setBreakTime(15)">15 min</button>
+              <button class="time-option" onclick="setBreakTime(20)">20 min</button>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>🔔 Sound Notification</label>
+            <label class="switch">
+              <input type="checkbox" id="soundToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="timer-modal-footer">
+          <button class="timer-modal-btn save" onclick="saveTimerSettings()">
+            <i class="bi bi-check-circle"></i> Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMER NOTIFICATION MODAL -->
+    <div class="timer-notification-overlay" id="timerNotification">
+      <div class="timer-notification">
+        <div class="timer-notification-icon" id="notificationIcon">🍅</div>
+        <h3 id="notificationTitle">Pomodoro Complete!</h3>
+        <p id="notificationMessage">Great work! Time for a break?</p>
+        <div class="timer-notification-buttons">
+          <button class="notification-btn yes" onclick="startBreakTimer()">
+            <i class="bi bi-check-circle"></i> Yes, Start Break
+          </button>
+          <button class="notification-btn no" onclick="restartPomodoro()">
+            <i class="bi bi-arrow-repeat"></i> No, Continue Working
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Main Section -->
+     <main>
+      <!-- Dashboard View -->
+      <div class="tool-content active" id="dashboard-content">
+        <div class="dashboard-exp">
+          <div class="rocket">🚀</div>
+          <h1>Welcome to Ziyo AI</h1>
+          <p>Your all-in-one AI-powered education platform. Choose any tool from the sidebar to start your learning journey!</p>
+        </div>
+        <div class="tools-grid">
+          <div class="tool-card gradient-1" data-tool="homework">
+            <div class="tool-card-icon">📚</div>
+            <h3>Homework Fixer</h3>
+            <p>
+              Paste your homework and get instant corrections with explanations
+            </p>
+          </div>
+
+          <div class="tool-card gradient-2" data-tool="timer">
+            <div class="tool-card-icon">⏱️</div>
+            <h3>Study Timer</h3>
+            <p>Pomodoro timer to help you stay focused and productive</p>
+          </div>
+
+          <div class="tool-card gradient-3" data-tool="grammar">
+            <div class="tool-card-icon">✍️</div>
+            <h3>Grammar Checker</h3>
+            <p>Check and improve your grammar, spelling, and writing style</p>
+          </div>
+
+          <div class="tool-card gradient-4" data-tool="vocabulary">
+            <div class="tool-card-icon">📖</div>
+            <h3>Vocabulary Builder</h3>
+            <p>Learn new words and expand your vocabulary with examples</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Homework Fixer Tool - IMAGE UPLOAD QUSHILGAN -->
+<!-- HOMEWORK FIXER TOOL - TO'LIQ YANGILANGAN -->
+<div class="tool-content" id="homework-content">
+  <div class="tool-interface">
+    <h4 style="margin-bottom: 15px; color: #1f2937">Your Homework</h4>
+    
+    <!-- ✅ TIL TANLASH - ENG YUQORIDA -->
+    <div class="language-selector" style="margin-bottom: 20px;">
+      <label for="homework-language">🌐 Til / Language / Язык:</label>
+      <select id="homework-language" class="language-dropdown">
+        <option value="uz" selected>🇺🇿 O'zbek</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
+    
+    <!-- Tab Buttons -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+      <button 
+        class="tab-btn active" 
+        onclick="switchHomeworkTab('text')"
+        id="textTabBtn"
+        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+        <i class="bi bi-pencil-square"></i> Type Text
+      </button>
+      <button 
+        class="tab-btn" 
+        onclick="switchHomeworkTab('image')"
+        id="imageTabBtn"
+        style="flex: 1; padding: 12px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+        <i class="bi bi-image"></i> Upload Image
+      </button>
+    </div>
+
+    <!-- Text Input Tab -->
+    <div id="textInputTab">
+      <textarea
+        placeholder="Paste your homework here..."
+        id="homeworkInput"
+      ></textarea>
+    </div>
+
+    <!-- Image Upload Tab -->
+    <div id="imageInputTab" style="display: none;">
+      <div style="border: 3px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; cursor: pointer;" onclick="document.getElementById('homeworkImageInput').click()">
+        <i class="bi bi-cloud-upload" style="font-size: 48px; color: #9ca3af; margin-bottom: 15px;"></i>
+        <p style="color: #6b7280; font-size: 16px; margin: 10px 0;">Click to upload or drag and drop</p>
+        <p style="color: #9ca3af; font-size: 14px;">PNG, JPG, JPEG (MAX. 5MB)</p>
+        <input 
+          type="file" 
+          id="homeworkImageInput" 
+          accept="image/*" 
+          style="display: none;"
+          onchange="handleImageUpload(event)">
+      </div>
+      
+      <!-- Image Preview -->
+      <div id="imagePreview" style="display: none; margin-top: 20px; text-align: center;">
+        <img id="previewImg" style="max-width: 100%; max-height: 400px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <p style="margin-top: 10px; color: #6b7280;" id="imageFileName"></p>
+        <button onclick="removeImage()" style="margin-top: 10px; padding: 8px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          <i class="bi bi-trash"></i> Remove Image
+        </button>
+      </div>
+    </div>
+
+    <button onclick="fixHomework()" style="margin-top: 20px;">
+      <i class="bi bi-magic"></i> Fix My Homework
+    </button>
+    
+    <div class="result-box" id="homeworkResult" style="display: none">
+      <h5 style="color: #1f2937; margin-bottom: 10px">
+        Corrected Homework:
+      </h5>
+      <div id="homeworkOutput"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAMMAR CHECKER TOOL -->
+<div class="tool-content" id="grammar-content">
+  <div class="tool-interface">
+    <h4 style="margin-bottom: 15px; color: #1f2937">Your Text</h4>
+    
+    <!-- ✅ TIL TANLASH -->
+    <div class="language-selector" style="margin-bottom: 20px;">
+      <label for="grammar-language">🌐 Til / Language / Язык:</label>
+      <select id="grammar-language" class="language-dropdown">
+        <option value="uz" selected>🇺🇿 O'zbek</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
+    
+    <textarea
+      placeholder="Paste your text here to check grammar..."
+      id="grammarInput"
+    ></textarea>
+    <button onclick="checkGrammar()">
+      <i class="bi bi-check2-circle"></i> Check Grammar
+    </button>
+    <div class="result-box" id="grammarResult" style="display: none">
+      <h5 style="color: #1f2937; margin-bottom: 10px">
+        Grammar Check Results:
+      </h5>
+      <div id="grammarOutput"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VOCABULARY BUILDER TOOL -->
+<div class="tool-content" id="vocabulary-content">
+  <div class="tool-interface">
+    <h4 style="margin-bottom: 15px; color: #1f2937">Enter a Word</h4>
+    
+    <!-- ✅ TIL TANLASH -->
+    <div class="language-selector" style="margin-bottom: 20px;">
+      <label for="vocab-language">🌐 Til / Language / Язык:</label>
+      <select id="vocab-language" class="language-dropdown">
+        <option value="uz" selected>🇺🇿 O'zbek</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
+    
+    <input
+      type="text"
+      placeholder="Type a word to learn..."
+      id="vocabInput"
+      style="
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 15px;
+      "
+    />
+    <button onclick="buildVocab()">
+      <i class="bi bi-search"></i> Learn Word
+    </button>
+    <div class="result-box" id="vocabResult" style="display: none">
+      <h5 style="color: #1f2937; margin-bottom: 10px">
+        Word Information:
+      </h5>
+      <div id="vocabOutput"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ GENERATOR TOOL -->
+<div class="tool-content" id="quiz-content">
+  <div class="tool-interface">
+    <h4 style="margin-bottom: 15px; color: #1f2937">Quiz Generator</h4>
+    
+    <!-- Quiz Input Form -->
+    <div id="quizInputForm">
+      <!-- TIL TANLASH -->
+      <div class="language-selector" style="margin-bottom: 20px;">
+        <label for="quiz-language">🌐 Til / Language / Язык:</label>
+        <select id="quiz-language" class="language-dropdown">
+          <option value="uz" selected>🇺🇿 O'zbek</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+
+      <textarea
+        placeholder="Paste your article or text here to generate quiz questions..."
+        id="quizArticleInput"
+        style="min-height: 200px;"
+      ></textarea>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+        <div>
+          <label style="display: block; margin-bottom: 8px; color: #4b5563; font-weight: 600;">
+            🔢 Savollar Soni / Questions
+          </label>
+          <select id="quizQuestionCount" class="language-dropdown">
+            <option value="1">1 ta savol</option>
+            <option value="3" selected>3 ta savol</option>
+            <option value="5">5 ta savol</option>
+            <option value="10">10 ta savol</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 8px; color: #4b5563; font-weight: 600;">
+            ⚡ Qiyinchilik / Difficulty
+          </label>
+          <select id="quizDifficulty" class="language-dropdown">
+            <option value="easy">Oson / Easy</option>
+            <option value="medium" selected>O'rtacha / Medium</option>
+            <option value="hard">Qiyin / Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="generateQuizQuestions()" style="margin-top: 20px; width: 100%;">
+        <i class="bi bi-magic"></i> Generate Quiz
+      </button>
+
+      <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px; border-left: 4px solid #667eea;">
+        <p style="margin: 0; color: #4b5563; font-size: 14px;">
+          💡 <strong>Maslahat:</strong> Matn qanchalik batafsil bo'lsa, savollar shunchalik qiziqarli bo'ladi!
+        </p>
+      </div>
+    </div>
+
+    <!-- Quiz Questions Section -->
+    <div id="quizQuestionsSection" style="display: none; margin-top: 30px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="bi bi-clock" style="font-size: 20px;"></i>
+            <span style="font-size: 18px; font-weight: 600;" id="quizTimer">0:00</span>
+          </div>
+          <div style="font-size: 16px; font-weight: 600;">
+            Savol <span id="quizCurrentQuestion">1</span>/<span id="quizTotalQuestions">0</span>
+          </div>
+        </div>
+        <div style="width: 100%; background: rgba(255,255,255,0.3); border-radius: 10px; height: 8px; overflow: hidden;">
+          <div id="quizProgressBar" style="width: 0%; background: white; height: 100%; border-radius: 10px; transition: width 0.5s;"></div>
+        </div>
+      </div>
+
+      <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h3 id="quizQuestionText" style="color: #1f2937; margin-bottom: 25px; font-size: 22px; line-height: 1.6;"></h3>
+
+        <div id="quizOptionsContainer" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
+          <!-- Options will be inserted here -->
+        </div>
+
+        <button onclick="nextQuizQuestion()" id="quizNextBtn" disabled style="width: 100%; padding: 15px; font-size: 16px; font-weight: 600;">
+          <span id="quizNextBtnText">Keyingi Savol</span>
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz Results Section -->
+    <div id="quizResultsSection" style="display: none; margin-top: 30px;">
+      <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 100px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 50%; margin-bottom: 20px; animation: bounce 1s infinite;">
+          <i class="bi bi-trophy-fill" style="font-size: 50px; color: white;"></i>
+        </div>
+        
+        <h2 style="color: #1f2937; margin-bottom: 15px; font-size: 32px;">Natijalar / Results</h2>
+        <div id="quizScoreDisplay" style="font-size: 60px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
+          0/0
+        </div>
+        <div id="quizPercentageDisplay" style="font-size: 24px; color: #6b7280; margin-bottom: 30px;">
+          0% to'g'ri!
+        </div>
+
+        <div id="quizAnswersReview" style="text-align: left; margin: 30px 0; padding: 20px; background: #f9fafb; border-radius: 12px;">
+          <!-- Detailed answers will be inserted here -->
+        </div>
+
+        <button onclick="resetQuiz()" style="width: 100%; padding: 15px; font-size: 16px; font-weight: 600;">
+          <i class="bi bi-arrow-clockwise"></i> Yangi Quiz Yaratish / New Quiz
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="/frontend/JS/dashboard.js"></script>
+
+    <!-- Firebase Auth -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
+    authDomain: "zioai-96e9f.firebaseapp.com",
+    projectId: "zioai-96e9f",
+    storageBucket: "zioai-96e9f.firebasestorage.app",
+    messagingSenderId: "766076125152",
+    appId: "1:766076125152:web:9cd609efb7895386547585"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // ============================================
+  // DYNAMIC USERNAME FUNCTION
+  // ============================================
+  function updateUserName(user) {
+    const userNameElement = document.getElementById('userName');
+    if (user) {
+      // Firebase displayName yoki email dan foydalanuvchi ismini olish
+      const displayName = user.displayName || user.email.split('@')[0];
+      userNameElement.textContent = displayName;
+      
+      // Tool titles ni yangilash
+      window.toolTitles.dashboard.title = `Welcome back, ${displayName}!`;
+    }
+  }
+
+  // ============================================
+  // AUTH STATE CHANGED - YANGILANGAN
+  // ============================================
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("User logged in:", user.email);
+      
+      // USERNAME NI YANGILASH
+      updateUserName(user);
+      
+      document.querySelector(".spinner-wrapper").style.display = "none";
+    } else {
+      window.location.href = "/frontend/Templates/login.html";
+    }
+  });
+
+  // ============================================
+  // LOGOUT FUNCTIONALITY
+  // ============================================
+  const logoutBtn = document.getElementById("logoutBtn");
+  const logoutModal = document.getElementById("logoutModal");
+  const cancelLogout = document.getElementById("cancelLogout");
+  const confirmLogout = document.getElementById("confirmLogout");
+
+  logoutBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logoutModal.classList.add("active");
+  });
+
+  cancelLogout?.addEventListener("click", () => {
+    logoutModal.classList.remove("active");
+  });
+
+  confirmLogout?.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.href = "/frontend/Templates/login.html";
+    } catch (error) {
+      alert("Logout error: " + error.message);
+    }
+  });
+</script>
+  </body>
+</html>
