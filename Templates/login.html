@@ -6,8 +6,8 @@
     <title>ZiyoAI — Login</title>
 
     <!-- Main CSS -->
-    <link rel="stylesheet" href="/frontend/Static/auth.css" />
-    <link rel="stylesheet" href="/frontend/CSS/main.css" />
+    <link rel="stylesheet" href="../Static/auth.css" />
+    <link rel="stylesheet" href="../CSS/main.css" />
     <!-- Font-Awesome -->
     <link
       rel="stylesheet"
@@ -37,7 +37,7 @@
       </div>
     </div>
     <!-- Back to home -->
-    <a class="back-home" href="/frontend/index.html"><i class="bi bi-chevron-left"></i></a>
+    <a class="back-home" href="../index.html"><i class="bi bi-chevron-left"></i></a>
 
     <div class="auth-container">
       <div class="main-section">
@@ -113,7 +113,7 @@
         </div>
 
         <p class="switch-link">
-          Don't have an account? <a href="/frontend/Templates/signup.html">Sign Up</a>
+          Don't have an account? <a href="./signup.html">Sign Up</a>
         </p>
       </div>
     </div>
@@ -146,7 +146,7 @@
       onAuthStateChanged(auth, (user) => {
         if (user) {
           // User is signed in, redirect to dashboard/home
-          window.location.href = "./main/dashboard.html"; // O'zingizning asosiy sahifangiz
+          window.location.href = "./dashboard.html"; // O'zingizning asosiy sahifangiz
         }
       });
 
@@ -185,7 +185,7 @@
 
           // Redirect after 1 second
           setTimeout(() => {
-            window.location.href = "./main/dashboard.html"; // O'zingizning asosiy sahifangiz
+            window.location.href = "./dashboard.html"; // O'zingizning asosiy sahifangiz
           }, 1000);
         } catch (error) {
           console.error("Login error:", error);
@@ -197,7 +197,7 @@
             errorMessage = "No account found with this email. Please sign up!";
             // Optional: Auto redirect to signup after 2 seconds
             setTimeout(() => {
-              window.location.href = "/frontend/Templates/signup.html";
+              window.location.href = "./signup.html";
             }, 2000);
           } else if (error.code === "auth/wrong-password") {
             errorMessage = "Incorrect password!";
@@ -240,7 +240,6 @@
         });
     </script>
 
-    <script src="/JS/script.js"></script>
-    <script src="/frontend/JS/app.js"></script>
+    <script src="../JS/app.js"></script>
   </body>
 </html>

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="/frontend/Static/dashboard.css" />
+    <link rel="stylesheet" href="../Static/dashboard.css" />
   </head>
   <body>
     <!-- Logout Modal -->
@@ -533,7 +533,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script src="/frontend/JS/dashboard.js"></script>
+    <script src="../JS/dashboard.js"></script>
 
     <!-- Firebase Auth -->
 <script type="module">
@@ -579,7 +579,7 @@
       
       document.querySelector(".spinner-wrapper").style.display = "none";
     } else {
-      window.location.href = "/frontend/Templates/login.html";
+      window.location.href = "./login.html";
     }
   });
 
@@ -603,7 +603,7 @@
   confirmLogout?.addEventListener("click", async () => {
     try {
       await signOut(auth);
-      window.location.href = "/frontend/Templates/login.html";
+      window.location.href = "./login.html";
     } catch (error) {
       alert("Logout error: " + error.message);
     }
