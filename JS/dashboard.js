@@ -1,4 +1,4 @@
-const API_URL = "https://ziyoai-backend.onrender.com";
+const API_URL = "https://zioai-backend.onrender.com";
 
 // ============================================
 // API Configuration
