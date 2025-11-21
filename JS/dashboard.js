@@ -1,3 +1,5 @@
+const API_URL = "https://ziyoai-backend.onrender.com";
+
 // ============================================
 // API Configuration
 // ============================================
@@ -136,14 +138,16 @@ function switchHomeworkTab(tab) {
   if (tab === "text") {
     textTab.style.display = "block";
     imageTab.style.display = "none";
-    textBtn.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    textBtn.style.background =
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     textBtn.style.color = "white";
     imageBtn.style.background = "#f3f4f6";
     imageBtn.style.color = "#6b7280";
   } else {
     textTab.style.display = "none";
     imageTab.style.display = "block";
-    imageBtn.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    imageBtn.style.background =
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     imageBtn.style.color = "white";
     textBtn.style.background = "#f3f4f6";
     textBtn.style.color = "#6b7280";
@@ -186,11 +190,11 @@ function removeImage() {
 async function fixHomework() {
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
-  
+
   // TIL OLISH
   const languageDropdown = document.getElementById("homework-language");
-  const language = languageDropdown ? languageDropdown.value : 'uz';
-  
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
   console.log("🌐 Homework Til:", language);
 
   let homeworkContent = "";
@@ -217,12 +221,12 @@ async function fixHomework() {
       homework: currentHomeworkTab === "text" ? homeworkContent : null,
       image: currentHomeworkTab === "image" ? homeworkContent : null,
       type: currentHomeworkTab,
-      language: language
+      language: language,
     };
 
     console.log("📤 Yuborilayotgan:", requestBody);
 
-    const response = await fetch(`${API_BASE_URL}/fix-homework`, {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/fix-homework`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
@@ -266,11 +270,11 @@ async function checkGrammar() {
   const input = document.getElementById("grammarInput").value;
   const result = document.getElementById("grammarResult");
   const output = document.getElementById("grammarOutput");
-  
+
   // TIL OLISH
   const languageDropdown = document.getElementById("grammar-language");
-  const language = languageDropdown ? languageDropdown.value : 'uz';
-  
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
   console.log("🌐 Grammar Til:", language);
 
   if (!input.trim()) {
@@ -282,12 +286,12 @@ async function checkGrammar() {
   showLoading(output);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/check-grammar`, {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/check-grammar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         text: input,
-        language: language
+        language: language,
       }),
     });
 
@@ -321,7 +325,7 @@ function detectWordLanguage(word) {
   // Kirill harflar - Ruscha
   const cyrillicPattern = /[\u0400-\u04FF]/;
   if (cyrillicPattern.test(word)) {
-    return 'ru-RU';
+    return "ru-RU";
   }
 
   // Lotin harflar - Inglizcha yoki O'zbekcha
@@ -329,42 +333,77 @@ function detectWordLanguage(word) {
   if (latinPattern.test(word)) {
     // Inglizcha so'zlar (eng keng tarqalgan)
     const commonEnglishWords = [
-      'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
-      'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
-      'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
-      'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their'
+      "the",
+      "be",
+      "to",
+      "of",
+      "and",
+      "a",
+      "in",
+      "that",
+      "have",
+      "i",
+      "it",
+      "for",
+      "not",
+      "on",
+      "with",
+      "he",
+      "as",
+      "you",
+      "do",
+      "at",
+      "this",
+      "but",
+      "his",
+      "by",
+      "from",
+      "they",
+      "we",
+      "say",
+      "her",
+      "she",
+      "or",
+      "an",
+      "will",
+      "my",
+      "one",
+      "all",
+      "would",
+      "there",
+      "their",
     ];
 
     // O'zbekcha uchun maxsus harflar
     const uzbekPattern = /[oʻgʻ]/i;
     if (uzbekPattern.test(word)) {
-      return 'tr-TR'; // O'zbek uchun turkcha yaqin
+      return "tr-TR"; // O'zbek uchun turkcha yaqin
     }
 
     // Agar so'z inglizcha lug'atda bo'lsa
     const lowerWord = word.toLowerCase();
     if (commonEnglishWords.includes(lowerWord)) {
-      return 'en-US';
+      return "en-US";
     }
 
     // So'z uzunligi va tuzilishiga qarab
     // Inglizcha so'zlar ko'proq 'th', 'ch', 'sh' kombinatsiyalariga ega
     if (/th|ch|sh|wh|ph/.test(word.toLowerCase())) {
-      return 'en-US';
+      return "en-US";
     }
 
     // Default: Inglizcha (lotin alifbosi uchun)
-    return 'en-US';
+    return "en-US";
   }
 
   // O'zbek-lotin alifbosi (apostroflar bilan)
   const uzbekLatinPattern = /[oʻgʻ]/;
   if (uzbekLatinPattern.test(word)) {
-    return 'tr-TR';
+    return "tr-TR";
   }
 
   // Default: Inglizcha
-  return 'en-US';
+  return "en-US";
 }
 
 // ============================================
@@ -374,10 +413,10 @@ async function buildVocab() {
   const input = document.getElementById("vocabInput").value;
   const result = document.getElementById("vocabResult");
   const output = document.getElementById("vocabOutput");
-  
+
   const languageDropdown = document.getElementById("vocab-language");
-  const language = languageDropdown ? languageDropdown.value : 'uz';
-  
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
   console.log("🌐 Interface Til:", language);
   console.log("📝 Kiritilgan so'z:", input);
 
@@ -390,12 +429,12 @@ async function buildVocab() {
   showLoading(output);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/vocabulary`, {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/vocabulary`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         word: input,
-        language: language
+        language: language,
       }),
     });
 
@@ -417,7 +456,10 @@ async function buildVocab() {
               <i class="bi bi-book"></i> ${data.word || input}
             </h5>
             <button 
-              onclick="speakWordAuto('${(data.word || input).replace(/'/g, "\\'")}', '${wordLanguage}')" 
+              onclick="speakWordAuto('${(data.word || input).replace(
+                /'/g,
+                "\\'"
+              )}', '${wordLanguage}')" 
               class="audio-btn"
               title="Listen to pronunciation">
               <i class="bi bi-volume-up-fill"></i> Eshitish
@@ -442,7 +484,7 @@ async function buildVocab() {
 // AUDIO PRONUNCIATION - AVTOMATIK TIL BILAN ✅
 // ============================================
 function speakWordAuto(word, detectedLang) {
-  if (!('speechSynthesis' in window)) {
+  if (!("speechSynthesis" in window)) {
     alert("Sizning brauzeringiz audio talaffuzni qo'llab-quvvatlamaydi!");
     return;
   }
@@ -451,19 +493,20 @@ function speakWordAuto(word, detectedLang) {
 
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = detectedLang; // ✅ Avtomatik aniqlangan til
-  utterance.rate = 0.75;  // Sekinroq - o'rganish uchun
+  utterance.rate = 0.75; // Sekinroq - o'rganish uchun
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  const audioBtn = event.target.closest('.audio-btn');
+  const audioBtn = event.target.closest(".audio-btn");
   if (audioBtn) {
-    audioBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    audioBtn.style.background =
+      "linear-gradient(135deg, #10b981 0%, #059669 100%)";
     audioBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Playing...';
   }
 
   utterance.onend = () => {
     if (audioBtn) {
-      audioBtn.style.background = '';
+      audioBtn.style.background = "";
       audioBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Eshitish';
     }
   };
@@ -472,17 +515,17 @@ function speakWordAuto(word, detectedLang) {
     console.error("Audio xatosi:", e);
     alert("Audio talaffuzda xatolik yuz berdi!");
     if (audioBtn) {
-      audioBtn.style.background = '';
+      audioBtn.style.background = "";
       audioBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Eshitish';
     }
   };
 
   window.speechSynthesis.speak(utterance);
-  
+
   console.log("🔊 Talaffuz:", {
     word: word,
     language: detectedLang,
-    rate: utterance.rate
+    rate: utterance.rate,
   });
 }
 
@@ -493,7 +536,7 @@ let motivationInterval;
 
 async function showMotivation() {
   try {
-    const response = await fetch("/api/motivation");
+    const response = await fetch(`${API_URL}/api/motivation`);
     const data = await response.json();
 
     if (data.success) {
@@ -540,11 +583,14 @@ let soundEnabled = true;
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
 }
 
 function updateMiniTimerDisplay() {
-  document.getElementById("miniTimerDisplay").textContent = formatTime(miniTimeLeft);
+  document.getElementById("miniTimerDisplay").textContent =
+    formatTime(miniTimeLeft);
 }
 
 function startMiniTimer() {
@@ -665,17 +711,21 @@ function closeTimerSettings() {
 
 function setPomodoroTime(minutes) {
   pomodoroMinutes = minutes;
-  document.querySelectorAll(".setting-group:first-child .time-option").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+  document
+    .querySelectorAll(".setting-group:first-child .time-option")
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
   event.target.classList.add("active");
 }
 
 function setBreakTime(minutes) {
   breakMinutes = minutes;
-  document.querySelectorAll(".setting-group:nth-child(2) .time-option").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+  document
+    .querySelectorAll(".setting-group:nth-child(2) .time-option")
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
   event.target.classList.add("active");
 }
 
@@ -699,7 +749,7 @@ function saveTimerSettings() {
 window.addEventListener("load", () => {
   updateMiniTimerDisplay();
   startMotivationSystem();
-  
+
   setTimeout(() => {
     document.querySelector(".spinner-wrapper").style.display = "none";
   }, 500);
@@ -710,7 +760,6 @@ window.addEventListener("beforeunload", () => {
     clearInterval(motivationInterval);
   }
 });
-
 
 /* ========================================
    QUIZ GENERATOR FUNCTIONALITY - YANGILANGAN
@@ -725,13 +774,15 @@ let quizTimerInterval = null;
 
 // Generate Quiz Questions - SERVER ORQALI
 async function generateQuizQuestions() {
-  const article = document.getElementById('quizArticleInput').value.trim();
-  const questionCount = parseInt(document.getElementById('quizQuestionCount').value);
-  const difficulty = document.getElementById('quizDifficulty').value;
-  const language = document.getElementById('quiz-language').value;
+  const article = document.getElementById("quizArticleInput").value.trim();
+  const questionCount = parseInt(
+    document.getElementById("quizQuestionCount").value
+  );
+  const difficulty = document.getElementById("quizDifficulty").value;
+  const language = document.getElementById("quiz-language").value;
 
   if (!article) {
-    alert('Iltimos, matn kiriting!');
+    alert("Iltimos, matn kiriting!");
     return;
   }
 
@@ -739,42 +790,43 @@ async function generateQuizQuestions() {
   const generateBtn = event.target;
   const originalText = generateBtn.innerHTML;
   generateBtn.disabled = true;
-  generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yaratilmoqda...';
+  generateBtn.innerHTML =
+    '<i class="bi bi-hourglass-split"></i> Yaratilmoqda...';
 
   try {
-    console.log('📤 Quiz so\'rov yuborilmoqda...', {
+    console.log("📤 Quiz so'rov yuborilmoqda...", {
       articleLength: article.length,
       questionCount,
       difficulty,
-      language
+      language,
     });
 
     // SERVER GA SO'ROV YUBORISH
-    const response = await fetch('/api/generate-quiz', {
-      method: 'POST',
+    const response = await fetch(`${API_URL}/api/generate-quiz`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         article: article,
         questionCount: questionCount,
         difficulty: difficulty,
-        language: language
-      })
+        language: language,
+      }),
     });
 
-    console.log('📥 Server javobi:', response.status);
+    console.log("📥 Server javobi:", response.status);
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Server xatosi');
+      throw new Error(errorData.error || "Server xatosi");
     }
 
     const data = await response.json();
-    console.log('✅ Quiz yaratildi:', data);
+    console.log("✅ Quiz yaratildi:", data);
 
     if (!data.success || !data.questions) {
-      throw new Error('Quiz yaratilmadi');
+      throw new Error("Quiz yaratilmadi");
     }
 
     // Quiz ma'lumotlarini saqlash
@@ -782,24 +834,27 @@ async function generateQuizQuestions() {
     currentQuizQuestion = 0;
     quizAnswers = [];
     quizSelectedAnswer = null;
-    
+
     // Timer sozlash (1 daqiqa har bir savol uchun)
     quizTimeLeft = questionCount * 60;
-    
+
     // Ko'rinishni o'zgartirish
-    document.getElementById('quizInputForm').style.display = 'none';
-    document.getElementById('quizQuestionsSection').style.display = 'block';
-    document.getElementById('quizResultsSection').style.display = 'none';
-    
+    document.getElementById("quizInputForm").style.display = "none";
+    document.getElementById("quizQuestionsSection").style.display = "block";
+    document.getElementById("quizResultsSection").style.display = "none";
+
     // Timerni boshlash
     startQuizTimer();
-    
+
     // Birinchi savolni ko'rsatish
     displayQuizQuestion();
-    
   } catch (error) {
-    console.error('❌ Xatolik:', error);
-    alert('Xatolik yuz berdi: ' + error.message + '\n\nIltimos, qaytadan urinib ko\'ring.');
+    console.error("❌ Xatolik:", error);
+    alert(
+      "Xatolik yuz berdi: " +
+        error.message +
+        "\n\nIltimos, qaytadan urinib ko'ring."
+    );
   } finally {
     generateBtn.disabled = false;
     generateBtn.innerHTML = originalText;
@@ -809,69 +864,70 @@ async function generateQuizQuestions() {
 // Display Quiz Question
 function displayQuizQuestion() {
   if (!quizData || !quizData.questions) {
-    console.error('❌ Quiz ma\'lumotlari yo\'q');
+    console.error("❌ Quiz ma'lumotlari yo'q");
     return;
   }
 
   const question = quizData.questions[currentQuizQuestion];
   const totalQuestions = quizData.questions.length;
-  
+
   // Update question counter
-  document.getElementById('quizCurrentQuestion').textContent = currentQuizQuestion + 1;
-  document.getElementById('quizTotalQuestions').textContent = totalQuestions;
-  
+  document.getElementById("quizCurrentQuestion").textContent =
+    currentQuizQuestion + 1;
+  document.getElementById("quizTotalQuestions").textContent = totalQuestions;
+
   // Update progress bar
   const progress = ((currentQuizQuestion + 1) / totalQuestions) * 100;
-  document.getElementById('quizProgressBar').style.width = progress + '%';
-  
+  document.getElementById("quizProgressBar").style.width = progress + "%";
+
   // Display question text
-  document.getElementById('quizQuestionText').textContent = question.question;
-  
+  document.getElementById("quizQuestionText").textContent = question.question;
+
   // Display options
-  const optionsContainer = document.getElementById('quizOptionsContainer');
-  optionsContainer.innerHTML = '';
-  
+  const optionsContainer = document.getElementById("quizOptionsContainer");
+  optionsContainer.innerHTML = "";
+
   question.options.forEach((option, index) => {
-    const button = document.createElement('button');
-    button.className = 'quiz-option';
+    const button = document.createElement("button");
+    button.className = "quiz-option";
     button.textContent = option;
     button.onclick = () => selectQuizAnswer(index);
     optionsContainer.appendChild(button);
   });
-  
+
   // Reset selected answer
   quizSelectedAnswer = null;
-  document.getElementById('quizNextBtn').disabled = true;
-  
+  document.getElementById("quizNextBtn").disabled = true;
+
   // Update button text
-  const nextBtnText = document.getElementById('quizNextBtnText');
+  const nextBtnText = document.getElementById("quizNextBtnText");
   if (currentQuizQuestion < totalQuestions - 1) {
-    nextBtnText.textContent = 'Keyingi Savol';
+    nextBtnText.textContent = "Keyingi Savol";
   } else {
-    nextBtnText.textContent = 'Yakunlash';
+    nextBtnText.textContent = "Yakunlash";
   }
 }
 
 // Select Quiz Answer
 function selectQuizAnswer(index) {
   quizSelectedAnswer = index;
-  
+
   // Remove selected class from all options
-  const options = document.querySelectorAll('.quiz-option');
-  options.forEach(opt => opt.classList.remove('selected'));
-  
+  const options = document.querySelectorAll(".quiz-option");
+  options.forEach((opt) => opt.classList.remove("selected"));
+
   // Add selected class to chosen option
-  options[index].classList.add('selected');
-  
+  options[index].classList.add("selected");
+
   // Enable next button
-  document.getElementById('quizNextBtn').disabled = false;
+  document.getElementById("quizNextBtn").disabled = false;
 }
 
 // Next Quiz Question
 function nextQuizQuestion() {
   // Save answer
   quizAnswers.push(quizSelectedAnswer);
-  
+
   // Check if there are more questions
   if (currentQuizQuestion < quizData.questions.length - 1) {
     currentQuizQuestion++;
@@ -887,25 +943,27 @@ function startQuizTimer() {
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
-  
+
   quizTimerInterval = setInterval(() => {
     quizTimeLeft--;
-    
+
     // Update timer display
     const minutes = Math.floor(quizTimeLeft / 60);
     const seconds = quizTimeLeft % 60;
-    const timerDisplay = document.getElementById('quizTimer');
-    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    
+    const timerDisplay = document.getElementById("quizTimer");
+    timerDisplay.textContent = `${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+
     // Warning colors
     if (quizTimeLeft <= 60) {
-      timerDisplay.classList.add('warning');
+      timerDisplay.classList.add("warning");
     }
     if (quizTimeLeft <= 30) {
-      timerDisplay.classList.remove('warning');
-      timerDisplay.classList.add('danger');
+      timerDisplay.classList.remove("warning");
+      timerDisplay.classList.add("danger");
     }
-    
+
     // Time's up
     if (quizTimeLeft <= 0) {
       clearInterval(quizTimerInterval);
@@ -920,10 +978,10 @@ function finishQuiz() {
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
-  
+
   // Hide quiz section
-  document.getElementById('quizQuestionsSection').style.display = 'none';
-  
+  document.getElementById("quizQuestionsSection").style.display = "none";
+
   // Show results
   displayQuizResults();
 }
@@ -937,49 +995,63 @@ function displayQuizResults() {
       score++;
     }
   });
-  
+
   const totalQuestions = quizData.questions.length;
   const percentage = ((score / totalQuestions) * 100).toFixed(0);
-  
+
   // Update score display
-  document.getElementById('quizScoreDisplay').textContent = `${score}/${totalQuestions}`;
-  document.getElementById('quizPercentageDisplay').textContent = `${percentage}% to'g'ri!`;
-  
+  document.getElementById(
+    "quizScoreDisplay"
+  ).textContent = `${score}/${totalQuestions}`;
+  document.getElementById(
+    "quizPercentageDisplay"
+  ).textContent = `${percentage}% to'g'ri!`;
+
   // Display detailed answers
-  const reviewContainer = document.getElementById('quizAnswersReview');
-  reviewContainer.innerHTML = '';
-  
+  const reviewContainer = document.getElementById("quizAnswersReview");
+  reviewContainer.innerHTML = "";
+
   quizData.questions.forEach((question, index) => {
     const userAnswer = quizAnswers[index];
     const correctAnswer = question.correctAnswer;
     const isCorrect = userAnswer === correctAnswer;
-    
-    const reviewItem = document.createElement('div');
-    reviewItem.className = `quiz-review-item ${isCorrect ? 'correct' : 'incorrect'}`;
-    
+
+    const reviewItem = document.createElement("div");
+    reviewItem.className = `quiz-review-item ${
+      isCorrect ? "correct" : "incorrect"
+    }`;
+
     reviewItem.innerHTML = `
       <div class="quiz-review-question">
         ${index + 1}. ${question.question}
       </div>
-      <div class="quiz-review-answer user ${isCorrect ? 'correct' : 'incorrect'}">
-        ${isCorrect ? '✅' : '❌'} Sizning javobingiz: ${question.options[userAnswer] || 'Javob berilmagan'}
+      <div class="quiz-review-answer user ${
+        isCorrect ? "correct" : "incorrect"
+      }">
+        ${isCorrect ? "✅" : "❌"} Sizning javobingiz: ${
+      question.options[userAnswer] || "Javob berilmagan"
+    }
       </div>
-      ${!isCorrect ? `
+      ${
+        !isCorrect
+          ? `
         <div class="quiz-review-answer correct-answer">
           ✅ To'g'ri javob: ${question.options[correctAnswer]}
         </div>
-      ` : ''}
+      `
+          : ""
+      }
       <div class="quiz-review-explanation">
         💡 ${question.explanation}
       </div>
     `;
-    
+
     reviewContainer.appendChild(reviewItem);
   });
-  
+
   // Show results section
-  document.getElementById('quizResultsSection').style.display = 'block';
-  
+  document.getElementById("quizResultsSection").style.display = "block";
+
   // Confetti effect for high scores
   if (percentage >= 80) {
     createConfetti();
@@ -993,39 +1065,40 @@ function resetQuiz() {
   quizAnswers = [];
   quizSelectedAnswer = null;
   quizTimeLeft = 0;
-  
+
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
-  
+
   // Clear inputs
-  document.getElementById('quizArticleInput').value = '';
-  
+  document.getElementById("quizArticleInput").value = "";
+
   // Show input form
-  document.getElementById('quizInputForm').style.display = 'block';
-  document.getElementById('quizQuestionsSection').style.display = 'none';
-  document.getElementById('quizResultsSection').style.display = 'none';
+  document.getElementById("quizInputForm").style.display = "block";
+  document.getElementById("quizQuestionsSection").style.display = "none";
+  document.getElementById("quizResultsSection").style.display = "none";
 }
 
 // Create Confetti Effect
 function createConfetti() {
-  const colors = ['#667eea', '#764ba2', '#f093fb', '#fbbf24', '#10b981'];
+  const colors = ["#667eea", "#764ba2", "#f093fb", "#fbbf24", "#10b981"];
   const confettiCount = 50;
-  
+
   for (let i = 0; i < confettiCount; i++) {
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti';
-    confetti.style.left = Math.random() * 100 + '%';
-    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-    confetti.style.animationDelay = Math.random() * 3 + 's';
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+    confetti.style.left = Math.random() * 100 + "%";
+    confetti.style.background =
+      colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 3 + "s";
     document.body.appendChild(confetti);
-    
+
     setTimeout(() => confetti.remove(), 3000);
   }
 }
 
 // Cleanup timer on page unload
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
