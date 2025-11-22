@@ -444,10 +444,7 @@ async function buildVocab() {
               <i class="bi bi-book"></i> ${data.word || input}
             </h5>
             <button 
-              onclick="speakWordAuto('${(data.word || input).replace(
-                /'/g,
-                "\\'"
-              )}', '${wordLanguage}')" 
+              onclick="playPronunciation('${(data.word || input).replace(/'/g, "\\'")}')" 
               class="audio-btn"
               title="Listen to pronunciation">
               <i class="bi bi-volume-up-fill"></i> Eshitish
@@ -469,9 +466,45 @@ async function buildVocab() {
 }
 
 // ============================================
-// AUDIO PRONUNCIATION - AVTOMATIK TIL BILAN ✅
+// AUDIO PRONUNCIATION - GOOGLE TTS ✅
 // ============================================
-function speakWordAuto(word, detectedLang) {
+function playPronunciation(word) {
+  const audioBtn = event.target.closest(".audio-btn");
+  
+  // Tugma holatini o'zgartirish
+  if (audioBtn) {
+    audioBtn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+    audioBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Playing...';
+  }
+
+  // Google Translate TTS - barcha browserlarda bir xil ishlaydi
+  const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=tw-ob`;
+  
+  const audio = new Audio(audioUrl);
+  
+  audio.onended = () => {
+    if (audioBtn) {
+      audioBtn.style.background = "";
+      audioBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Eshitish';
+    }
+  };
+
+  audio.onerror = (e) => {
+    console.error("Google TTS xatosi, zaxira variantga o'tilmoqda...", e);
+    // Zaxira: Browser TTS
+    fallbackSpeech(word, audioBtn);
+  };
+
+  audio.play().catch(error => {
+    console.error("Audio play xatosi:", error);
+    fallbackSpeech(word, audioBtn);
+  });
+
+  console.log("🔊 Google TTS talaffuz:", word);
+}
+
+// Zaxira variant - Browser TTS
+function fallbackSpeech(word, audioBtn) {
   if (!("speechSynthesis" in window)) {
     alert("Sizning brauzeringiz audio talaffuzni qo'llab-quvvatlamaydi!");
     return;
@@ -480,17 +513,10 @@ function speakWordAuto(word, detectedLang) {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = detectedLang; // ✅ Avtomatik aniqlangan til
-  utterance.rate = 0.75; // Sekinroq - o'rganish uchun
+  utterance.lang = "en-US";
+  utterance.rate = 0.75;
   utterance.pitch = 1;
   utterance.volume = 1;
-
-  const audioBtn = event.target.closest(".audio-btn");
-  if (audioBtn) {
-    audioBtn.style.background =
-      "linear-gradient(135deg, #10b981 0%, #059669 100%)";
-    audioBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Playing...';
-  }
 
   utterance.onend = () => {
     if (audioBtn) {
@@ -499,9 +525,7 @@ function speakWordAuto(word, detectedLang) {
     }
   };
 
-  utterance.onerror = (e) => {
-    console.error("Audio xatosi:", e);
-    alert("Audio talaffuzda xatolik yuz berdi!");
+  utterance.onerror = () => {
     if (audioBtn) {
       audioBtn.style.background = "";
       audioBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Eshitish';
@@ -509,12 +533,7 @@ function speakWordAuto(word, detectedLang) {
   };
 
   window.speechSynthesis.speak(utterance);
-
-  console.log("🔊 Talaffuz:", {
-    word: word,
-    language: detectedLang,
-    rate: utterance.rate,
-  });
+  console.log("🔊 Fallback TTS ishlatilmoqda:", word);
 }
 
 // ============================================
