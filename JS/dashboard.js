@@ -1,13 +1,9 @@
 const API_URL = "https://zioai-backend.onrender.com";
 
-// ============================================
 // API Configuration
-// ============================================
 const API_BASE_URL = "/api";
 
-// ============================================
 // Sidebar Toggle
-// ============================================
 const sidebar = document.querySelector(".sidebar");
 const sidebarToggler = document.querySelector(".sidebar-toggler");
 const menuToggler = document.querySelector(".menu-toggler");
@@ -35,9 +31,7 @@ window.addEventListener("resize", () => {
   }
 });
 
-// ============================================
 // Tool Navigation
-// ============================================
 const navLinks = document.querySelectorAll(".nav-link[data-tool]");
 const toolCards = document.querySelectorAll(".tool-card[data-tool]");
 const toolContents = document.querySelectorAll(".tool-content");
@@ -98,9 +92,7 @@ toolCards.forEach((card) => {
   });
 });
 
-// ============================================
 // Helper Functions
-// ============================================
 function showLoading(outputElement) {
   outputElement.innerHTML = `
     <div style="text-align: center; padding: 30px;">
@@ -121,9 +113,7 @@ function showError(outputElement, message) {
   `;
 }
 
-// ============================================
 // IMAGE UPLOAD SYSTEM
-// ============================================
 let currentHomeworkTab = "text";
 let uploadedImageBase64 = null;
 
@@ -184,9 +174,7 @@ function removeImage() {
   document.getElementById("homeworkImageInput").value = "";
 }
 
-// ============================================
-// HOMEWORK FIXER - TIL BILAN ✅
-// ============================================
+// HOMEWORK FIXER - WITH LAN
 async function fixHomework() {
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
