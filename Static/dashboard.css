@@ -2286,8 +2286,29 @@ input:checked + .slider:before {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 5px;
 }
 
 .copy-btn:hover {
   background: #4f46e5;
+}
+
+/* Speaking */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+.exam-type-btn:hover {
+  border-color: #6366f1 !important;
+  background: #f5f3ff !important;
+}
+
+#startRecordBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+#stopRecordBtn:hover {
+  transform: scale(1.1);
 }

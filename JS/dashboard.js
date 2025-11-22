@@ -1250,3 +1250,380 @@ function clearStudyAssistant() {
     btn.classList.remove('active');
   });
 }
+
+// ============================================
+// SPEAKING FEEDBACK - FRONTEND (WEB SPEECH API)
+// ============================================
+
+// Global variables
+let recognition = null;
+let isRecording = false;
+let recordingTimer = null;
+let recordingSeconds = 0;
+let selectedExamType = null;
+let finalTranscript = '';
+
+// Exam type tanlash
+function selectExamType(type) {
+  selectedExamType = type;
+  
+  // Barcha tugmalardan active olib tashlash
+  document.querySelectorAll('.exam-type-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.background = '#fff';
+    btn.style.color = '#374151';
+    btn.style.border = '2px solid #e5e7eb';
+  });
+  
+  // Tanlangan tugmaga active qo'shish
+  const activeBtn = event.target.closest('.exam-type-btn');
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    activeBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
+    activeBtn.style.color = 'white';
+    activeBtn.style.border = '2px solid #6366f1';
+  }
+  
+  // Info text yangilash
+  const infoText = document.getElementById('examInfoText');
+  if (type === 'IELTS') {
+    infoText.innerHTML = '📊 <strong>IELTS:</strong> Band 1-9 gacha baholanadi (Fluency, Vocabulary, Grammar, Pronunciation)';
+  } else {
+    infoText.innerHTML = `📊 <strong>Multilevel (O'zbekiston):</strong> 0-75 ball
+    <br>• 0-37 = A1-A2 | 38-50 = B1 | 51-64 = B2 | 65-75 = C1`;
+  }
+  
+  console.log("📝 Exam type tanlandi:", type);
+}
+
+// Ovoz yozishni boshlash (Web Speech API)
+async function startRecording() {
+  const topic = document.getElementById('speakingTopicInput').value.trim();
+  
+  if (!topic) {
+    alert("Iltimos, avval topic kiriting!");
+    return;
+  }
+  
+  if (!selectedExamType) {
+    alert("Iltimos, IELTS yoki Multilevel tanlang!");
+    return;
+  }
+  
+  // Web Speech API support check
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+  if (!SpeechRecognition) {
+    alert("❌ Afsuski, sizning brauzeringiz ovozni tanishni qo'llab-quvvatlamaydi!\n\n✅ Iltimos Chrome, Edge yoki Safari ishlatib ko'ring.");
+    return;
+  }
+  
+  try {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US'; // English uchun
+    // Agar o'zbek tilida ishlashi kerak bo'lsa: recognition.lang = 'uz-UZ';
+    // Russian uchun: recognition.lang = 'ru-RU';
+    
+    finalTranscript = '';
+    
+    recognition.onstart = () => {
+      isRecording = true;
+      recordingSeconds = 0;
+      
+      // UI yangilash
+      document.getElementById('startRecordBtn').style.display = 'none';
+      document.getElementById('stopRecordBtn').style.display = 'flex';
+      document.getElementById('recordingStatus').style.display = 'flex';
+      
+      // Timer boshlash
+      recordingTimer = setInterval(() => {
+        recordingSeconds++;
+        const mins = Math.floor(recordingSeconds / 60);
+        const secs = recordingSeconds % 60;
+        document.getElementById('recordingTime').textContent = 
+          `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }, 1000);
+      
+      console.log("🎤 Ovoz yozish boshlandi");
+    };
+    
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      // Real-time transcript ko'rsatish (optional)
+      console.log('📝 Interim:', interimTranscript);
+      console.log('✅ Final so far:', finalTranscript);
+    };
+    
+    recognition.onerror = (event) => {
+      console.error("❌ Speech recognition error:", event.error);
+      
+      if (event.error === 'no-speech') {
+        alert("⚠️ Ovoz eshitilmadi. Iltimos, mikrofonga yaqinroq gapiring va yana urinib ko'ring.");
+      } else if (event.error === 'not-allowed') {
+        alert("❌ Mikrofonga ruxsat berilmadi!\n\n✅ Brauzer sozlamalaridan mikrofon ruxsatini yoqing.");
+      } else if (event.error === 'network') {
+        alert("❌ Internet ulanishi yo'q. Iltimos, internetni tekshiring.");
+      } else {
+        alert(`❌ Xatolik yuz berdi: ${event.error}`);
+      }
+      
+      stopRecording();
+    };
+    
+    recognition.onend = () => {
+      console.log("🛑 Recognition tugadi");
+      
+      if (isRecording) {
+        // Agar to'xtatilgan bo'lsa, feedback olish
+        processTranscript(finalTranscript.trim());
+      }
+    };
+    
+    // Start recognition
+    recognition.start();
+    
+  } catch (error) {
+    console.error("❌ Mikrofon xatosi:", error);
+    alert("❌ Mikrofonga ulanishda xatolik!\n\n✅ Iltimos, brauzer sozlamalarini tekshiring yoki Chrome/Edge ishlatib ko'ring.");
+  }
+}
+
+// Ovoz yozishni to'xtatish
+function stopRecording() {
+  if (recognition && isRecording) {
+    recognition.stop();
+    isRecording = false;
+    
+    // Timer to'xtatish
+    clearInterval(recordingTimer);
+    
+    // UI yangilash
+    document.getElementById('startRecordBtn').style.display = 'flex';
+    document.getElementById('stopRecordBtn').style.display = 'none';
+    document.getElementById('recordingStatus').style.display = 'none';
+    
+    console.log("🛑 Ovoz yozish to'xtatildi");
+  }
+}
+
+// Transcriptni qayta ishlash va feedback olish
+async function processTranscript(transcript) {
+  const topic = document.getElementById('speakingTopicInput').value.trim();
+  const result = document.getElementById('speakingResult');
+  const output = document.getElementById('speakingOutput');
+  
+  const languageDropdown = document.getElementById('speaking-language');
+  const language = languageDropdown ? languageDropdown.value : 'uz';
+  
+  if (!transcript || transcript.length < 10) {
+    output.innerHTML = `
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>⚠️ Ovoz yetarli emas!</strong>
+        <p>Iltimos, kamida 10 ta so'z gapiring va qayta urinib ko'ring.</p>
+        <p style="margin-top: 10px; font-size: 13px; color: #6b7280;">
+          💡 <strong>Maslahat:</strong> Mikrofonga yaqinroq gapiring va aniq talaffuz qiling.
+        </p>
+      </div>
+    `;
+    return;
+  }
+  
+  result.style.display = 'block';
+  showLoading(output);
+  
+  try {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/speaking-feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: transcript,
+        topic: topic,
+        examType: selectedExamType,
+        language: language
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Server error');
+    }
+    
+    if (data.success && data.result) {
+      output.innerHTML = `
+        <div class="alert alert-success" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: none; border-radius: 12px; padding: 25px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h5 style="margin: 0; color: #1f2937;">
+              <i class="bi bi-mic-fill" style="color: #6366f1;"></i> 
+              ${selectedExamType} Speaking Feedback
+            </h5>
+            <span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
+              ${selectedExamType}
+            </span>
+          </div>
+          
+          <div style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #6366f1;">
+            <h6 style="color: #6b7280; margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase;">
+              📝 Sizning javobingiz:
+            </h6>
+            <p style="color: #1f2937; line-height: 1.6; margin: 0; font-style: italic;">"${transcript}"</p>
+          </div>
+          
+          <hr style="margin: 15px 0; border-color: #d1fae5;">
+          <div style="white-space: pre-wrap; line-height: 1.8;">
+            ${data.result}
+          </div>
+        </div>
+      `;
+      
+      // Auto-scroll natijaga
+      setTimeout(() => {
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+      
+    } else {
+      throw new Error("AI dan javob kelmadi");
+    }
+  } catch (error) {
+    console.error("❌ Speaking Feedback xatosi:", error);
+    showError(output, error.message);
+  }
+}
+
+// To'g'ridan-to'g'ri text yuborish (ovoz yozmasdan)
+async function submitSpeakingText() {
+  const transcript = document.getElementById('speakingTextInput').value.trim();
+  const topic = document.getElementById('speakingTopicInput').value.trim();
+  const result = document.getElementById('speakingResult');
+  const output = document.getElementById('speakingOutput');
+  
+  const languageDropdown = document.getElementById('speaking-language');
+  const language = languageDropdown ? languageDropdown.value : 'uz';
+  
+  if (!topic) {
+    alert("Iltimos, topic kiriting!");
+    return;
+  }
+  
+  if (!selectedExamType) {
+    alert("Iltimos, IELTS yoki Multilevel tanlang!");
+    return;
+  }
+  
+  if (!transcript) {
+    alert("Iltimos, javobingizni yozing!");
+    return;
+  }
+  
+  result.style.display = 'block';
+  showLoading(output);
+  
+  try {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/speaking-feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: transcript,
+        topic: topic,
+        examType: selectedExamType,
+        language: language
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Server error');
+    }
+    
+    if (data.success && data.result) {
+      output.innerHTML = `
+        <div class="alert alert-success" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: none; border-radius: 12px; padding: 25px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h5 style="margin: 0; color: #1f2937;">
+              <i class="bi bi-mic-fill" style="color: #6366f1;"></i> 
+              ${selectedExamType} Speaking Feedback
+            </h5>
+            <span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
+              ${selectedExamType}
+            </span>
+          </div>
+          <hr style="margin: 15px 0; border-color: #d1fae5;">
+          <div style="white-space: pre-wrap; line-height: 1.8;">
+            ${data.result}
+          </div>
+        </div>
+      `;
+      
+      // Auto-scroll natijaga
+      setTimeout(() => {
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+      
+    } else {
+      throw new Error("AI dan javob kelmadi");
+    }
+  } catch (error) {
+    console.error("❌ Speaking Feedback xatosi:", error);
+    showError(output, error.message);
+  }
+}
+
+// Speaking tozalash
+function clearSpeaking() {
+  document.getElementById('speakingTopicInput').value = '';
+  document.getElementById('speakingTextInput').value = '';
+  document.getElementById('speakingResult').style.display = 'none';
+  selectedExamType = null;
+  finalTranscript = '';
+  
+  document.querySelectorAll('.exam-type-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.background = '#fff';
+    btn.style.color = '#374151';
+    btn.style.border = '2px solid #e5e7eb';
+  });
+  
+  document.getElementById('examInfoText').innerHTML = '📊 Imtihon turini tanlang';
+  
+  console.log("🧹 Speaking tool tozalandi");
+}
+
+// Helper functions
+function showLoading(element) {
+  element.innerHTML = `
+    <div style="text-align: center; padding: 40px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-weight: 600;">🤖 AI feedback tayyorlanmoqda...</p>
+      <p style="color: #9ca3af; font-size: 13px;">Bu 10-15 soniya davom etishi mumkin</p>
+    </div>
+  `;
+}
+
+function showError(element, message) {
+  element.innerHTML = `
+    <div class="alert alert-danger" style="border-left: 4px solid #ef4444;">
+      <i class="bi bi-exclamation-triangle"></i>
+      <strong>Xatolik:</strong> ${message}
+      <hr style="margin: 15px 0;">
+      <p style="margin: 0; font-size: 14px;">
+        💡 <strong>Maslahat:</strong> Iltimos, internetingizni tekshiring yoki qayta urinib ko'ring.
+      </p>
+    </div>
+  `;
+}
