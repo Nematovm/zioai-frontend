@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
     "@google/generative-ai": "^0.24.1",
     "multer": "^2.0.2"
   }
