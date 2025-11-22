@@ -2221,3 +2221,15 @@ input:checked + .slider:before {
     display: block !important;
   }
 }
+
+.quote-text {
+  display: block;
+}
+
+.quote-author {
+  display: block;
+  font-style: italic;
+  font-size: 0.85em;
+  margin-top: 8px;
+  opacity: 0.8;
+}

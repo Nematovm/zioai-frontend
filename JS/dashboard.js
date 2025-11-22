@@ -550,7 +550,12 @@ async function showMotivation() {
       const toast = document.getElementById("motivationToast");
       const text = document.querySelector(".motivation-text");
 
-      text.textContent = data.quote;
+      text.innerHTML = `
+        ${data.quote}
+        <span style="display: block; font-style: italic; font-size: 0.85em; margin-top: 8px; opacity: 0.8;">
+          (${data.author.replace("— ", "")})
+        </span>
+      `;
       toast.classList.add("show");
 
       setTimeout(() => {
@@ -575,7 +580,6 @@ function startMotivationSystem() {
     showMotivation();
   }, 300000);
 }
-
 // ============================================
 // POMODORO TIMER
 // ============================================
