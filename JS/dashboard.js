@@ -1614,8 +1614,8 @@ function showLoading(element) {
       <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <p style="margin-top: 20px; color: #6b7280; font-weight: 600;">🎙️ Audio tahlil qilinyapti...</p>
-      <p style="color: #9ca3af; font-size: 13px;">Bu 20-30 soniya davom etishi mumkin</p>
+      <p style="margin-top: 20px; color: #6b7280; font-weight: 600;">✨ AI Processing...</p>
+      <p style="color: #9ca3af; font-size: 13px;">This may take 20–30 seconds.</p>
     </div>
   `;
 }
