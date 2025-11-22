@@ -838,6 +838,10 @@ main {
 .alert-warning {
     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
     border: 2px solid #ffc107 !important;
+    border-radius: 12px !important;
+    padding: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Loading spinner style */
@@ -910,11 +914,13 @@ main {
 
 .ai-section {
     margin: 12px 0;
-    padding: 12px;
+    padding: 15px;
     background: white;
     border-radius: 10px;
     border-left: 4px solid #667eea;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 
@@ -2160,5 +2166,30 @@ input:checked + .slider:before {
     flex-direction: column;
     gap: 10px;
     align-items: flex-start !important;
+  }
+
+  /* Result box full width */
+  .result-box {
+    width: 100%;
+    padding: 10px;
+  }
+
+  #homeworkOutput,
+  #grammarOutput,
+  #vocabOutput {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .alert-warning,
+  .alert-success,
+  .alert-info {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .ai-section {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
