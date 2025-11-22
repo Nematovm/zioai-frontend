@@ -1252,7 +1252,7 @@ function clearStudyAssistant() {
 }
 
 // ============================================
-// SPEAKING FEEDBACK - FRONTEND (WEB SPEECH API)
+// SPEAKING FEEDBACK - FRONTEND (WEB SPEECH API - FIXED)
 // ============================================
 
 // Global variables
@@ -1323,8 +1323,7 @@ async function startRecording() {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US'; // English uchun
-    // Agar o'zbek tilida ishlashi kerak bo'lsa: recognition.lang = 'uz-UZ';
-    // Russian uchun: recognition.lang = 'ru-RU';
+    recognition.maxAlternatives = 1;
     
     finalTranscript = '';
     
@@ -1347,6 +1346,22 @@ async function startRecording() {
       }, 1000);
       
       console.log("🎤 Ovoz yozish boshlandi");
+      
+      // Real-time transcript ko'rsatish uchun div yaratish
+      const result = document.getElementById('speakingResult');
+      const output = document.getElementById('speakingOutput');
+      result.style.display = 'block';
+      output.innerHTML = `
+        <div class="alert alert-info" style="background: #f0f9ff; border-left: 4px solid #3b82f6;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 50%; animation: pulse 1s infinite;"></div>
+            <strong>🎤 Gapiring...</strong>
+          </div>
+          <div id="liveTranscript" style="min-height: 50px; padding: 10px; background: white; border-radius: 8px; font-style: italic; color: #6b7280;">
+            <em>Sizning ovozingiz bu yerda ko'rinadi...</em>
+          </div>
+        </div>
+      `;
     };
     
     recognition.onresult = (event) => {
@@ -1356,27 +1371,44 @@ async function startRecording() {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
           finalTranscript += transcript + ' ';
+          console.log('✅ Final added:', transcript);
         } else {
           interimTranscript += transcript;
         }
       }
       
-      // Real-time transcript ko'rsatish (optional)
-      console.log('📝 Interim:', interimTranscript);
-      console.log('✅ Final so far:', finalTranscript);
+      // Real-time transcript ko'rsatish
+      const liveDiv = document.getElementById('liveTranscript');
+      if (liveDiv) {
+        const displayText = finalTranscript + '<span style="color: #9ca3af;">' + interimTranscript + '</span>';
+        liveDiv.innerHTML = displayText || '<em style="color: #9ca3af;">Gapiring...</em>';
+      }
+      
+      console.log('📝 Total transcript:', finalTranscript);
     };
     
     recognition.onerror = (event) => {
       console.error("❌ Speech recognition error:", event.error);
       
+      let errorMsg = '';
+      
       if (event.error === 'no-speech') {
-        alert("⚠️ Ovoz eshitilmadi. Iltimos, mikrofonga yaqinroq gapiring va yana urinib ko'ring.");
+        errorMsg = "⚠️ Ovoz eshitilmadi. Iltimos, mikrofonga yaqinroq gapiring va yana urinib ko'ring.";
       } else if (event.error === 'not-allowed') {
-        alert("❌ Mikrofonga ruxsat berilmadi!\n\n✅ Brauzer sozlamalaridan mikrofon ruxsatini yoqing.");
+        errorMsg = "❌ Mikrofonga ruxsat berilmadi!\n\n✅ Brauzer sozlamalaridan mikrofon ruxsatini yoqing.";
       } else if (event.error === 'network') {
-        alert("❌ Internet ulanishi yo'q. Iltimos, internetni tekshiring.");
+        errorMsg = "❌ Internet ulanishi yo'q. Iltimos, internetni tekshiring.";
+      } else if (event.error === 'aborted') {
+        errorMsg = "⚠️ Ovoz yozish bekor qilindi.";
       } else {
-        alert(`❌ Xatolik yuz berdi: ${event.error}`);
+        errorMsg = `❌ Xatolik yuz berdi: ${event.error}`;
+      }
+      
+      const output = document.getElementById('speakingOutput');
+      if (output) {
+        showError(output, errorMsg);
+      } else {
+        alert(errorMsg);
       }
       
       stopRecording();
@@ -1384,10 +1416,19 @@ async function startRecording() {
     
     recognition.onend = () => {
       console.log("🛑 Recognition tugadi");
+      console.log("📝 Final transcript length:", finalTranscript.length);
+      console.log("📝 Final transcript content:", finalTranscript);
       
       if (isRecording) {
-        // Agar to'xtatilgan bo'lsa, feedback olish
-        processTranscript(finalTranscript.trim());
+        stopRecording();
+        
+        // Transcript ni qayta ishlash
+        if (finalTranscript && finalTranscript.trim().length > 0) {
+          processTranscript(finalTranscript.trim());
+        } else {
+          const output = document.getElementById('speakingOutput');
+          showError(output, "❌ Ovoz tanilmadi. Iltimos:\n\n1. Aniqroq gapiring\n2. Mikrofonga yaqinroq bo'ling\n3. Ingliz tilida gapiring (agar IELTS tanlagan bo'lsangiz)\n4. Yana urinib ko'ring");
+        }
       }
     };
     
@@ -1402,20 +1443,28 @@ async function startRecording() {
 
 // Ovoz yozishni to'xtatish
 function stopRecording() {
-  if (recognition && isRecording) {
-    recognition.stop();
-    isRecording = false;
-    
-    // Timer to'xtatish
-    clearInterval(recordingTimer);
-    
-    // UI yangilash
-    document.getElementById('startRecordBtn').style.display = 'flex';
-    document.getElementById('stopRecordBtn').style.display = 'none';
-    document.getElementById('recordingStatus').style.display = 'none';
-    
-    console.log("🛑 Ovoz yozish to'xtatildi");
+  if (recognition) {
+    try {
+      recognition.stop();
+    } catch (e) {
+      console.log("Recognition already stopped");
+    }
   }
+  
+  isRecording = false;
+  
+  // Timer to'xtatish
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+  
+  // UI yangilash
+  document.getElementById('startRecordBtn').style.display = 'flex';
+  document.getElementById('stopRecordBtn').style.display = 'none';
+  document.getElementById('recordingStatus').style.display = 'none';
+  
+  console.log("🛑 Ovoz yozish to'xtatildi");
 }
 
 // Transcriptni qayta ishlash va feedback olish
@@ -1427,17 +1476,11 @@ async function processTranscript(transcript) {
   const languageDropdown = document.getElementById('speaking-language');
   const language = languageDropdown ? languageDropdown.value : 'uz';
   
-  if (!transcript || transcript.length < 10) {
-    output.innerHTML = `
-      <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle"></i>
-        <strong>⚠️ Ovoz yetarli emas!</strong>
-        <p>Iltimos, kamida 10 ta so'z gapiring va qayta urinib ko'ring.</p>
-        <p style="margin-top: 10px; font-size: 13px; color: #6b7280;">
-          💡 <strong>Maslahat:</strong> Mikrofonga yaqinroq gapiring va aniq talaffuz qiling.
-        </p>
-      </div>
-    `;
+  console.log("🔍 Processing transcript:", transcript);
+  console.log("📏 Transcript length:", transcript.length);
+  
+  if (!transcript || transcript.length < 20) {
+    showError(output, `⚠️ Ovoz juda qisqa!\n\nYozib olingan: "${transcript}"\n\nIltimos, kamida 20 ta so'z gapiring va qayta urinib ko'ring.`);
     return;
   }
   
@@ -1445,6 +1488,13 @@ async function processTranscript(transcript) {
   showLoading(output);
   
   try {
+    console.log("📤 Sending to API:", {
+      transcript,
+      topic,
+      examType: selectedExamType,
+      language
+    });
+    
     const response = await fetch(`${API_URL}${API_BASE_URL}/speaking-feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1457,6 +1507,7 @@ async function processTranscript(transcript) {
     });
     
     const data = await response.json();
+    console.log("📥 API response:", data);
     
     if (!response.ok) {
       throw new Error(data.error || 'Server error');
@@ -1617,12 +1668,17 @@ function showLoading(element) {
 
 function showError(element, message) {
   element.innerHTML = `
-    <div class="alert alert-danger" style="border-left: 4px solid #ef4444;">
+    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap;">
       <i class="bi bi-exclamation-triangle"></i>
-      <strong>Xatolik:</strong> ${message}
+      <strong>Xatolik:</strong>
+      <p style="margin: 10px 0 0 0;">${message}</p>
       <hr style="margin: 15px 0;">
       <p style="margin: 0; font-size: 14px;">
-        💡 <strong>Maslahat:</strong> Iltimos, internetingizni tekshiring yoki qayta urinib ko'ring.
+        💡 <strong>Maslahat:</strong>
+        <br>• Mikrofonga yaqinroq bo'ling
+        <br>• Aniq va sekin gapiring
+        <br>• Chrome yoki Edge browserdan foydalaning
+        <br>• Internetingizni tekshiring
       </p>
     </div>
   `;
