@@ -915,14 +915,18 @@ main {
 }
 
 .ai-section {
-    margin: 15px 0;
-    padding: 18px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border-left: 5px solid #667eea;
-    width: 100%;
-    display: block;
+    margin: 15px 0 !important;
+    padding: 18px !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    border-left: 5px solid #667eea !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    transform: none !important;
 }
 
 .ai-section:hover {
