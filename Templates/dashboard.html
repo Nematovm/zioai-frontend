@@ -785,19 +785,20 @@
   const auth = getAuth(app);
 
   // ============================================
-  // DYNAMIC USERNAME FUNCTION
-  // ============================================
-  function updateUserName(user) {
-    const userNameElement = document.getElementById('userName');
-    if (user) {
-      // Firebase displayName yoki email dan foydalanuvchi ismini olish
-      const displayName = user.displayName || user.email.split('@')[0];
-      userNameElement.textContent = displayName;
-      
-      // Tool titles ni yangilash
+// DYNAMIC USERNAME FUNCTION - FIXED ✅
+// ============================================
+function updateUserName(user) {
+  const userNameElement = document.getElementById('userName');
+  if (user && userNameElement) {
+    const displayName = user.displayName || user.email.split('@')[0];
+    userNameElement.textContent = displayName;
+    
+    // Tool titles ni yangilash (agar mavjud bo'lsa)
+    if (window.toolTitles && window.toolTitles.dashboard) {
       window.toolTitles.dashboard.title = `Welcome back, ${displayName}!`;
     }
   }
+}
 
   // ============================================
   // AUTH STATE CHANGED - YANGILANGAN
