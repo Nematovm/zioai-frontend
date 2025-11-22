@@ -1114,3 +1114,139 @@ window.addEventListener("beforeunload", () => {
     clearInterval(quizTimerInterval);
   }
 });
+
+
+// ============================================
+// STUDY ASSISTANT - FRONTEND
+// ============================================
+
+// Tanlangan mode
+let selectedMode = null;
+
+// Mode tanlash
+function selectStudyMode(mode) {
+  selectedMode = mode;
+  
+  // Barcha tugmalardan active classni olib tashlash
+  document.querySelectorAll('.study-mode-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Tanlangan tugmaga active class qo'shish
+  event.target.closest('.study-mode-btn').classList.add('active');
+  
+  // Placeholder textni o'zgartirish
+  const placeholders = {
+    explain: "Mavzuni yozing... (masalan: Pythagoras teoremasi)",
+    notes: "Konspekt qilish uchun matnni yozing...",
+    quiz: "Quiz yaratish uchun mavzuni yozing...",
+    plan: "O'quv reja uchun mavzuni yozing... (masalan: Matematika)",
+    mistakes: "Xatongizni yoki savolingizni yozing...",
+    flashcards: "Flashcard yaratish uchun mavzuni yozing...",
+    script: "Speaking/Writing mavzusini yozing..."
+  };
+  
+  document.getElementById("studyInput").placeholder = placeholders[mode] || "Matn kiriting...";
+  document.getElementById("studyInput").focus();
+  
+  console.log("📚 Tanlangan mode:", mode);
+}
+
+// Study Assistant so'rov yuborish
+async function submitStudyAssistant() {
+  const input = document.getElementById("studyInput").value;
+  const result = document.getElementById("studyResult");
+  const output = document.getElementById("studyOutput");
+  
+  const languageDropdown = document.getElementById("study-language");
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
+  // Validatsiya
+  if (!selectedMode) {
+    alert("Iltimos, avval rejim tanlang!");
+    return;
+  }
+  
+  if (!input.trim()) {
+    alert("Iltimos, matn kiriting!");
+    return;
+  }
+
+  result.style.display = "block";
+  showLoading(output);
+
+  try {
+    const response = await fetch(`${API_URL}${API_BASE_URL}/study-assistant`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: selectedMode,
+        content: input,
+        language: language
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Server error");
+    }
+
+    if (data.success && data.result) {
+      const modeNames = {
+        explain: "📖 Mavzu Tushuntirish",
+        notes: "📝 Konspekt",
+        quiz: "❓ Quiz",
+        plan: "📅 O'quv Reja",
+        mistakes: "🔍 Xato Tahlili",
+        flashcards: "🎴 Flashcardlar",
+        script: "🎤 Speaking/Writing Script"
+      };
+
+      output.innerHTML = `
+        <div class="alert alert-success">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h5 style="margin: 0; color: #1f2937;">
+              ${modeNames[selectedMode] || "Study Assistant"}
+            </h5>
+            <button onclick="copyToClipboard()" class="copy-btn" title="Nusxa olish">
+              <i class="bi bi-clipboard"></i> Nusxa
+            </button>
+          </div>
+          <hr style="margin: 12px 0;">
+          <div id="studyContent" style="white-space: pre-wrap; line-height: 1.8;">
+            ${data.result}
+          </div>
+        </div>
+      `;
+    } else {
+      throw new Error("AI dan javob kelmadi");
+    }
+  } catch (error) {
+    console.error("❌ Study Assistant xatosi:", error);
+    showError(output, error.message);
+  }
+}
+
+// Nusxa olish funksiyasi
+function copyToClipboard() {
+  const content = document.getElementById("studyContent");
+  const text = content.innerText;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Nusxa olindi! ✅");
+  }).catch(err => {
+    console.error("Nusxa olishda xato:", err);
+  });
+}
+
+// Tozalash
+function clearStudyAssistant() {
+  document.getElementById("studyInput").value = "";
+  document.getElementById("studyResult").style.display = "none";
+  selectedMode = null;
+  
+  document.querySelectorAll('.study-mode-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+}

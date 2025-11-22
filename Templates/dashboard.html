@@ -88,12 +88,12 @@
               <span class="nav-lebel">Quiz Generator</span>
             </a>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" data-tool="calculate">
               <span class="nav-icon material-symbols-outlined">calculate</span>
               <span class="nav-lebel">Math Solver</span>
             </a>
-          </li>
+          </li> -->
           <li class="nav-item">
             <a class="nav-link" data-tool="clinical_notes">
               <span class="nav-icon material-symbols-outlined"
@@ -525,6 +525,102 @@
           <i class="bi bi-arrow-clockwise"></i> Yangi Quiz Yaratish / New Quiz
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDY ASSISTANT TOOL -->
+<div class="tool-content" id="clinical_notes-content">
+  <div class="tool-interface">
+    <h4 style="margin-bottom: 15px; color: #1f2937">
+      <i class="bi bi-mortarboard"></i> Study Assistant
+    </h4>
+    <p style="color: #6b7280; margin-bottom: 20px;">O'qishda yordam beruvchi AI assistent - rejim tanlang va boshlang!</p>
+
+    <!-- Mode tanlash tugmalari -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;">
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('explain')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-lightbulb" style="font-size: 24px; color: #6366f1;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Explain Topic</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('notes')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-journal-text" style="font-size: 24px; color: #10b981;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Make Notes</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('quiz')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-question-circle" style="font-size: 24px; color: #f59e0b;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Quiz Maker</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('plan')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-calendar-week" style="font-size: 24px; color: #ec4899;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Learning Plan</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('mistakes')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-x-circle" style="font-size: 24px; color: #ef4444;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Explain Mistakes</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('flashcards')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-card-text" style="font-size: 24px; color: #8b5cf6;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Flashcards</span>
+      </button>
+      
+      <button class="study-mode-btn" onclick="selectStudyMode('script')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+        <i class="bi bi-mic" style="font-size: 24px; color: #06b6d4;"></i>
+        <span style="font-size: 12px; font-weight: 600; color: #374151;">Speaking/Writing</span>
+      </button>
+      
+    </div>
+
+    <!-- Til tanlash -->
+    <div class="language-selector" style="margin-bottom: 20px;">
+      <label for="study-language">🌐 Til / Language / Язык:</label>
+      <select id="study-language" class="language-dropdown">
+        <option value="uz" selected>🇺🇿 O'zbek</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
+
+    <!-- Tanlangan mode ko'rsatish -->
+    <div id="selectedModeDisplay" style="display: none; margin-bottom: 15px; padding: 12px 16px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 10px; border-left: 4px solid #6366f1;">
+      <span style="font-weight: 600; color: #4b5563;">📌 Tanlangan rejim: </span>
+      <span id="selectedModeName" style="color: #6366f1; font-weight: 700;"></span>
+    </div>
+
+    <!-- Input maydoni -->
+    <textarea
+      id="studyInput"
+      placeholder="Avval yuqoridan rejim tanlang..."
+      style="min-height: 150px;"
+    ></textarea>
+
+    <!-- Tugmalar -->
+    <div style="display: flex; gap: 12px; margin-top: 20px;">
+      <button onclick="submitStudyAssistant()" style="flex: 1;">
+        <i class="bi bi-send"></i> Yuborish
+      </button>
+      <button onclick="clearStudyAssistant()" style="flex: 0.4; background: #6b7280;">
+        <i class="bi bi-trash"></i> Tozalash
+      </button>
+    </div>
+
+    <!-- Natija -->
+    <div class="result-box" id="studyResult" style="display: none; margin-top: 25px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h5 style="color: #1f2937; margin: 0;">
+          <i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Natija:
+        </h5>
+        <button onclick="copyStudyResult()" style="padding: 8px 16px; font-size: 14px; background: #6366f1;">
+          <i class="bi bi-clipboard"></i> Nusxa
+        </button>
+      </div>
+      <div id="studyOutput"></div>
     </div>
   </div>
 </div>

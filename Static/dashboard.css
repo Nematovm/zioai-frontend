@@ -2233,3 +2233,58 @@ input:checked + .slider:before {
   margin-top: 8px;
   opacity: 0.8;
 }
+
+
+.study-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.study-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.study-mode-btn:hover {
+  border-color: #6366f1;
+  background: #f5f3ff;
+}
+
+.study-mode-btn.active {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.study-mode-btn i {
+  font-size: 24px;
+}
+
+.study-mode-btn span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #6366f1;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+  background: #4f46e5;
+}
