@@ -11,6 +11,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="../Static/dashboard.css" />
+    <link rel="stylesheet" href="../Static/profile.css">
+    <link rel="stylesheet" href="../Static/dark-mode.css">
   </head>
   <body>
     <!-- Logout Modal -->
@@ -119,7 +121,7 @@
         </ul>
         <ul class="nav-list secondary-nav">
           <li class="nav-item">
-            <a class="nav-link" data-tool="Profile">
+            <a class="nav-link" data-tool="profile">
               <span class="nav-icon material-symbols-outlined">account_circle</span>
               <span class="nav-lebel">Profile</span>
             </a>
@@ -143,85 +145,88 @@
       </div>
 
     
-      <div class="mini-timer">
-          <div class="timer-display" id="miniTimerDisplay">25:00</div>
-          <div class="timer-controls">
-            <button class="timer-btn start" id="miniStartBtn" onclick="startMiniTimer()">
-              <i class="bi bi-play-fill"></i>
-            </button>
-            <button class="timer-btn pause" id="miniPauseBtn" onclick="pauseMiniTimer()" style="display: none;">
-              <i class="bi bi-pause-fill"></i>
-            </button>
-            <button class="timer-btn reset" onclick="resetMiniTimer()">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
-            <button class="timer-btn settings" onclick="openTimerSettings()">
-              <i class="bi bi-gear-fill"></i>
-            </button>
-          </div>
-          <div class="timer-label" id="timerLabel">Pomodoro</div>
+<!-- Tomato Icon Button -->
+<button class="tomato-icon-btn" onclick="toggleTimerDropdown()">🍅</button>
+
+<!-- Timer Dropdown -->
+<div class="timer-dropdown" id="timerDropdown">
+  <div class="timer-display" id="miniTimerDisplay">25:00</div>
+  <div class="timer-controls">
+    <button class="timer-btn start" id="miniStartBtn" onclick="startMiniTimer()">
+      <i class="bi bi-play-fill"></i>
+    </button>
+    <button class="timer-btn pause" id="miniPauseBtn" onclick="pauseMiniTimer()" style="display: none;">
+      <i class="bi bi-pause-fill"></i>
+    </button>
+    <button class="timer-btn reset" onclick="resetMiniTimer()">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+    <button class="timer-btn settings" onclick="openTimerSettings()">
+      <i class="bi bi-gear-fill"></i>
+    </button>
+  </div>
+  <div class="timer-label" id="timerLabel">Pomodoro</div>
+</div>
+
+<!-- Timer Settings Modal -->
+<div class="timer-modal-overlay" id="timerSettingsModal">
+  <div class="timer-modal">
+    <div class="timer-modal-header">
+      <h3>⚙️ Timer Settings</h3>
+      <button class="timer-modal-close" onclick="closeTimerSettings()">×</button>
+    </div>
+    <div class="timer-modal-body">
+      <div class="setting-group">
+        <label>🍅 Pomodoro Duration</label>
+        <div class="time-selector">
+          <button class="time-option" onclick="setPomodoroTime(15)">15 min</button>
+          <button class="time-option active" onclick="setPomodoroTime(25)">25 min</button>
+          <button class="time-option" onclick="setPomodoroTime(30)">30 min</button>
+          <button class="time-option" onclick="setPomodoroTime(45)">45 min</button>
         </div>
       </div>
+      <div class="setting-group">
+        <label>☕️ Break Duration</label>
+        <div class="time-selector">
+          <button class="time-option active" onclick="setBreakTime(5)">5 min</button>
+          <button class="time-option" onclick="setBreakTime(10)">10 min</button>
+          <button class="time-option" onclick="setBreakTime(15)">15 min</button>
+          <button class="time-option" onclick="setBreakTime(20)">20 min</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>🔔 Sound Notification</label>
+        <label class="switch">
+          <input type="checkbox" id="soundToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="timer-modal-footer">
+      <button class="timer-modal-btn save" onclick="saveTimerSettings()">
+        <i class="bi bi-check-circle"></i> Save Settings
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Timer Notification Modal -->
+<div class="timer-notification-overlay" id="timerNotification">
+  <div class="timer-notification">
+    <div class="timer-notification-icon" id="notificationIcon">🍅</div>
+    <h3 id="notificationTitle">Pomodoro Complete!</h3>
+    <p id="notificationMessage">Great work! Time for a break?</p>
+    <div class="timer-notification-buttons">
+      <button class="notification-btn yes" onclick="startBreakTimer()">
+        <i class="bi bi-check-circle"></i> Yes, Start Break
+      </button>
+      <button class="notification-btn no" onclick="restartPomodoro()">
+        <i class="bi bi-arrow-repeat"></i> No, Continue Working
+      </button>
+    </div>
+  </div>
+</div>
     </section>
-
-    <!-- TIMER SETTINGS MODAL -->
-    <div class="timer-modal-overlay" id="timerSettingsModal">
-      <div class="timer-modal">
-        <div class="timer-modal-header">
-          <h3>⚙️ Timer Settings</h3>
-          <button class="timer-modal-close" onclick="closeTimerSettings()">×</button>
-        </div>
-        <div class="timer-modal-body">
-          <div class="setting-group">
-            <label>🍅 Pomodoro Duration</label>
-            <div class="time-selector">
-              <button class="time-option" onclick="setPomodoroTime(15)">15 min</button>
-              <button class="time-option active" onclick="setPomodoroTime(25)">25 min</button>
-              <button class="time-option" onclick="setPomodoroTime(30)">30 min</button>
-              <button class="time-option" onclick="setPomodoroTime(45)">45 min</button>
-            </div>
-          </div>
-          <div class="setting-group">
-            <label>☕ Break Duration</label>
-            <div class="time-selector">
-              <button class="time-option active" onclick="setBreakTime(5)">5 min</button>
-              <button class="time-option" onclick="setBreakTime(10)">10 min</button>
-              <button class="time-option" onclick="setBreakTime(15)">15 min</button>
-              <button class="time-option" onclick="setBreakTime(20)">20 min</button>
-            </div>
-          </div>
-          <div class="setting-group">
-            <label>🔔 Sound Notification</label>
-            <label class="switch">
-              <input type="checkbox" id="soundToggle" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-        <div class="timer-modal-footer">
-          <button class="timer-modal-btn save" onclick="saveTimerSettings()">
-            <i class="bi bi-check-circle"></i> Save Settings
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TIMER NOTIFICATION MODAL -->
-    <div class="timer-notification-overlay" id="timerNotification">
-      <div class="timer-notification">
-        <div class="timer-notification-icon" id="notificationIcon">🍅</div>
-        <h3 id="notificationTitle">Pomodoro Complete!</h3>
-        <p id="notificationMessage">Great work! Time for a break?</p>
-        <div class="timer-notification-buttons">
-          <button class="notification-btn yes" onclick="startBreakTimer()">
-            <i class="bi bi-check-circle"></i> Yes, Start Break
-          </button>
-          <button class="notification-btn no" onclick="restartPomodoro()">
-            <i class="bi bi-arrow-repeat"></i> No, Continue Working
-          </button>
-        </div>
-      </div>
-    </div>
 
 
 
@@ -282,14 +287,14 @@
     <!-- Tab Buttons -->
     <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
       <button 
-        class="tab-btn active" 
+        class="tab-btn active linear-act-bc" 
         onclick="switchHomeworkTab('text')"
         id="textTabBtn"
         style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
         <i class="bi bi-pencil-square"></i> Type Text
       </button>
       <button 
-        class="tab-btn" 
+        class="tab-btn bg-bc" 
         onclick="switchHomeworkTab('image')"
         id="imageTabBtn"
         style="flex: 1; padding: 12px; background: #f3f4f6; color: #6b7280; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
@@ -654,14 +659,14 @@
           class="exam-type-btn" 
           onclick="selectExamType('Multilevel')"
           style="flex: 1; padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
-          <div style="font-size: 32px; margin-bottom: 8px;">🇺🇿</div>
+          <div style="font-size: 32px; margin-bottom: 8px;">📑</div>
           <div style="font-weight: 700; font-size: 18px; color: #1f2937;">Multilevel</div>
           <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">0-75 ball (A1-C1)</div>
         </button>
       </div>
-      <div id="examInfoText" style="margin-top: 12px; padding: 12px; background: #f3f4f6; border-radius: 8px; font-size: 14px; color: #4b5563;">
+      <!-- <div id="examInfoText" style="margin-top: 12px; padding: 12px; background: #f3f4f6; border-radius: 8px; font-size: 14px; color: #4b5563;">
         📊 Imtihon turini tanlang
-      </div>
+      </div> -->
     </div>
 
     <!-- Til Tanlash -->
@@ -726,7 +731,7 @@
     <!-- Yoki Text Kiritish -->
     <div style="position: relative; text-align: center; margin: 25px 0;">
       <hr style="border-color: #e5e7eb;">
-      <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 0 15px; color: #9ca3af; font-weight: 600;">
+      <span class="style-bc" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 0 15px; color: #9ca3af; font-weight: 600;">
         YOKI
       </span>
     </div>
@@ -760,17 +765,193 @@
   </div>
 </div>
 
+<!-- PROFILE TOOL -->
+<div class="tool-content" id="profile-content">
+  <div class="profile-container-inline">
+    
+    <!-- Profile Header -->
+    <div class="profile-header-inline">
+      <div class="profile-avatar-section-inline">
+        <div class="profile-avatar-inline" id="profileAvatar" onclick="openAvatarModal()">
+          👤
+        </div>
+        <button class="avatar-edit-btn-inline" onclick="openAvatarModal()">
+          <i class="bi bi-pencil-fill"></i>
+        </button>
+      </div>
+      <div class="profile-name-inline" id="profileName">Loading...</div>
+      <div class="profile-email-inline" id="profileEmail">Loading...</div>
+      <div class="profile-date-inline" id="profileDate">
+        <i class="bi bi-calendar3"></i> Member since: Loading...
+      </div>
+    </div>
+
+    <!-- Profile Body -->
+    <div class="profile-body-inline">
+      <!-- Account Information -->
+      <div class="profile-section-inline">
+        <div class="section-title-inline">
+          <i class="bi bi-person-circle"></i>
+          Account Information
+        </div>
+
+        <div class="input-group-inline">
+          <label>Username</label>
+          <input type="text" id="usernameInput" placeholder="Enter your username">
+        </div>
+
+        <div class="input-group-inline">
+          <label>Email Address</label>
+          <input type="email" id="emailInput" disabled placeholder="your@email.com">
+        </div>
+
+        <button class="btn-inline btn-primary-inline" onclick="updateUsername()">
+          <i class="bi bi-check-circle"></i> Save Changes
+        </button>
+      </div>
+
+      <!-- Settings -->
+      <div class="profile-section-inline">
+        <div class="section-title-inline">
+          <i class="bi bi-gear-fill"></i>
+          Settings
+        </div>
+
+        <div class="theme-toggle-inline">
+          <div class="theme-toggle-label-inline">
+            <i class="bi bi-moon-stars-fill"></i>
+            <span>Dark Mode</span>
+          </div>
+          <label class="switch-inline">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+            <span class="slider-inline"></span>
+          </label>
+        </div>
+
+        <button class="btn-inline btn-secondary-inline" onclick="openPasswordModal()" style="width: 100%; margin-top: 15px;">
+          <i class="bi bi-lock-fill"></i> Change Password
+        </button>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone-inline">
+        <div class="danger-zone-title-inline">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Danger Zone
+        </div>
+        <div class="danger-zone-actions-inline">
+          <button class="btn-inline btn-secondary-inline" onclick="exportData()">
+            <i class="bi bi-download"></i> Export Data
+          </button>
+          <button class="btn-inline btn-danger-inline" onclick="openDeleteModal()">
+            <i class="bi bi-trash-fill"></i> Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Avatar Modal -->
+<div class="modal-overlay-inline" id="avatarModal">
+  <div class="modal-inline">
+    <div class="modal-header-inline">
+      <h3>Choose Avatar</h3>
+      <button class="modal-close-inline" onclick="closeAvatarModal()">×</button>
+    </div>
+    <div class="modal-body-inline">
+      <p style="color: #6b7280; margin-bottom: 10px;">Select an emoji as your profile picture:</p>
+      <div class="emoji-grid-inline" id="emojiGrid">
+        <!-- Emojis will be generated by JS -->
+      </div>
+    </div>
+    <div class="modal-footer-inline">
+      <button class="btn-inline btn-secondary-inline" onclick="closeAvatarModal()">Cancel</button>
+      <button class="btn-inline btn-primary-inline" onclick="saveAvatar()">
+        <i class="bi bi-check-circle"></i> Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Modal -->
+<div class="modal-overlay-inline" id="passwordModal">
+  <div class="modal-inline">
+    <div class="modal-header-inline">
+      <h3>Change Password</h3>
+      <button class="modal-close-inline" onclick="closePasswordModal()">×</button>
+    </div>
+    <div class="modal-body-inline">
+      <div class="input-group-inline">
+        <label>Current Password</label>
+        <input type="password" id="currentPassword" placeholder="Enter current password">
+      </div>
+      <div class="input-group-inline">
+        <label>New Password</label>
+        <input type="password" id="newPassword" placeholder="Enter new password">
+      </div>
+      <div class="input-group-inline">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+      </div>
+    </div>
+    <div class="modal-footer-inline">
+      <button class="btn-inline btn-secondary-inline" onclick="closePasswordModal()">Cancel</button>
+      <button class="btn-inline btn-primary-inline" onclick="changePassword()">
+        <i class="bi bi-check-circle"></i> Update Password
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal-overlay-inline" id="deleteModal">
+  <div class="modal-inline">
+    <div class="modal-header-inline">
+      <h3 style="color: #dc2626;">Delete Account</h3>
+      <button class="modal-close-inline" onclick="closeDeleteModal()">×</button>
+    </div>
+    <div class="modal-body-inline">
+      <p style="color: #6b7280; margin-bottom: 15px;">
+        <strong>Warning:</strong> This action cannot be undone. All your data will be permanently deleted.
+      </p>
+      <div class="input-group-inline">
+        <label>Type "DELETE" to confirm</label>
+        <input type="text" id="deleteConfirm" placeholder="Type DELETE">
+      </div>
+    </div>
+    <div class="modal-footer-inline">
+      <button class="btn-inline btn-secondary-inline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-inline btn-danger-inline" onclick="deleteAccount()">
+        <i class="bi bi-trash-fill"></i> Delete Forever
+      </button>
+    </div>
+  </div>
+</div>
+
       
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     
     <script src="../JS/dashboard.js"></script>
+    <script src="../JS/profile.js"></script>
 
     <!-- Firebase Auth -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { 
+    getAuth, 
+    signOut, 
+    onAuthStateChanged,
+    updateProfile,
+    updateEmail,
+    updatePassword,
+    deleteUser,
+    reauthenticateWithCredential,
+    EmailAuthProvider
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
@@ -784,34 +965,49 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
+  // Global variables uchun
+  window.firebaseAuth = auth;
+  window.updateProfile = updateProfile;
+  window.updateEmail = updateEmail;
+  window.updatePassword = updatePassword;
+  window.deleteUser = deleteUser;
+  window.reauthenticateWithCredential = reauthenticateWithCredential;
+  window.EmailAuthProvider = EmailAuthProvider;
+  window.getAuth = getAuth;
+
   // ============================================
-// DYNAMIC USERNAME FUNCTION - FIXED ✅
-// ============================================
-function updateUserName(user) {
-  const userNameElement = document.getElementById('userName');
-  if (user && userNameElement) {
-    const displayName = user.displayName || user.email.split('@')[0];
-    userNameElement.textContent = displayName;
+  // DYNAMIC USERNAME FUNCTION - FIXED ✅
+  // ============================================
+  function updateUserName(user) {
+    console.log("User displayName:", user.displayName);
+    console.log("User email:", user.email);
     
-    // Tool titles ni yangilash (agar mavjud bo'lsa)
-    if (window.toolTitles && window.toolTitles.dashboard) {
-      window.toolTitles.dashboard.title = `Welcome back, ${displayName}!`;
+    const userNameElement = document.getElementById('userName');
+    if (user && userNameElement) {
+      // Emoji ni olib tashlash va faqat username ni ko'rsatish
+      const displayName = user.displayName 
+        ? user.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
+        : user.email.split('@')[0];
+      userNameElement.textContent = displayName;
     }
   }
-}
 
   // ============================================
   // AUTH STATE CHANGED - YANGILANGAN
   // ============================================
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log("User logged in:", user.email);
+      console.log("✅ User logged in:", user.email);
+      console.log("📝 Display Name:", user.displayName);
+      console.log("👤 UID:", user.uid);
       
       // USERNAME NI YANGILASH
       updateUserName(user);
       
+      // Spinner ni yashirish
       document.querySelector(".spinner-wrapper").style.display = "none";
     } else {
+      console.log("❌ No user logged in");
       window.location.href = "./login.html";
     }
   });
@@ -836,11 +1032,36 @@ function updateUserName(user) {
   confirmLogout?.addEventListener("click", async () => {
     try {
       await signOut(auth);
+      console.log("✅ User signed out");
       window.location.href = "./login.html";
     } catch (error) {
+      console.error("❌ Logout error:", error);
       alert("Logout error: " + error.message);
     }
   });
 </script>
+<style>
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+</style>
   </body>
 </html>

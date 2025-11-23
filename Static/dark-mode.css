@@ -1,0 +1,780 @@
+/* COMPLETE DARK MODE STYLES */
+
+:root {
+    --primary-dc: #262624;
+    --secondary-dc: #2B2B29;
+    --text-dc: #C2C0B6;
+    --box-shadow-bc: #252523;
+    --tool-inter-bc: #252522;
+    --border-bc: #3F3F3D;
+    --linear-bc: linear-gradient(151deg, #3b3b3b 0%, var(--secondary-dc) 60%);
+}
+
+body.dark-mode {
+  background: linear-gradient(#1a1a18, #2B2B29);
+  color: var(--text-dc);
+}
+
+/* Spinner Wrapper Dark Mode */
+body.dark-mode .spinner-wrapper {
+  background: var(--primary-dc);
+}
+
+body.dark-mode .spinner-wrapper .spinner-grow {
+  background: var(--secondary-dc);
+}
+
+/* Sidebar Dark Mode */
+body.dark-mode .main-logo {
+    background: var(--primary-dc);
+}
+
+body.dark-mode .nav-title {
+    background: var(--text-dc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+body.dark-mode .sidebar {
+    background: var(--secondary-dc);
+    box-shadow: 0 5px 10px 2px var(--box-shadow-bc);
+}
+
+body.dark-mode .sidebar-header .toggler {
+    background: var(--primary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .sidebar-header .toggler:hover {
+    background: #3a3a37;
+}
+
+body.dark-mode .sidebar .nav-link {
+    color: var(--text-dc);
+}
+
+body.dark-mode .sidebar-nav .nav-link:hover {
+    background: var(--primary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .sidebar-nav .nav-link.active {
+    background: var(--linear-bc);
+}
+
+/* Logout Modal Dark Mode */
+body.dark-mode .logout-modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode .logout-modal {
+    background: var(--primary-dc);
+}
+
+body.dark-mode .logout-modal-icon {
+    background: var(--secondary-dc);
+}
+
+body.dark-mode .logout-modal h3 {
+    color: var(--text-dc);
+}
+
+body.dark-mode .logout-modal p {
+    color: #9ca3af;
+}
+
+body.dark-mode .logout-modal-btn.cancel {
+    background: var(--secondary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .logout-modal-btn.cancel:hover {
+    background: #3a3a37;
+}
+
+body.dark-mode .logout-modal-btn.confirm {
+    background: var(--secondary-dc);
+}
+
+body.dark-mode .logout-modal-btn.confirm:hover{
+    box-shadow: 0 10px 20px var(--box-shadow-bc);
+}
+
+/* Header Section Dark Mode */
+body.dark-mode .header-section {
+    background-color: var(--secondary-dc);
+    box-shadow: 0 5px 10px 2px var(--box-shadow-bc);
+}
+
+body.dark-mode .header-section p {
+    color: #9ca3af;
+}
+
+/* Main Section Dark Mode */
+body.dark-mode main {
+    background-color: var(--secondary-dc);
+    box-shadow: 0 5px 10px 2px var(--box-shadow-bc);
+}
+
+/* Dashboard Tools Grid Dark Mode */
+body.dark-mode .dashboard-exp h2,
+body.dark-mode .dashboard-exp p {
+    color: var(--text-dc);
+}
+
+body.dark-mode .rocket {
+    background: var(--linear-bc);
+    box-shadow: 0 4px 10px var(--box-shadow-bc);
+}
+
+body.dark-mode .tool-card {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .tool-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* Tool Interface Dark Mode */
+body.dark-mode .tool-interface {
+    background: var(--tool-inter-bc);
+}
+
+
+body.dark-mode .tool-interface h4 {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .tool-interface textarea {
+    border: 2px solid var(--border-bc);
+    background: var(--primary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .tool-interface textarea:focus {
+    border-color: #667eea;
+    background: var(--primary-dc);
+}
+
+body.dark-mode .tool-interface button {
+    background: var(--secondary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .tool-interface button:hover {
+    box-shadow: 0 8px 20px var(--box-shadow-bc);
+}
+
+body.dark-mode .tool-interface input {
+    background: var(--tool-inter-bc);
+    border: 2px solid var(--border-bc) !important;
+}
+
+/* Result Box Dark Mode */
+body.dark-mode .result-box {
+    background: linear-gradient(135deg, var(--primary-dc) 0%, var(--secondary-dc) 100%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .result-box h5 {
+    color: var(--text-dc) !important;
+    border-bottom: 3px solid #667eea;
+}
+
+body.dark-mode #homeworkOutput,
+body.dark-mode #grammarOutput,
+body.dark-mode #vocabOutput {
+    background: var(--secondary-dc);
+    color: var(--text-dc);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .linear-act-bc {
+    background: var(--linear-bc) !important;
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .bg-bc {
+    background: var(--secondary-dc) !important;
+    color: var(--text-dc) !important;
+}
+
+/* Alert Success Dark Mode - YANGI CONSISTENT RANGLAR */
+body.dark-mode .alert-success {
+    background: var(--secondary-dc) !important;
+    border: 2px solid #4ade80 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .alert-success .alert-heading {
+    color: #4ade80 !important;
+    background: transparent !important;
+    padding: 15px 0 !important;
+    margin: 0 0 20px 0 !important;
+    box-shadow: none !important;
+}
+
+body.dark-mode .alert-success > div {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .alert-success h1,
+body.dark-mode .alert-success h2,
+body.dark-mode .alert-success h3 {
+    color: #4ade80 !important;
+    border-left: 4px solid #4ade80 !important;
+}
+
+body.dark-mode .alert-success strong {
+    color: #4ade80 !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+}
+
+body.dark-mode .alert-success code {
+    background: var(--primary-dc) !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .alert-success mark {
+    background: rgba(74, 222, 128, 0.15) !important;
+    color: #4ade80 !important;
+}
+
+/* Alert Info Dark Mode - CONSISTENT */
+body.dark-mode .alert-info {
+    background: var(--secondary-dc) !important;
+    border: 2px solid #60a5fa !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .alert-info .alert-heading {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .alert-info h1,
+body.dark-mode .alert-info h2,
+body.dark-mode .alert-info h3 {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .alert-info strong {
+    color: #60a5fa !important;
+    background: rgba(96, 165, 250, 0.1) !important;
+}
+
+/* Alert Warning Dark Mode - CONSISTENT */
+body.dark-mode .alert-warning {
+    background: var(--secondary-dc) !important;
+    border: 2px solid #fbbf24 !important;
+    color: var(--text-dc) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .alert-warning .alert-heading {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode .alert-warning h1,
+body.dark-mode .alert-warning h2,
+body.dark-mode .alert-warning h3 {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode .alert-warning strong {
+    color: #fbbf24 !important;
+    background: rgba(251, 191, 36, 0.1) !important;
+}
+
+/* Alert Danger Dark Mode - CONSISTENT */
+body.dark-mode .alert-danger {
+    background: var(--secondary-dc) !important;
+    border: 2px solid #f87171 !important;
+    color: var(--text-dc) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .alert-danger .alert-heading {
+    color: #f87171 !important;
+}
+
+body.dark-mode .alert-danger h1,
+body.dark-mode .alert-danger h2,
+body.dark-mode .alert-danger h3 {
+    color: #f87171 !important;
+}
+
+/* AI Content Dark Mode - SIMPLIFIED & CONSISTENT */
+body.dark-mode .ai-content {
+    color: var(--text-dc);
+}
+
+body.dark-mode .ai-section {
+    background: var(--secondary-dc) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    border-left: 5px solid #60a5fa !important;
+}
+
+body.dark-mode .ai-section:hover {
+    box-shadow: 0 4px 15px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* AI Section ichidagi barcha elementlar */
+body.dark-mode .ai-section * {
+    color: var(--text-dc);
+}
+
+body.dark-mode .ai-section div {
+    background: transparent !important;
+}
+
+body.dark-mode .ai-heading {
+    color: #60a5fa !important;
+    border-bottom: 2px solid var(--border-bc) !important;
+    background: transparent !important;
+}
+
+/* AI heading ichidagi barcha elementlar */
+body.dark-mode .ai-heading * {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .ai-number {
+    background: #60a5fa !important;
+    color: var(--primary-dc) !important;
+}
+
+body.dark-mode .ai-paragraph {
+    color: var(--text-dc) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .ai-body {
+    color: var(--text-dc) !important;
+    background: transparent !important;
+}
+
+/* AI body ichidagi barcha matnlar */
+body.dark-mode .ai-body * {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .ai-bold {
+    color: #60a5fa !important;
+    background: rgba(96, 165, 250, 0.1) !important;
+}
+
+body.dark-mode .ai-bullet {
+    background: var(--primary-dc) !important;
+    border-left: 3px solid #60a5fa !important;
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .ai-bullet::before {
+    color: #60a5fa !important;
+}
+
+/* AI bullet ichidagi matnlar */
+body.dark-mode .ai-bullet * {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .ai-code {
+    background: var(--primary-dc) !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .ai-formula {
+    background: var(--primary-dc) !important;
+    color: #fbbf24 !important;
+    border: 2px solid #fbbf24 !important;
+}
+
+/* Motivation Toast Dark Mode */
+body.dark-mode .motivation-toast {
+    background: var(--secondary-dc);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .motivation-close {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .motivation-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Timer Components Dark Mode */
+body.dark-mode .timer-dropdown {
+    background: var(--secondary-dc);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .timer-btn {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .timer-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .timer-label {
+    color: var(--text-dc);
+}
+
+/* Timer Modal Dark Mode */
+body.dark-mode .timer-modal {
+    background: var(--primary-dc);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode .timer-modal-header {
+    border-bottom: 2px solid var(--border-bc);
+}
+
+body.dark-mode .timer-modal-header h3 {
+    color: var(--text-dc);
+}
+
+body.dark-mode .timer-modal-close {
+    color: #9ca3af;
+}
+
+body.dark-mode .timer-modal-close:hover {
+    background: var(--secondary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .timer-modal-body {
+    background: var(--primary-dc);
+}
+
+body.dark-mode .setting-group label {
+    color: var(--text-dc);
+}
+
+body.dark-mode .time-option {
+    background: var(--secondary-dc);
+    border: 2px solid var(--border-bc);
+    color: #9ca3af;
+}
+
+body.dark-mode .time-option:hover {
+    background: var(--border-bc);
+}
+
+body.dark-mode .time-option.active {
+    background: #4c1d95;
+    color: white;
+    border-color: #8b5cf6;
+}
+
+body.dark-mode .slider {
+    background-color: #4b5563;
+}
+
+body.dark-mode .timer-modal-footer {
+    border-top: 2px solid var(--border-bc);
+}
+
+body.dark-mode .timer-modal-btn {
+    background: var(--secondary-dc);
+}
+
+body.dark-mode .timer-modal-btn:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* Timer Notification Dark Mode */
+body.dark-mode .timer-notification-overlay {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+body.dark-mode .timer-notification {
+    background: var(--primary-dc);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode .timer-notification h3 {
+    color: var(--text-dc);
+}
+
+body.dark-mode .timer-notification p {
+    color: #9ca3af;
+}
+
+/* Language Selector Dark Mode */
+body.dark-mode .language-selector {
+    background: var(--tool-inter-bc);
+    border: 2px solid var(--border-bc);
+}
+
+body.dark-mode .language-selector label {
+    color: var(--text-dc);
+}
+
+body.dark-mode .language-dropdown {
+    background: var(--primary-dc);
+    border: 2px solid var(--border-bc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .language-dropdown:hover {
+    border-color: #667eea;
+    background: var(--secondary-dc);
+}
+
+body.dark-mode .language-dropdown:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Audio Button Dark Mode */
+body.dark-mode .audio-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .audio-btn:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+/* Quiz Styles Dark Mode */
+body.dark-mode #quizOptionsContainer {
+    background: transparent;
+}
+
+body.dark-mode .quiz-option {
+    background: var(--secondary-dc);
+    border: 2px solid var(--border-bc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .quiz-option:hover {
+    border-color: #667eea;
+    background: var(--border-bc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .quiz-option.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea25, #764ba225);
+    color: var(--text-dc);
+}
+
+body.dark-mode .quiz-option.correct {
+    border-color: #4ade80 !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .quiz-option.incorrect {
+    border-color: #f87171 !important;
+    background: rgba(248, 113, 113, 0.1) !important;
+    color: #f87171 !important;
+}
+
+body.dark-mode .quiz-review-item {
+    background: var(--secondary-dc);
+    border-left: 4px solid var(--border-bc);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .quiz-review-item.correct {
+    border-left-color: #4ade80 !important;
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .quiz-review-item.incorrect {
+    border-left-color: #f87171 !important;
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .quiz-review-question {
+    color: var(--text-dc);
+}
+
+body.dark-mode .quiz-review-answer {
+    color: var(--text-dc);
+}
+
+body.dark-mode .quiz-review-answer.user {
+    background: rgba(251, 191, 36, 0.1) !important;
+    color: #fbbf24 !important;
+    border-left: 3px solid #fbbf24 !important;
+}
+
+body.dark-mode .quiz-review-answer.user.correct {
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: #4ade80 !important;
+    border-left-color: #4ade80 !important;
+}
+
+body.dark-mode .quiz-review-answer.user.incorrect {
+    background: rgba(248, 113, 113, 0.1) !important;
+    color: #f87171 !important;
+    border-left-color: #f87171 !important;
+}
+
+body.dark-mode .quiz-review-answer.correct-answer {
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: #4ade80 !important;
+    border-left: 3px solid #4ade80 !important;
+}
+
+body.dark-mode .quiz-review-explanation {
+    background: var(--primary-dc);
+    color: #9ca3af;
+}
+
+body.dark-mode .quiz-loading {
+    color: #9ca3af;
+}
+
+/* Study Modes Dark Mode */
+body.dark-mode .study-modes {
+    background: transparent;
+}
+
+body.dark-mode .study-mode-btn {
+    background: var(--secondary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+    color: var(--text-dc);
+}
+
+body.dark-mode .study-mode-btn:hover {
+    border-color: #6366f1;
+    background: #4c1d95;
+    color: white;
+}
+
+body.dark-mode .study-mode-btn.active {
+    border-color: #6366f1;
+    background: var(--linear-bc) !important;
+    color: white;
+}
+
+/* Copy Button Dark Mode */
+body.dark-mode .copy-btn {
+    background: #4c1d95;
+}
+
+body.dark-mode .copy-btn:hover {
+    background: #6366f1;
+}
+
+/* Profile Section Dark Mode */
+body.dark-mode .profile-section-inline {
+    background: var(--secondary-dc);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .section-title-inline {
+    color: var(--text-dc);
+}
+
+body.dark-mode .input-group-inline label {
+    color: #d1d5db;
+}
+
+body.dark-mode .input-group-inline input {
+    background: var(--primary-dc);
+    border-color: var(--border-bc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .input-group-inline input:focus {
+    border-color: #667eea;
+    background: var(--primary-dc);
+}
+
+body.dark-mode .input-group-inline input:disabled {
+    background: var(--tool-inter-bc);
+    color: #9ca3af;
+}
+
+body.dark-mode .theme-toggle-label-inline {
+    color: #d1d5db;
+}
+
+body.dark-mode .danger-zone-inline {
+    background: var(--secondary-dc);
+    border-color: #991b1b;
+}
+
+body.dark-mode .danger-zone-title-inline {
+    color: #ef4444;
+}
+
+body.dark-mode .modal-inline {
+    background: var(--primary-dc);
+}
+
+body.dark-mode .modal-header-inline {
+    border-bottom-color: var(--border-bc);
+}
+
+body.dark-mode .modal-header-inline h3 {
+    color: var(--text-dc);
+}
+
+body.dark-mode .modal-close-inline {
+    color: #9ca3af;
+}
+
+body.dark-mode .modal-close-inline:hover {
+    background: var(--secondary-dc);
+    color: var(--text-dc);
+}
+
+body.dark-mode .modal-footer-inline {
+    border-top-color: var(--border-bc);
+}
+
+body.dark-mode .modal-body-inline p {
+    color: #9ca3af !important;
+}
+
+body.dark-mode .emoji-option-inline:hover {
+    background: var(--border-bc);
+}
+
+body.dark-mode .emoji-option-inline.selected {
+    background: #4c1d95;
+    border-color: #8b5cf6;
+}
+
+/* Exam Type Button Dark Mode */
+body.dark-mode .exam-type-btn {
+    background: var(--secondary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .exam-type-btn div {
+    color: var(--text-dc )!important;
+}
+
+body.dark-mode .exam-type-btn:hover {
+    border-color: rgb(13, 109, 96) !important;
+    background: rgb(5, 90, 78) !important;
+}
+
+body.dark-mode #examInfoText {
+    background-color: var(--secondary-dc) !important;
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .exam-type-btn.active {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+body.dark-mode .style-bc {
+    background-color: var(--secondary-dc) !important;
+}
+
+/* Profile tool */
+body.dark-mode .profile-header-inline{
+ background: var(--linear-bc);
+}

@@ -55,30 +55,44 @@ const toolTitles = {
     title: "Vocabulary Builder",
     subtitle: "Learn new words with examples",
   },
+  profile: {
+  title: "Profile Settings",
+  subtitle: "Manage your account and preferences",
+},
 };
 
 function switchTool(toolName) {
+  // Navigation active holatini o'zgartirish
   navLinks.forEach((link) => link.classList.remove("active"));
   const activeLink = document.querySelector(
     `.nav-link[data-tool="${toolName}"]`
   );
   if (activeLink) activeLink.classList.add("active");
 
+  // Tool contentlarni yashirish/ko'rsatish
   toolContents.forEach((content) => content.classList.remove("active"));
   const activeContent = document.getElementById(`${toolName}-content`);
-  if (activeContent) activeContent.classList.add("active");
+  if (activeContent) {
+    activeContent.classList.add("active");
+    
+    // ✅ Profile uchun maxsus ishlov
+    if (toolName === 'profile' && typeof showProfileTool === 'function') {
+      showProfileTool();
+    }
+  }
 
+  // Header title yangilash
   if (toolTitles[toolName]) {
     headerTitle.textContent = toolTitles[toolName].title;
     headerSubtitle.textContent = toolTitles[toolName].subtitle;
   }
 
+  // Mobil uchun sidebar yopish
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");
     toggleMenu(false);
   }
 }
-
 navLinks.forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
@@ -580,9 +594,6 @@ function startMotivationSystem() {
     showMotivation();
   }, 300000);
 }
-// ============================================
-// POMODORO TIMER
-// ============================================
 let miniTimerInterval;
 let miniTimeLeft = 25 * 60;
 let miniTimerRunning = false;
@@ -590,18 +601,30 @@ let currentMode = "pomodoro";
 let pomodoroMinutes = 25;
 let breakMinutes = 5;
 let soundEnabled = true;
+let timerDropdownOpen = false;
 
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs
-    .toString()
-    .padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
 function updateMiniTimerDisplay() {
-  document.getElementById("miniTimerDisplay").textContent =
-    formatTime(miniTimeLeft);
+  document.getElementById("miniTimerDisplay").textContent = formatTime(miniTimeLeft);
+}
+
+function toggleTimerDropdown() {
+  timerDropdownOpen = !timerDropdownOpen;
+  const dropdown = document.getElementById("timerDropdown");
+  const button = document.querySelector(".tomato-icon-btn");
+  
+  if (timerDropdownOpen) {
+    dropdown.classList.add("active");
+    button.classList.add("hidden");
+  } else {
+    dropdown.classList.remove("active");
+    button.classList.remove("hidden");
+  }
 }
 
 function startMiniTimer() {
@@ -722,21 +745,17 @@ function closeTimerSettings() {
 
 function setPomodoroTime(minutes) {
   pomodoroMinutes = minutes;
-  document
-    .querySelectorAll(".setting-group:first-child .time-option")
-    .forEach((btn) => {
-      btn.classList.remove("active");
-    });
+  document.querySelectorAll(".setting-group:first-child .time-option").forEach((btn) => {
+    btn.classList.remove("active");
+  });
   event.target.classList.add("active");
 }
 
 function setBreakTime(minutes) {
   breakMinutes = minutes;
-  document
-    .querySelectorAll(".setting-group:nth-child(2) .time-option")
-    .forEach((btn) => {
-      btn.classList.remove("active");
-    });
+  document.querySelectorAll(".setting-group:nth-child(2) .time-option").forEach((btn) => {
+    btn.classList.remove("active");
+  });
   event.target.classList.add("active");
 }
 
@@ -751,9 +770,28 @@ function saveTimerSettings() {
 
   updateMiniTimerDisplay();
   closeTimerSettings();
-  showMotivation();
 }
 
+// Close dropdown when clicking outside (but not when timer is running)
+document.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('timerDropdown');
+  const button = document.querySelector('.tomato-icon-btn');
+  const settingsModal = document.getElementById('timerSettingsModal');
+  
+  // Don't close if clicking on settings modal
+  if (settingsModal.classList.contains('active')) {
+    return;
+  }
+  
+  // Don't close if timer is running - keep it visible
+  if (miniTimerRunning) {
+    return;
+  }
+  
+  if (timerDropdownOpen && !dropdown.contains(event.target) && !button.contains(event.target)) {
+    toggleTimerDropdown();
+  }
+});
 // ============================================
 // PAGE LOAD
 // ============================================
@@ -1622,23 +1660,12 @@ function showLoading(element) {
 
 function showError(element, message) {
   element.innerHTML = `
-    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap;">
+    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap; display: flex; align-items: center; gap: 10px;">
       <i class="bi bi-exclamation-triangle"></i>
       <strong>Xatolik:</strong>
-      <p style="margin: 10px 0 0 0;">${message}</p>
-      <hr style="margin: 15px 0;">
-      <p style="margin: 0; font-size: 14px;">
-        💡 <strong>Maslahat:</strong>
-        <br>• Mikrofonga yaqinroq gapiring
-        <br>• Aniq va sekin gapiring
-        <br>• Kamida 1 daqiqa gapiring
-        <br>• Ingliz tilida gapiring (IELTS uchun)
-      </p>
-      <button 
-        onclick="clearSpeaking()" 
-        style="width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 15px;">
-        <i class="bi bi-arrow-clockwise"></i> Qayta Urinish
-      </button>
+      <p style="margin-top: 17px;">${message}</p>
     </div>
   `;
 }
+
+

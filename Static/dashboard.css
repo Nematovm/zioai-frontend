@@ -365,6 +365,8 @@ body {
 
 /* Header Section */
 .header-section {
+  display: flex;
+  justify-content: space-between;
   margin-left: 302px;
   margin-right: 16px;
   margin-top: 16px;
@@ -1301,30 +1303,64 @@ main {
   border: 2px solid #fbbf24;
 }
 
-/* ============================================
-   MINI POMODORO TIMER STYLES
-============================================ */
-
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Tomato Icon Button */
+.tomato-icon-btn {
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  font-size: 2.5em;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: transform 0.3s ease;
+  z-index: 10002;
+  animation: shake 2s infinite;
 }
 
-.mini-timer {
+.tomato-icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.tomato-icon-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+  20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+
+/* Timer Dropdown */
+
+
+
+.timer-dropdown {
+  position: fixed;
+  top: 0;
+  right: 20px;
   background: var(--primary-color);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+  padding: 25px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
   text-align: center;
-  width: 200px;
+  width: 220px;
+  transform: translateY(-110%);
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 10001;
+}
+
+.timer-dropdown.active {
+  transform: translateY(0);
 }
 
 .timer-display {
-  font-size: 2em;
+  font-size: 2.2em;
   font-weight: 700;
   color: white;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
   font-family: "Courier New", monospace;
 }
 
@@ -1332,15 +1368,15 @@ main {
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .timer-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1368,15 +1404,13 @@ main {
 }
 
 .timer-label {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.95em;
   font-weight: 600;
+  margin-top: 5px;
 }
 
-/* ============================================
-   TIMER SETTINGS MODAL
-============================================ */
-
+/* Timer Settings Modal */
 .timer-modal-overlay {
   position: fixed;
   top: 0;
@@ -1486,12 +1520,11 @@ main {
 }
 
 .time-option.active {
-  background: var(--primary-color);
+  background: rgba(44, 170, 154, 1);
   color: white;
-  border-color: rgba(44, 170, 154, 1);
+  border-color: rgb(17, 110, 98);
 }
 
-/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
@@ -1530,7 +1563,7 @@ main {
 }
 
 input:checked + .slider {
-  background: var(--primary-color);
+  background: rgba(44, 170, 154, 1);
 }
 
 input:checked + .slider:before {
@@ -1560,10 +1593,7 @@ input:checked + .slider:before {
   box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-/* ============================================
-   TIMER NOTIFICATION
-============================================ */
-
+/* Timer Notification */
 .timer-notification-overlay {
   position: fixed;
   top: 0;
@@ -1574,7 +1604,7 @@ input:checked + .slider:before {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 10001;
+  z-index: 10003;
   backdrop-filter: blur(10px);
 }
 
@@ -1614,8 +1644,7 @@ input:checked + .slider:before {
 }
 
 @keyframes iconPulse {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
   50% {
@@ -1670,25 +1699,26 @@ input:checked + .slider:before {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .mini-timer {
-    min-width: 160px;
-    padding: 15px;
-  }
-
-  .timer-display {
+  .tomato-icon-btn {
+    width: 50px;
+    height: 50px;
     font-size: 2em;
   }
 
-  .timer-btn {
-    width: 35px;
-    height: 35px;
-    font-size: 1em;
+  .timer-dropdown {
+    width: 180px;
+    padding: 20px;
   }
 
-  .timer-notification-buttons {
-    flex-direction: column;
+  .timer-display {
+    font-size: 1.8em;
+  }
+
+  .timer-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1em;
   }
 }
 
@@ -2312,3 +2342,5 @@ input:checked + .slider:before {
 #stopRecordBtn:hover {
   transform: scale(1.1);
 }
+
+
