@@ -8,8 +8,7 @@ let selectedEmoji = '👤';
 const emojis = [
   '👤', '😀', '😃', '😄', '😁', '😊', '😎', '🤓', '🧐', '🤩',
   '🥳', '😇', '🤠', '🥰', '😍', '🤗', '🤔', '🤨', '😏', '😌',
-  '👨', '👩', '👦', '👧', '🧑', '👶', '🧓', '👨‍💼', '👩‍💼', '👨‍🎓',
-  '👩‍🎓', '👨‍🏫', '👩‍🏫', '👨‍💻', '👩‍💻', '🎭', '🎨', '🎪', '🎬', '🎤',
+  '👨', '👩', '👦', '👧', '🧑', '👶', '🧓', '🎭', '🎨', '🎪', '🎬', '🎤',
   '🎧', '🎮', '🏀', '⚽', '🏈', '⚾', '🎾', '🏐', '🏆', '🥇'
 ];
 
@@ -37,27 +36,49 @@ function showProfileTool() {
   }
 }
 
-// Profile ma'lumotlarini yuklash - FIREBASE DAN
 function loadProfileData() {
   if (!currentUser) return;
   
-  // Avatar (displayName dan birinchi emoji ni olish yoki default)
-  const userAvatar = currentUser.displayName && currentUser.displayName.match(/[\u{1F300}-\u{1F9FF}]/u) 
-    ? currentUser.displayName.match(/[\u{1F300}-\u{1F9FF}]/u)[0] 
-    : '👤';
+  let userAvatar = '👤';
+  let username = '';
+  
+  if (currentUser.displayName) {
+    const displayName = currentUser.displayName;
+    
+    // Emoji ni topish
+    const emojiRegex = /[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+    const emojiMatch = displayName.match(emojiRegex);
+    
+    if (emojiMatch) {
+      userAvatar = emojiMatch[0];
+    }
+    
+    // Username ni olish - BARCHA emoji va probellarni olib tashlash
+    username = displayName
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+      .replace(/\s+/g, '')  // ⬅️ MUHIM: barcha probellarni olib tashlash
+      .trim();
+  }
+  
+  if (!username || username.length === 0) {
+    username = currentUser.email.split('@')[0];
+  }
+  
+  console.log('✅ Extracted Avatar:', userAvatar);
+  console.log('✅ Extracted Username:', username);
   
   selectedEmoji = userAvatar;
   document.getElementById('profileAvatar').textContent = userAvatar;
-  
-  // Username (displayName dan emoji ni olib tashlab)
-  const username = currentUser.displayName 
-    ? currentUser.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
-    : currentUser.email.split('@')[0];
-  
   document.getElementById('profileName').textContent = username;
   document.getElementById('profileEmail').textContent = currentUser.email;
   
-  // Member since (Firebase metadata dan)
+  // Member since
   const creationTime = currentUser.metadata.creationTime;
   const memberDate = new Date(creationTime).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -66,11 +87,10 @@ function loadProfileData() {
   });
   document.getElementById('profileDate').innerHTML = `<i class="bi bi-calendar3"></i> Member since: ${memberDate}`;
   
-  // Input fieldlarni to'ldirish
   document.getElementById('usernameInput').value = username;
   document.getElementById('emailInput').value = currentUser.email;
   
-  console.log('✅ Profile data loaded:', { username, email: currentUser.email });
+  console.log('✅ Profile data loaded');
 }
 
 // Username yangilash - FIREBASE BILAN ✅
@@ -82,9 +102,20 @@ async function updateUsername() {
     return;
   }
   
-  const currentUsername = currentUser.displayName 
-    ? currentUser.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
-    : currentUser.email.split('@')[0];
+  // Current username ni olish
+  let currentUsername = '';
+  if (currentUser.displayName) {
+    currentUsername = currentUser.displayName
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
+      .replace(/\s+/g, '')
+      .trim();
+  }
+  
+  if (!currentUsername || currentUsername.length === 0) {
+    currentUsername = currentUser.email.split('@')[0];
+  }
   
   if (newUsername === currentUsername) {
     showNotification('No changes detected!', 'info');
@@ -95,26 +126,29 @@ async function updateUsername() {
     const auth = window.firebaseAuth;
     const updateProfile = window.updateProfile;
     
-    // Emoji + username ni birlashtirish
-    const newDisplayName = `${selectedEmoji} ${newUsername}`;
+    // Yangi displayName (PROBEL YO'Q!)
+    const newDisplayName = `${selectedEmoji}${newUsername}`;
+    
+    console.log('📝 New displayName:', newDisplayName);
     
     await updateProfile(auth.currentUser, {
       displayName: newDisplayName
     });
     
-    // UI ni yangilash
     document.getElementById('profileName').textContent = newUsername;
-    currentUser = auth.currentUser; // Yangilangan userni olish
+    currentUser = auth.currentUser;
+    
+    // ✅ BARCHA USERNAME-LARNI YANGILASH
+    updateAllUsernames(newUsername);
     
     showNotification('Username updated successfully! ✅', 'success');
-    console.log('✅ Firebase username updated:', newDisplayName);
+    console.log('✅ Firebase username updated');
     
   } catch (error) {
     console.error('❌ Username update error:', error);
     showNotification('Failed to update username: ' + error.message, 'error');
   }
 }
-
 // Avatar Modal
 function openAvatarModal() {
   document.getElementById('avatarModal').classList.add('active');
@@ -160,25 +194,42 @@ async function saveAvatar() {
     const auth = window.firebaseAuth;
     const updateProfile = window.updateProfile;
     
-    // Current username ni olish
-    const username = currentUser.displayName 
-      ? currentUser.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
-      : currentUser.email.split('@')[0];
+    // Username ni input fielddan olish
+    let username = document.getElementById('usernameInput').value.trim();
     
-    // Yangi displayName (emoji + username)
-    const newDisplayName = `${selectedEmoji} ${username}`;
+    if (!username || username.length === 0) {
+      if (currentUser.displayName) {
+        username = currentUser.displayName
+          .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+          .replace(/[\u{2600}-\u{26FF}]/gu, '')
+          .replace(/[\u{2700}-\u{27BF}]/gu, '')
+          .replace(/\s+/g, '')
+          .trim();
+      }
+      
+      if (!username || username.length === 0) {
+        username = currentUser.email.split('@')[0];
+      }
+    }
+    
+    // Yangi displayName (PROBEL YO'Q!)
+    const newDisplayName = `${selectedEmoji}${username}`;
+    
+    console.log('📝 New displayName:', newDisplayName);
     
     await updateProfile(auth.currentUser, {
       displayName: newDisplayName
     });
     
-    // UI ni yangilash
     document.getElementById('profileAvatar').textContent = selectedEmoji;
     currentUser = auth.currentUser;
     
+    // ✅ BARCHA USERNAME-LARNI YANGILASH
+    updateAllUsernames(username);
+    
     closeAvatarModal();
     showNotification('Avatar updated successfully! ✅', 'success');
-    console.log('✅ Firebase avatar updated:', selectedEmoji);
+    console.log('✅ Firebase avatar updated');
     
   } catch (error) {
     console.error('❌ Avatar update error:', error);
@@ -288,7 +339,16 @@ function exportData() {
   }
   
   const username = currentUser.displayName 
-    ? currentUser.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
+    ? currentUser.displayName
+        .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+        .replace(/[\u{2600}-\u{26FF}]/gu, '')
+        .replace(/[\u{2700}-\u{27BF}]/gu, '')
+        .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+        .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+        .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+        .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+        .replace(/\s+/g, '')
+        .trim()
     : currentUser.email.split('@')[0];
   
   const data = {
@@ -326,6 +386,8 @@ function closeDeleteModal() {
 }
 
 // Account o'chirish - FIREBASE BILAN ✅
+// profile.js - deleteAccount() funksiyasi
+
 async function deleteAccount() {
   const confirmText = document.getElementById('deleteConfirm').value;
   
@@ -334,7 +396,6 @@ async function deleteAccount() {
     return;
   }
   
-  // Ikkinchi tasdiqlash
   const finalConfirm = confirm(
     '⚠️ ARE YOU ABSOLUTELY SURE?\n\n' +
     'This action CANNOT be undone!\n' +
@@ -354,13 +415,26 @@ async function deleteAccount() {
     
     console.log('🗑️ Deleting account:', user.email);
     
-    // Firebase dan account ni o'chirish
+    // ✅ 1. localStorage ni tozalash
+    if (typeof window.clearAllUserData === 'function') {
+      window.clearAllUserData();
+    }
+    
+    // ✅ 2. Firebase dan account ni o'chirish
     await deleteUser(user);
+    
+    // ✅ 3. Barcha cookielarni o'chirish (agar bor bo'lsa)
+    document.cookie.split(";").forEach(function(c) { 
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    });
+    
+    // ✅ 4. SessionStorage ni tozalash
+    sessionStorage.clear();
     
     showNotification('Account deleted successfully. Redirecting...', 'success');
     console.log('✅ Firebase account deleted');
     
-    // 2 soniyadan keyin login ga yo'naltirish
+    // ✅ 5. Login sahifasiga yo'naltirish (2 soniya kutish)
     setTimeout(() => {
       window.location.href = './login.html';
     }, 2000);
@@ -524,6 +598,22 @@ function showNotification(message, type = 'info') {
   console.log(`${type.toUpperCase()}: ${message}`);
 }
 
+function updateAllUsernames(username) {
+  // Sidebar username
+  const userNameElement = document.getElementById('userName');
+  if (userNameElement) {
+    userNameElement.textContent = username;
+  }
+  
+  // Dashboard header title
+  const headerTitle = document.getElementById('headerTitle');
+  if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
+    headerTitle.textContent = `Welcome back, ${username}!`;
+  }
+  
+  console.log('✅ All usernames updated to:', username);
+}
+
 // Modal tashqarisiga bosilganda yopish
 window.addEventListener('click', function(event) {
   const modals = ['avatarModal', 'passwordModal', 'deleteModal', 'emailModal'];
@@ -534,3 +624,20 @@ window.addEventListener('click', function(event) {
     }
   });
 });
+
+// profile.js oxiriga qo'shing
+function clearUserStats() {
+  const auth = window.firebaseAuth;
+  const user = auth?.currentUser;
+  
+  if (user) {
+    const statsKey = `ziyoai_stats_${user.uid}`;
+    const toolUsageKey = `ziyoai_tool_usage_${user.uid}`;
+    
+    localStorage.removeItem(statsKey);
+    localStorage.removeItem(toolUsageKey);
+    
+    console.log('🗑️ User stats cleared:', statsKey, toolUsageKey);
+  }
+}
+

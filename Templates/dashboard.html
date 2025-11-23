@@ -98,10 +98,8 @@
             </a>
           </li> -->
           <li class="nav-item">
-            <a class="nav-link" data-tool="clinical_notes">
-              <span class="nav-icon material-symbols-outlined"
-                >clinical_notes</span
-              >
+            <a class="nav-link" data-tool="study">
+              <span class="nav-icon material-symbols-outlined">clinical_notes</span>
               <span class="nav-lebel">Study Assistant</span>
             </a>
           </li>
@@ -112,7 +110,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" data-tool="chat_bubble">
+            <a class="nav-link" data-tool="speaking">
               <span class="nav-icon material-symbols-outlined"
                 >chat_bubble</span
               >
@@ -233,41 +231,106 @@
 
     <!-- Main Section -->
      <main>
-      <!-- Dashboard View -->
-      <div class="tool-content active" id="dashboard-content">
-        <div class="dashboard-exp">
-          <div class="rocket">🚀</div>
-          <h1>Welcome to Ziyo AI</h1>
-          <p>Your all-in-one AI-powered education platform. Choose any tool from the sidebar to start your learning journey!</p>
-        </div>
-        <div class="tools-grid">
-          <div class="tool-card gradient-1" data-tool="homework">
-            <div class="tool-card-icon">📚</div>
-            <h3>Homework Fixer</h3>
-            <p>
-              Paste your homework and get instant corrections with explanations
-            </p>
-          </div>
+<!-- Dashboard View -->
+<div class="tool-content active" id="dashboard-content">
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon">⏱️</div>
+      <div class="stat-info">
+        <div class="stat-value" id="totalStudyTime">0h 0m</div>
+        <div class="stat-label">Total Study Time</div>
+      </div>
+    </div>
 
-          <div class="tool-card gradient-2" data-tool="timer">
-            <div class="tool-card-icon">⏱️</div>
-            <h3>Study Timer</h3>
-            <p>Pomodoro timer to help you stay focused and productive</p>
-          </div>
+    <div class="stat-card stat-red">
+      <div class="stat-icon">🍅</div>
+      <div class="stat-info">
+        <div class="stat-value" id="totalPomodoros">0</div>
+        <div class="stat-label">Pomodoros Completed</div>
+      </div>
+    </div>
 
-          <div class="tool-card gradient-3" data-tool="grammar">
-            <div class="tool-card-icon">✍️</div>
-            <h3>Grammar Checker</h3>
-            <p>Check and improve your grammar, spelling, and writing style</p>
-          </div>
+    <div class="stat-card stat-green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="stat-value" id="homeworkCompleted">0</div>
+        <div class="stat-label">Homework Completed</div>
+      </div>
+    </div>
 
-          <div class="tool-card gradient-4" data-tool="vocabulary">
-            <div class="tool-card-icon">📖</div>
-            <h3>Vocabulary Builder</h3>
-            <p>Learn new words and expand your vocabulary with examples</p>
-          </div>
+    <div class="stat-card stat-purple">
+      <div class="stat-icon">📝</div>
+      <div class="stat-info">
+        <div class="stat-value" id="quizzesTaken">0</div>
+        <div class="stat-label">Quizzes Taken</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Most Used Tool -->
+  <!-- <div class="most-used-section">
+    <h3 style="color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+      <i class="bi bi-graph-up"></i> Your Activity
+    </h3>
+    
+    <div class="activity-cards">
+      <div class="activity-card">
+        <div class="activity-icon">🏆</div>
+        <div class="activity-info">
+          <div class="activity-label">Most Used Tool</div>
+          <div class="activity-value" id="mostUsedTool">Grammar Checker</div>
+          <div class="activity-count" id="mostUsedCount">0 times</div>
         </div>
       </div>
+
+      <div class="activity-card">
+        <div class="activity-icon">🌟</div>
+        <div class="activity-info">
+          <div class="activity-label">Least Used Tool</div>
+          <div class="activity-value" id="leastUsedTool">Resume Builder</div>
+          <div class="activity-count" id="leastUsedCount">0 times</div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Tools Grid -->
+  <div style="margin-top: 30px;">
+    <h3 class="dashboard-bc" style="color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+      <i class="bi bi-grid-3x3-gap-fill"></i> Quick Access Tools
+    </h3>
+    <div class="tools-grid">
+      <div class="tool-card gradient-1" data-tool="homework">
+        <div class="tool-card-icon">📚</div>
+        <h3>Homework Fixer</h3>
+        <p>Paste your homework and get instant corrections with explanations</p>
+        <div class="tool-usage-badge" id="usage-homework">Used 0 times</div>
+      </div>
+
+      <div class="tool-card gradient-2" data-tool="grammar">
+        <div class="tool-card-icon">✍️</div>
+        <h3>Grammar Checker</h3>
+        <p>Check and improve your grammar, spelling, and writing style</p>
+        <div class="tool-usage-badge" id="usage-grammar">Used 0 times</div>
+      </div>
+
+      <div class="tool-card gradient-3" data-tool="vocabulary">
+        <div class="tool-card-icon">📖</div>
+        <h3>Vocabulary Builder</h3>
+        <p>Learn new words and expand your vocabulary with examples</p>
+        <div class="tool-usage-badge" id="usage-vocabulary">Used 0 times</div>
+      </div>
+
+      <div class="tool-card gradient-4" data-tool="quiz">
+        <div class="tool-card-icon">❓</div>
+        <h3>Quiz Generator</h3>
+        <p>Generate custom quizzes from any text or topic</p>
+        <div class="tool-usage-badge" id="usage-quiz">Used 0 times</div>
+      </div>
+    </div>
+  </div>
+</div>
 
       <!-- Homework Fixer Tool - IMAGE UPLOAD QUSHILGAN -->
 <!-- HOMEWORK FIXER TOOL - TO'LIQ YANGILANGAN -->
@@ -536,7 +599,7 @@
 </div>
 
 <!-- STUDY ASSISTANT TOOL -->
-<div class="tool-content" id="clinical_notes-content">
+<div class="tool-content" id="study-content">
   <div class="tool-interface">
     <h4 style="margin-bottom: 15px; color: #1f2937">
       <i class="bi bi-mortarboard"></i> Study Assistant
@@ -632,7 +695,7 @@
 </div>
 
 <!-- SPEAKING FEEDBACK TOOL -->
-<div class="tool-content" id="chat_bubble-content">
+<div class="tool-content" id="speaking-content">
   <div class="tool-interface">
     <h4 style="margin-bottom: 15px; color: #1f2937">
       <i class="bi bi-mic-fill"></i> IELTS / CEFR Speaking Feedback
@@ -936,8 +999,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script src="../JS/dashboard.js"></script>
-    <script src="../JS/profile.js"></script>
 
     <!-- Firebase Auth -->
 <script type="module">
@@ -977,24 +1038,61 @@
   window.getAuth = getAuth;
 
   // ============================================
-  // DYNAMIC USERNAME FUNCTION - FIXED ✅
+  // USERNAME EXTRACTION HELPER - YANGILANGAN ✅
+  // ============================================
+  function extractUsername(displayName, email) {
+    if (!displayName) {
+      return email ? email.split('@')[0] : 'User';
+    }
+    
+    // Barcha emoji-larni olib tashlash (kengaytirilgan Unicode range)
+    let username = displayName
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')  // Emoji range 1
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc Symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
+      .trim();
+    
+    // Agar bo'sh string qolsa yoki faqat probel bo'lsa
+    if (!username || username.length === 0 || /^\s*$/.test(username)) {
+      username = email ? email.split('@')[0] : 'User';
+    }
+    
+    return username;
+  }
+
+  // ============================================
+  // UPDATE USERNAME IN UI - YANGILANGAN ✅
   // ============================================
   function updateUserName(user) {
-    console.log("User displayName:", user.displayName);
-    console.log("User email:", user.email);
+    if (!user) return;
     
+    console.log("🔍 User displayName:", user.displayName);
+    console.log("📧 User email:", user.email);
+    
+    const username = extractUsername(user.displayName, user.email);
+    console.log("✅ Extracted username:", username);
+    
+    // Sidebar username
     const userNameElement = document.getElementById('userName');
-    if (user && userNameElement) {
-      // Emoji ni olib tashlash va faqat username ni ko'rsatish
-      const displayName = user.displayName 
-        ? user.displayName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() 
-        : user.email.split('@')[0];
-      userNameElement.textContent = displayName;
+    if (userNameElement) {
+      userNameElement.textContent = username;
+      console.log("✅ Sidebar username updated");
+    }
+    
+    // Dashboard header title
+    const headerTitle = document.getElementById('headerTitle');
+    if (headerTitle) {
+      // Agar "Welcome back" bo'lsa, username qo'shish
+      if (headerTitle.textContent.includes('Welcome back') || 
+          headerTitle.textContent === 'Welcome back, Student!') {
+        headerTitle.textContent = `Welcome back, ${username}!`;
+        console.log("✅ Header title updated");
+      }
     }
   }
 
   // ============================================
-  // AUTH STATE CHANGED - YANGILANGAN
+  // AUTH STATE CHANGED - YANGILANGAN ✅
   // ============================================
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -1006,7 +1104,10 @@
       updateUserName(user);
       
       // Spinner ni yashirish
-      document.querySelector(".spinner-wrapper").style.display = "none";
+      const spinner = document.querySelector(".spinner-wrapper");
+      if (spinner) {
+        spinner.style.display = "none";
+      }
     } else {
       console.log("❌ No user logged in");
       window.location.href = "./login.html";
@@ -1040,6 +1141,17 @@
       alert("Logout error: " + error.message);
     }
   });
+
+  // ============================================
+  // GLOBAL USERNAME UPDATE FUNCTION
+  // ============================================
+  // Bu funksiyani profile.js dan chaqirish mumkin
+  window.refreshUsername = function() {
+    const user = auth.currentUser;
+    if (user) {
+      updateUserName(user);
+    }
+  };
 </script>
 <style>
 @keyframes slideIn {
@@ -1064,5 +1176,8 @@
   }
 }
 </style>
+    <script src="../JS/dashboard.js"></script>
+    <script src="../JS/dashboard-overview.js"></script>
+    <script src="../JS/profile.js"></script>
   </body>
 </html>

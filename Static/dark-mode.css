@@ -404,6 +404,43 @@ body.dark-mode .motivation-close:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
+body.dark-mode .stat-card {
+    background: var(--secondary-dc);
+}
+
+body.dark-mode .stat-value {
+    color: var(--text-dc);
+}
+
+body.dark-mode .dashboard-bc {
+    color: var(--text-dc) !important;
+}
+
+/* Extra Dark Mode - Juda qorong'i variant */
+body.dark-mode .tool-card.gradient-1 {
+  background: linear-gradient(135deg, #3a4d7f 0%, #4a2d5f 100%);
+}
+
+body.dark-mode .tool-card.gradient-2 {
+  background: linear-gradient(135deg, #9a5a9a 0%, #9a3340 100%);
+}
+
+body.dark-mode .tool-card.gradient-3 {
+  background: linear-gradient(135deg, #2d6a9a 0%, #009aa8 100%);
+}
+
+body.dark-mode .tool-card.gradient-4 {
+  background: linear-gradient(135deg, #248749 0%, #219b82 100%);
+}
+
+body.dark-mode .tool-card.gradient-5 {
+  background: linear-gradient(135deg, #9a425a 0%, #a88f28 100%);
+}
+
+body.dark-mode .tool-card{
+    color: var(--text-dc);
+}
+
 /* Timer Components Dark Mode */
 body.dark-mode .timer-dropdown {
     background: var(--secondary-dc);

@@ -38,9 +38,10 @@ const toolContents = document.querySelectorAll(".tool-content");
 const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
+// 1️⃣ TOOL TITLES - DYNAMIC USERNAME ✅
 const toolTitles = {
   dashboard: {
-    title: "Welcome back, Student!",
+    title: "Welcome back!",
     subtitle: "Select a tool below to get started",
   },
   homework: {
@@ -55,11 +56,55 @@ const toolTitles = {
     title: "Vocabulary Builder",
     subtitle: "Learn new words with examples",
   },
+  quiz: {
+    title: "Quiz Generator",
+    subtitle: "Generate quizzes from any text",
+  },
+  study: {  // ✅ QO'SHISH
+    title: "Study Assistant",
+    subtitle: "AI-powered study helper",
+  },
+  speaking: {  // ✅ QO'SHISH
+    title: "IELTS Feedback",
+    subtitle: "Get feedback on your speaking",
+  },
   profile: {
-  title: "Profile Settings",
-  subtitle: "Manage your account and preferences",
-},
+    title: "Profile Settings",
+    subtitle: "Manage your account and preferences",
+  },
 };
+
+// ✅ YAXSHIroq regex pattern
+function getUsernameFromDisplayName(displayName, email) {
+  if (!displayName) {
+    return email ? email.split('@')[0] : 'User';
+  }
+  
+  // ✅ Barcha emoji-larni olib tashlash (kengaytirilgan)
+  let username = displayName
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')  // Main emoji range
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc Symbols
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')  // Misc Symbols and Pictographs
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')  // Emoticons
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')  // Transport and Map
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')  // Supplemental Symbols
+    .trim();
+  
+  // Agar bo'sh string qolsa, emaildan olish
+  if (!username || username.length === 0 || /^\s*$/.test(username)) {
+    username = email ? email.split('@')[0] : 'User';
+  }
+  
+  return username;
+}
+
+function updateWelcomeMessage(username) {
+  const headerTitle = document.getElementById("headerTitle");
+  if (headerTitle && headerTitle.textContent.includes("Welcome back")) {
+    headerTitle.textContent = `Welcome back, ${username}!`;
+  }
+}
 
 function switchTool(toolName) {
   // Navigation active holatini o'zgartirish
@@ -85,6 +130,28 @@ function switchTool(toolName) {
   if (toolTitles[toolName]) {
     headerTitle.textContent = toolTitles[toolName].title;
     headerSubtitle.textContent = toolTitles[toolName].subtitle;
+    
+    // ✅ Agar dashboard bo'lsa, username ni qo'shish
+    if (toolName === 'dashboard') {
+      const auth = window.firebaseAuth;
+      if (auth && auth.currentUser) {
+        const username = getUsernameFromDisplayName(auth.currentUser.displayName, auth.currentUser.email);
+        headerTitle.textContent = `Welcome back, ${username}!`;
+      }
+    }
+  }
+
+  // ✅ TO'G'RILANGAN TOOL USAGE TRACKING
+  // Faqat dashboard va profile dan tashqari
+  if (toolName !== 'dashboard' && toolName !== 'profile') {
+    console.log('🔧 Tracking tool:', toolName);
+    
+    // trackToolUsage funksiyasi mavjudligini tekshirish
+    if (typeof trackToolUsage === 'function') {
+      trackToolUsage(toolName);
+    } else {
+      console.warn('⚠️ trackToolUsage function not found');
+    }
   }
 
   // Mobil uchun sidebar yopish
@@ -240,25 +307,28 @@ async function fixHomework() {
       throw new Error(data.error || "Server error");
     }
 
-    if (data.success && data.correctedHomework) {
-      output.innerHTML = `
-        <div class="alert alert-success">
-          <h5 class="alert-heading">
-            <i class="bi bi-check-circle-fill"></i> AI Analysis
-          </h5>
-          <hr>
-          <div style="white-space: pre-wrap; line-height: 1.8;">
-            ${data.correctedHomework}
-          </div>
-        </div>
-      `;
+if (data.success && data.correctedHomework) {
+  output.innerHTML = `
+    <div class="alert alert-success">
+      <h5 class="alert-heading">
+        <i class="bi bi-check-circle-fill"></i> AI Analysis
+      </h5>
+      <hr>
+      <div style="white-space: pre-wrap; line-height: 1.8;">
+        ${data.correctedHomework}
+      </div>
+    </div>
+  `;
 
-      if (currentHomeworkTab === "image") {
-        removeImage();
-      }
-    } else {
-      throw new Error("No response from AI");
-    }
+  // ✅ STATISTIKA QO'SHISH
+  incrementStat('homeworkCompleted');
+
+  if (currentHomeworkTab === "image") {
+    removeImage();
+  }
+} else {
+  throw new Error("No response from AI");
+}
   } catch (error) {
     console.error("❌ Error:", error);
     showError(output, error.message);
@@ -674,6 +744,10 @@ function onTimerComplete() {
   const message = document.getElementById("notificationMessage");
 
   if (currentMode === "pomodoro") {
+    // ✅ STATISTIKA QO'SHISH
+    incrementStat('totalPomodoros');
+    incrementStat('totalStudyTime', pomodoroMinutes);
+    
     icon.textContent = "🎉";
     title.textContent = "Pomodoro Complete!";
     message.textContent = "Great work! Time for a break?";
@@ -792,22 +866,40 @@ document.addEventListener('click', function(event) {
     toggleTimerDropdown();
   }
 });
+
+
 // ============================================
 // PAGE LOAD
 // ============================================
 window.addEventListener("load", () => {
   updateMiniTimerDisplay();
   startMotivationSystem();
+  initStats();
+  
+  // ✅ Firebase auth tekshirish va username ni yangilash
+  const auth = window.firebaseAuth;
+  if (auth) {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        const username = getUsernameFromDisplayName(user.displayName, user.email);
+        console.log('✅ Username extracted:', username);
+        
+        // Header title ni yangilash (agar dashboard bo'lsa)
+        updateWelcomeMessage(username);
+        
+        // Sidebar username ni yangilash
+        const userNameElement = document.getElementById('userName');
+        if (userNameElement) {
+          userNameElement.textContent = username;
+        }
+      }
+      unsubscribe(); // Bir marta ishlasin
+    });
+  }
 
   setTimeout(() => {
     document.querySelector(".spinner-wrapper").style.display = "none";
   }, 500);
-});
-
-window.addEventListener("beforeunload", () => {
-  if (motivationInterval) {
-    clearInterval(motivationInterval);
-  }
 });
 
 /* ========================================
@@ -1027,6 +1119,9 @@ function finishQuiz() {
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
+
+  // ✅ STATISTIKA QO'SHISH
+  incrementStat('quizzesTaken');
 
   // Hide quiz section
   document.getElementById("quizQuestionsSection").style.display = "none";
@@ -1669,3 +1764,6 @@ function showError(element, message) {
 }
 
 
+
+
+console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
