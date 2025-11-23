@@ -1,0 +1,457 @@
+@media (max-width: 1024px) {
+  .sidebar {
+    height: 56px;
+    overflow-y: hidden;
+    max-height: calc(100vh - 28px);
+    margin: 13px;
+    width: calc(100% - 26px);
+    left: 0;
+    margin-top: -70px;
+  }
+
+  .navbar-brand {
+    margin-top: -2px;
+  }
+
+  .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+
+  .sidebar-header .sidebar-toggler {
+    display: none;
+  }
+
+  .sidebar-header .menu-toggler {
+    display: flex;
+    height: 30px;
+    width: 30px;
+  }
+
+  .sidebar-header .menu-toggler span {
+    font-size: 1.3rem;
+  }
+
+  .sidebar-nav .nav-list {
+    padding: 0 10px;
+  }
+
+  .sidebar-nav .nav-link {
+    padding: 10px;
+    gap: 10px;
+    font-size: 0.94rem;
+  }
+
+  .sidebar-nav .nav-link .nav-icon {
+    font-size: 1.37rem;
+  }
+
+  .sidebar-nav .secondary-nav {
+    position: relative;
+    bottom: 0;
+    margin: 40px 0 30px;
+  }
+
+  .header-section {
+    margin: 85px 13px 13px 13px;
+    padding: 20px;
+  }
+
+  main {
+    margin: 13px 13px 13px 13px;
+    padding: 20px;
+    min-height: calc(100vh - 180px);
+  }
+
+  .sidebar.collapsed ~ .header-section,
+  .sidebar.collapsed ~ main {
+    margin-left: 13px;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    height: 56px;
+    overflow-y: hidden;
+    max-height: calc(100vh - 28px);
+    margin: 13px;
+    width: calc(100% - 26px);
+    left: 0;
+    margin-top: -70px;
+  }
+
+  .navbar-brand {
+    margin-top: -2px;
+  }
+
+  .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+
+  .sidebar-header .sidebar-toggler {
+    display: none;
+  }
+
+  .sidebar-header .menu-toggler {
+    display: flex;
+    height: 30px;
+    width: 30px;
+  }
+
+  .sidebar-header .menu-toggler span {
+    font-size: 1.3rem;
+  }
+
+  .sidebar-nav .nav-list {
+    padding: 0 10px;
+  }
+
+  .sidebar-nav .nav-link {
+    padding: 10px;
+    gap: 10px;
+    font-size: 0.94rem;
+  }
+
+  .sidebar-nav .nav-link .nav-icon {
+    font-size: 1.37rem;
+  }
+
+  .sidebar-nav .secondary-nav {
+    position: relative;
+    bottom: 0;
+    margin: 40px 0 30px;
+  }
+
+  .header-section {
+    margin: 85px 13px 13px 13px;
+    padding: 20px;
+  }
+
+  main {
+    margin: 13px 13px 13px 13px;
+    padding: 20px;
+    min-height: calc(100vh - 180px);
+  }
+
+  .sidebar.collapsed ~ .header-section,
+  .sidebar.collapsed ~ main {
+    margin-left: 13px;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    height: 56px;
+    overflow-y: hidden;
+    max-height: calc(100vh - 28px);
+    margin: 13px;
+    width: calc(100% - 26px);
+    left: 0;
+    margin-top: -70px;
+  }
+
+  .navbar-brand {
+    margin-top: -2px;
+  }
+
+  .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+
+  .sidebar-header .sidebar-toggler {
+    display: none;
+  }
+
+  .sidebar-header .menu-toggler {
+    display: flex;
+    height: 30px;
+    width: 30px;
+  }
+
+  .sidebar-header .menu-toggler span {
+    font-size: 1.3rem;
+  }
+
+  .sidebar-nav .nav-list {
+    padding: 0 10px;
+  }
+
+  .sidebar-nav .nav-link {
+    padding: 10px;
+    gap: 10px;
+    font-size: 0.94rem;
+  }
+
+  .sidebar-nav .nav-link .nav-icon {
+    font-size: 1.37rem;
+  }
+
+  .sidebar-nav .secondary-nav {
+    position: relative;
+    bottom: 0;
+    margin: 40px 0 30px;
+  }
+
+  .header-section {
+    margin: 85px 13px 13px 13px;
+    padding: 20px;
+  }
+
+  main {
+    margin: 13px 13px 13px 13px;
+    padding: 20px;
+    min-height: calc(100vh - 180px);
+  }
+
+  .sidebar.collapsed ~ .header-section,
+  .sidebar.collapsed ~ main {
+    margin-left: 13px;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .result-box {
+    padding: 20px;
+  }
+
+  #homeworkOutput,
+  #grammarOutput,
+  #vocabOutput {
+    padding: 20px;
+  }
+
+  .alert-success .alert-heading {
+    font-size: 1.2em !important;
+  }
+
+  .alert-success h1 {
+    font-size: 1.3em !important;
+  }
+
+  .alert-success h2 {
+    font-size: 1.15em !important;
+  }
+  .ai-heading {
+    font-size: 1.2em !important;
+    flex-wrap: wrap;
+  }
+
+  .ai-section {
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .ai-icon {
+    font-size: 1.3em;
+  }
+  .motivation-toast {
+    right: 15px;
+    left: 15px;
+    min-width: auto;
+    max-width: none;
+  }
+
+  .motivation-toast.show {
+    bottom: 15px;
+  }
+  .tomato-icon-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 2em;
+  }
+
+  .timer-dropdown {
+    width: 180px;
+    padding: 20px;
+  }
+
+  .timer-display {
+    font-size: 1.8em;
+  }
+
+  .timer-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1em;
+  }
+  .quiz-option {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  #quizQuestionText {
+    font-size: 18px !important;
+  }
+
+  #quizScoreDisplay {
+    font-size: 48px !important;
+  }
+
+  #quizPercentageDisplay {
+    font-size: 20px !important;
+  }
+
+  .quiz-review-item {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Language Selector Mobile */
+  .language-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .language-dropdown {
+    width: 100%;
+  }
+
+  /* AI Sections Mobile */
+  .ai-section {
+    margin: 10px 0;
+    padding: 10px;
+  }
+
+  .ai-heading {
+    font-size: 13px;
+  }
+
+  .ai-number {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    font-size: 0.7em;
+  }
+
+  .ai-title {
+    font-size: 12px;
+    flex: 1;
+    min-width: 60%;
+  }
+
+  .ai-section .ai-body {
+    width: 100%;
+  }
+
+  .ai-body {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  /* Audio Button Mobile */
+  .audio-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 12px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+
+  /* Vocabulary header fix */
+  .alert.alert-warning > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start !important;
+  }
+
+  .tool-content {
+    padding: 0;
+  }
+
+  /* Result box full width */
+  .result-box {
+    padding: 10px;
+    width: 100% !important;
+    background: transparent !important;
+  }
+  .tool-interface{
+    padding: 10px;
+    width: 110%;
+    margin-left: -15px;
+  }
+#homeworkOutput,
+  #grammarOutput,
+  #vocabOutput {
+    padding: 0px;
+    width: 100% !important;
+  }
+
+  .alert-warning,
+  .alert-success,
+  .alert-info {
+    padding: 12px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .ai-section {
+    margin: 10px 0;
+    padding: 12px;
+    width: 100% !important;
+    display: block !important;
+  }
+  /* Language Selector mobilga moslashadi */
+  .language-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+  }
+
+  .language-dropdown {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .language-selector label {
+    font-size: 14px;
+  }
+
+  /* Audio button siqilmasligi uchun */
+  .audio-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .audio-btn i {
+    font-size: 16px;
+  }
+
+  /* Warning box mobil ko‘rinishda normal bo‘ladi */
+  .alert.alert-warning {
+    padding: 16px;
+    font-size: 14px;
+  }
+}
+
+
+
