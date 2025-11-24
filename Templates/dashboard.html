@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../Static/profile.css">
     <link rel="stylesheet" href="../Static/dark-mode.css">
     <link rel="stylesheet" href="../Static/responsive.css">
+    <link rel="stylesheet" href="../Static/resume-builder.css">
   </head>
   <body>
     <!-- Logout Modal -->
@@ -994,6 +995,191 @@
   </div>
 </div>
 
+<!-- RESUME BUILDER TOOL -->
+<div class="tool-content" id="article-content">
+  <div class="resume-builder-container">
+    
+    <!-- Template Selector -->
+    <div class="resume-header-section">
+      <h4 style="margin-bottom: 15px; color: #1f2937; display: flex; align-items: center; gap: 10px;">
+        <i class="bi bi-file-earmark-person"></i> Resume Builder
+      </h4>
+      
+      <div class="template-selector" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="template-btn active" data-template="professional">Professional</button>
+        <button class="template-btn" data-template="modern">Modern</button>
+        <button class="template-btn" data-template="creative">Creative</button>
+        <button class="template-btn" data-template="minimalist">Minimalist</button>
+        <button class="template-btn" data-template="executive">Executive</button>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn-inline btn-secondary-inline" id="loadResumeBtn" onclick="loadSavedResume()">
+          <i class="bi bi-cloud-download"></i> Load Saved
+        </button>
+        <button class="btn-inline btn-primary-inline" id="previewResumeBtn" onclick="togglePreview()">
+          <i class="bi bi-eye"></i> Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Resume Editor Grid -->
+    <div class="resume-grid">
+      
+      <!-- Left Column - Editor -->
+      <div class="resume-editor">
+        
+        <!-- Personal Information -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-person-circle"></i> Personal Information
+          </div>
+
+          <div class="image-upload-container" style="text-align: center; margin-bottom: 20px;">
+            <img id="resumePhotoPreview" class="resume-photo-preview" style="display: none; width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea; margin-bottom: 10px;" alt="Profile Photo">
+            <input type="file" id="resumePhotoInput" accept="image/*" style="display: none;" onchange="handleResumePhotoUpload(event)">
+            <button class="upload-btn" onclick="document.getElementById('resumePhotoInput').click()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+              <i class="bi bi-camera"></i> Upload Photo
+            </button>
+          </div>
+          
+          <div class="input-group-inline">
+            <label>Full Name *</label>
+            <input type="text" id="resumeFullName" placeholder="John Doe">
+          </div>
+
+          <div class="input-group-inline">
+            <label>Job Title *</label>
+            <input type="text" id="resumeJobTitle" placeholder="Software Engineer">
+          </div>
+
+          <div class="input-group-inline">
+            <label>Email *</label>
+            <input type="email" id="resumeEmail" placeholder="john@example.com">
+          </div>
+
+          <div class="input-group-inline">
+            <label>Phone *</label>
+            <input type="tel" id="resumePhone" placeholder="+998 90 123 45 67">
+          </div>
+
+          <div class="input-group-inline">
+            <label>Location</label>
+            <input type="text" id="resumeLocation" placeholder="Tashkent, Uzbekistan">
+          </div>
+
+          <div class="input-group-inline">
+            <label>LinkedIn</label>
+            <input type="url" id="resumeLinkedin" placeholder="linkedin.com/in/johndoe">
+          </div>
+
+          <div class="input-group-inline">
+            <label>GitHub</label>
+            <input type="url" id="resumeGithub" placeholder="github.com/johndoe">
+          </div>
+        </div>
+
+        <!-- Professional Summary -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-card-text"></i> Professional Summary
+          </div>
+          <div class="input-group-inline">
+            <textarea id="resumeSummary" placeholder="Write a brief professional summary..." rows="4"></textarea>
+          </div>
+          <button class="btn-inline btn-secondary-inline" id="aiSummaryBtn" onclick="enhanceResumeWithAI()" style="width: 100%;">
+            <i class="bi bi-stars"></i> AI Enhance
+          </button>
+        </div>
+
+        <!-- Work Experience -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-briefcase"></i> Work Experience
+          </div>
+          <div id="resumeExperienceContainer"></div>
+          <button class="add-btn" onclick="addResumeExperience()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="bi bi-plus-circle"></i> Add Experience
+          </button>
+        </div>
+
+        <!-- Education -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-mortarboard"></i> Education
+          </div>
+          <div id="resumeEducationContainer"></div>
+          <button class="add-btn" onclick="addResumeEducation()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="bi bi-plus-circle"></i> Add Education
+          </button>
+        </div>
+
+        <!-- Skills -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-lightning"></i> Skills
+          </div>
+          <div id="resumeSkillsContainer"></div>
+          <button class="add-btn" onclick="addResumeSkill()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="bi bi-plus-circle"></i> Add Skill
+          </button>
+        </div>
+
+        <!-- Languages -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-translate"></i> Languages
+          </div>
+          <div id="resumeLanguagesContainer"></div>
+          <button class="add-btn" onclick="addResumeLanguage()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="bi bi-plus-circle"></i> Add Language
+          </button>
+        </div>
+
+        <!-- Projects -->
+        <div class="resume-section-block">
+          <div class="section-title-inline">
+            <i class="bi bi-folder"></i> Projects
+          </div>
+          <div id="resumeProjectsContainer"></div>
+          <button class="add-btn" onclick="addResumeProject()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="bi bi-plus-circle"></i> Add Project
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button class="btn-inline btn-primary-inline" onclick="downloadResumePDF()" style="flex: 1;">
+            <i class="bi bi-download"></i> Download PDF
+          </button>
+          <button class="btn-inline btn-success" onclick="saveResume()" style="flex: 1;">
+            <i class="bi bi-save"></i> Save
+          </button>
+          <button class="btn-inline btn-secondary-inline" onclick="clearResume()" style="flex: 0.5;">
+            <i class="bi bi-trash"></i> Clear
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right Column - Preview -->
+      <div class="resume-preview" id="resumePreviewPanel">
+        <div class="preview-header">
+          <h5><i class="bi bi-eye"></i> Live Preview</h5>
+          <button onclick="togglePreview()" style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #666;">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div id="resumePreview" class="template-professional">
+          <!-- Resume preview will be rendered here -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
       
     </main>
 
@@ -1177,7 +1363,9 @@
 }
 </style>
     <script src="../JS/dashboard.js"></script>
+    <script src="../JS/resume-builder.js"></script>
     <script src="../JS/dashboard-overview.js"></script>
     <script src="../JS/profile.js"></script>
+
   </body>
 </html>
