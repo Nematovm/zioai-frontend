@@ -1,7 +1,30 @@
 const API_URL = "https://zioai-backend.onrender.com";
-
-// API Configuration
 const API_BASE_URL = "/api";
+
+// Test qilish uchun:
+console.log("🌐 API URL:", API_URL);
+console.log("📍 Full endpoint:", `${API_URL}${API_BASE_URL}/audio-to-text`);
+
+// ============================================
+// BACKEND AVAILABILITY CHECKER
+// ============================================
+async function checkBackendStatus() {
+  try {
+    const response = await fetch(`${API_URL}/api/test`);
+    const data = await response.json();
+    
+    if (data.status === "OK") {
+      console.log("✅ Backend ishlayapti!");
+      console.log("   Message:", data.message);
+      console.log("   API Key:", data.hasApiKey ? "✅" : "❌");
+      return true;
+    }
+  } catch (error) {
+    console.error("❌ Backend ishlamayapti:", error);
+    alert("⚠️ Backend serverga ulanib bo'lmadi!\n\nServer ishlayotganini tekshiring:\n" + API_URL);
+    return false;
+  }
+}
 
 // Sidebar Toggle
 const sidebar = document.querySelector(".sidebar");
@@ -1385,7 +1408,7 @@ function clearStudyAssistant() {
 }
 
 // ============================================
-// SPEAKING FEEDBACK - FRONTEND (AUDIO RECORDING)
+// SPEAKING FEEDBACK - TUZATILGAN ✅
 // ============================================
 
 // Global variables
@@ -1401,7 +1424,6 @@ let recordedAudioBlob = null;
 function selectExamType(type) {
   selectedExamType = type;
   
-  // Barcha tugmalardan active olib tashlash
   document.querySelectorAll('.exam-type-btn').forEach(btn => {
     btn.classList.remove('active');
     btn.style.background = '#fff';
@@ -1409,7 +1431,6 @@ function selectExamType(type) {
     btn.style.border = '2px solid #e5e7eb';
   });
   
-  // Tanlangan tugmaga active qo'shish
   const activeBtn = event.target.closest('.exam-type-btn');
   if (activeBtn) {
     activeBtn.classList.add('active');
@@ -1418,7 +1439,6 @@ function selectExamType(type) {
     activeBtn.style.border = '2px solid #6366f1';
   }
   
-  // Info text yangilash
   const infoText = document.getElementById('examInfoText');
   if (type === 'IELTS') {
     infoText.innerHTML = '📊 <strong>IELTS:</strong> Band 1-9 gacha baholanadi (Fluency, Vocabulary, Grammar, Pronunciation)';
@@ -1430,42 +1450,76 @@ function selectExamType(type) {
   console.log("📝 Exam type tanlandi:", type);
 }
 
-// Ovoz yozishni boshlash
+// ✅ Ovoz yozishni boshlash - TUZATILGAN
 async function startRecording() {
   const topic = document.getElementById('speakingTopicInput').value.trim();
   
   if (!topic) {
-    alert("Iltimos, avval topic kiriting!");
+    alert("⚠️ Iltimos, avval topic kiriting!");
     return;
   }
   
   if (!selectedExamType) {
-    alert("Iltimos, IELTS yoki Multilevel tanlang!");
+    alert("⚠️ Iltimos, IELTS yoki Multilevel tanlang!");
     return;
   }
   
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    // ✅ Audio constraints - WAV format
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 16000  // Deepgram uchun optimal
+      } 
+    });
+    
+    // ✅ MIME type tekshirish
+    let mimeType = 'audio/webm;codecs=opus';
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'audio/webm';
+    }
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'audio/ogg;codecs=opus';
+    }
+    
+    console.log("🎤 Audio format:", mimeType);
+    
+    mediaRecorder = new MediaRecorder(stream, { mimeType });
     audioChunks = [];
     recordedAudioBlob = null;
     
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         audioChunks.push(event.data);
+        console.log("📦 Audio chunk qo'shildi:", event.data.size, "bytes");
       }
     };
     
     mediaRecorder.onstop = async () => {
-      // Audio blob yaratish
-      recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      console.log("✅ Audio yozib olindi:", recordedAudioBlob.size, "bytes");
+      recordedAudioBlob = new Blob(audioChunks, { type: mimeType });
+      console.log("✅ Audio yozib olindi:");
+      console.log("  - Size:", recordedAudioBlob.size, "bytes");
+      console.log("  - Type:", recordedAudioBlob.type);
+      console.log("  - Duration:", recordingSeconds, "seconds");
       
-      // Feedback tugmasini ko'rsatish
+      // ✅ Audio hajmini tekshirish
+      if (recordedAudioBlob.size < 1000) {
+        alert("❌ Audio juda qisqa yoki bo'sh!\n\nIltimos, qaytadan yozib ko'ring.");
+        clearSpeaking();
+        return;
+      }
+      
       showFeedbackButton();
     };
     
-    mediaRecorder.start();
+    mediaRecorder.onerror = (error) => {
+      console.error("❌ MediaRecorder xatosi:", error);
+      alert("❌ Ovoz yozishda xatolik:\n" + error);
+      stopRecording();
+    };
+    
+    mediaRecorder.start(1000); // Har 1 sekundda chunk
     isRecording = true;
     recordingSeconds = 0;
     
@@ -1486,8 +1540,8 @@ async function startRecording() {
     console.log("🎤 Ovoz yozish boshlandi");
     
   } catch (error) {
-    console.error("Mikrofon xatosi:", error);
-    alert("❌ Mikrofonga ruxsat berilmadi!\n\nBrauzer sozlamalaridan mikrofonga ruxsat bering.");
+    console.error("❌ Mikrofon xatosi:", error);
+    alert("❌ Mikrofonga ruxsat berilmadi!\n\n" + error.message + "\n\nBrauzer sozlamalaridan mikrofonga ruxsat bering.");
   }
 }
 
@@ -1498,10 +1552,8 @@ function stopRecording() {
     mediaRecorder.stream.getTracks().forEach(track => track.stop());
     isRecording = false;
     
-    // Timer to'xtatish
     clearInterval(recordingTimer);
     
-    // UI yangilash
     document.getElementById('startRecordBtn').style.display = 'flex';
     document.getElementById('stopRecordBtn').style.display = 'none';
     document.getElementById('recordingStatus').style.display = 'none';
@@ -1521,7 +1573,8 @@ function showFeedbackButton() {
       <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
       <h5 style="color: #1f2937; margin-bottom: 15px;">Audio yozib olindi!</h5>
       <p style="color: #6b7280; margin-bottom: 20px;">
-        ⏱️ Davomiyligi: ${recordingSeconds} soniya
+        ⏱️ Davomiyligi: ${recordingSeconds} soniya<br>
+        📦 Hajmi: ${(recordedAudioBlob.size / 1024).toFixed(2)} KB
       </p>
       <button 
         onclick="submitRecordedAudio()" 
@@ -1537,7 +1590,7 @@ function showFeedbackButton() {
   `;
 }
 
-// Yozib olingan audio ni yuborish
+// ✅ Yozib olingan audio ni yuborish - YANGILANGAN
 async function submitRecordedAudio() {
   if (!recordedAudioBlob) {
     alert("❌ Audio yozilmagan!");
@@ -1555,34 +1608,56 @@ async function submitRecordedAudio() {
   showLoading(output);
   
   try {
-    // 1. Audio ni Speech-to-Text ga yuborish
-    console.log("📤 Audio yuborilmoqda...");
+    // ✅ 1. Audio ni Speech-to-Text ga yuborish
+    console.log("📤 Audio backend ga yuborilmoqda...");
+    console.log("  - URL:", `${API_URL}/api/audio-to-text`);
+    console.log("  - Size:", recordedAudioBlob.size);
+    console.log("  - Type:", recordedAudioBlob.type);
     
     const formData = new FormData();
-    formData.append('audio', recordedAudioBlob, 'recording.webm');
     
-    const transcriptResponse = await fetch(`${API_URL}${API_BASE_URL}/audio-to-text`, {
-      method: 'POST',
-      body: formData
+    // ✅ MUHIM: File nomini to'g'ri formatda yuborish
+    const audioFileName = 'recording.webm'; // yoki .wav, .mp3
+    formData.append('audio', recordedAudioBlob, audioFileName);
+    
+    console.log("📦 FormData yaratildi:", {
+      hasAudio: formData.has('audio'),
+      audioSize: recordedAudioBlob.size
     });
     
-    const transcriptData = await transcriptResponse.json();
+    const transcriptResponse = await fetch(`${API_URL}/api/audio-to-text`, {
+      method: 'POST',
+      body: formData
+      // ❌ Content-Type qo'shmang - FormData avtomatik qo'shadi
+    });
     
-    if (!transcriptResponse.ok || !transcriptData.success) {
+    console.log("📥 Backend javobi:", transcriptResponse.status);
+    
+    if (!transcriptResponse.ok) {
+      const errorText = await transcriptResponse.text();
+      console.error("❌ Backend xato javobi:", errorText);
+      throw new Error(`Backend xatosi (${transcriptResponse.status}): ${errorText}`);
+    }
+    
+    const transcriptData = await transcriptResponse.json();
+    console.log("📄 Transcript data:", transcriptData);
+    
+    if (!transcriptData.success) {
       throw new Error(transcriptData.error || 'Speech-to-Text xatosi');
     }
     
     const transcript = transcriptData.transcript;
     console.log("✅ Transcript olindi:", transcript);
     
-    if (!transcript || transcript.trim().length < 20) {
-      throw new Error("❌ Ovoz aniq eshitilmadi yoki juda qisqa.\n\nIltimos:\n• Mikrofonga yaqinroq gapiring\n• Aniq talaffuz qiling\n• Kamida 1 daqiqa gapiring");
+    // ✅ Transcript uzunligini tekshirish
+    if (!transcript || transcript.trim().length < 10) {
+      throw new Error("❌ Ovoz aniq eshitilmadi yoki juda qisqa.\n\nIltimos:\n• Mikrofonga yaqinroq gapiring\n• Aniq talaffuz qiling\n• Kamida 30 soniya gapiring");
     }
     
-    // 2. Transcript bilan AI dan feedback olish
+    // ✅ 2. Transcript bilan AI dan feedback olish
     console.log("📤 Feedback so'ralyapti...");
     
-    const feedbackResponse = await fetch(`${API_URL}${API_BASE_URL}/speaking-feedback`, {
+    const feedbackResponse = await fetch(`${API_URL}/api/speaking-feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1626,7 +1701,6 @@ async function submitRecordedAudio() {
         </div>
       `;
       
-      // Auto-scroll natijaga
       setTimeout(() => {
         result.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
@@ -1637,86 +1711,19 @@ async function submitRecordedAudio() {
     
   } catch (error) {
     console.error("❌ Xatolik:", error);
-    showError(output, error.message);
-  }
-}
-
-// To'g'ridan-to'g'ri text yuborish (ovoz yozmasdan)
-async function submitSpeakingText() {
-  const transcript = document.getElementById('speakingTextInput').value.trim();
-  const topic = document.getElementById('speakingTopicInput').value.trim();
-  const result = document.getElementById('speakingResult');
-  const output = document.getElementById('speakingOutput');
-  
-  const languageDropdown = document.getElementById('speaking-language');
-  const language = languageDropdown ? languageDropdown.value : 'uz';
-  
-  if (!topic) {
-    alert("Iltimos, topic kiriting!");
-    return;
-  }
-  
-  if (!selectedExamType) {
-    alert("Iltimos, IELTS yoki Multilevel tanlang!");
-    return;
-  }
-  
-  if (!transcript) {
-    alert("Iltimos, javobingizni yozing!");
-    return;
-  }
-  
-  result.style.display = 'block';
-  showLoading(output);
-  
-  try {
-    const response = await fetch(`${API_URL}${API_BASE_URL}/speaking-feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        transcript: transcript,
-        topic: topic,
-        examType: selectedExamType,
-        language: language
-      })
-    });
     
-    const data = await response.json();
+    // ✅ Batafsil xato ko'rsatish
+    let errorMessage = error.message;
     
-    if (!response.ok) {
-      throw new Error(data.error || 'Server error');
+    if (error.message.includes('404')) {
+      errorMessage = "❌ Backend API topilmadi!\n\nServer ishlamayotgan yoki URL noto'g'ri:\n" + API_URL;
+    } else if (error.message.includes('Failed to fetch')) {
+      errorMessage = "❌ Serverga ulanib bo'lmadi!\n\nInternet aloqangizni tekshiring yoki serverning ishlayotganini tasdiqlang.";
+    } else if (error.message.includes('NetworkError')) {
+      errorMessage = "❌ CORS xatosi!\n\nBackend CORS sozlamalarini tekshiring.";
     }
     
-    if (data.success && data.result) {
-      output.innerHTML = `
-        <div class="alert alert-success" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: none; border-radius: 12px; padding: 25px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h5 style="margin: 0; color: #1f2937;">
-              <i class="bi bi-mic-fill" style="color: #6366f1;"></i> 
-              ${selectedExamType} Speaking Feedback
-            </h5>
-            <span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
-              ${selectedExamType}
-            </span>
-          </div>
-          <hr style="margin: 15px 0; border-color: #d1fae5;">
-          <div style="white-space: pre-wrap; line-height: 1.8;">
-            ${data.result}
-          </div>
-        </div>
-      `;
-      
-      // Auto-scroll natijaga
-      setTimeout(() => {
-        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
-      
-    } else {
-      throw new Error("AI dan javob kelmadi");
-    }
-  } catch (error) {
-    console.error("❌ Speaking Feedback xatosi:", error);
-    showError(output, error.message);
+    showError(output, errorMessage);
   }
 }
 
@@ -1727,6 +1734,11 @@ function clearSpeaking() {
   document.getElementById('speakingResult').style.display = 'none';
   selectedExamType = null;
   recordedAudioBlob = null;
+  
+  // Recording ni to'xtatish (agar ishlayotgan bo'lsa)
+  if (isRecording) {
+    stopRecording();
+  }
   
   document.querySelectorAll('.exam-type-btn').forEach(btn => {
     btn.classList.remove('active');
@@ -1740,7 +1752,7 @@ function clearSpeaking() {
   console.log("🧹 Speaking tool tozalandi");
 }
 
-// Helper functions
+// ✅ Helper functions
 function showLoading(element) {
   element.innerHTML = `
     <div style="text-align: center; padding: 40px;">
@@ -1748,22 +1760,30 @@ function showLoading(element) {
         <span class="visually-hidden">Loading...</span>
       </div>
       <p style="margin-top: 20px; color: #6b7280; font-weight: 600;">✨ AI Processing...</p>
-      <p style="color: #9ca3af; font-size: 13px;">This may take 20–30 seconds.</p>
+      <p style="color: #9ca3af; font-size: 13px;">Deepgram speech-to-text ishlamoqda...</p>
+      <p style="color: #9ca3af; font-size: 13px;">Bu 20-30 soniya olishi mumkin.</p>
     </div>
   `;
 }
 
 function showError(element, message) {
   element.innerHTML = `
-    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap; display: flex; align-items: center; gap: 10px;">
-      <i class="bi bi-exclamation-triangle"></i>
-      <strong>Xatolik:</strong>
-      <p style="margin-top: 17px;">${message}</p>
+    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap;">
+      <div style="display: flex; align-items: start; gap: 10px;">
+        <i class="bi bi-exclamation-triangle-fill" style="font-size: 24px; margin-top: 3px;"></i>
+        <div>
+          <strong style="display: block; margin-bottom: 8px;">Xatolik yuz berdi:</strong>
+          <p style="margin: 0; line-height: 1.6;">${message}</p>
+        </div>
+      </div>
+      <hr style="margin: 15px 0;">
+      <button onclick="clearSpeaking()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+        <i class="bi bi-arrow-clockwise"></i> Qaytadan Urinish
+      </button>
     </div>
   `;
 }
 
 
 
-
-console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
+// console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
