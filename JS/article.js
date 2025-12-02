@@ -3,7 +3,10 @@
 // ============================================
 
 // ✅ DYNAMIC API URL - Render.com bilan ham ishlaydi
-const ARTICLE_API_URL = "https://zioai-backend.onrender.com"; 
+const ARTICLE_API_URL =
+    window.location.hostname.includes("onrender.com")
+    ? "https://zioai-backend.onrender.com/api"
+    : "http://localhost:3000/api";
 
 let articlesData = [];
 let currentArticleView = 'list';
