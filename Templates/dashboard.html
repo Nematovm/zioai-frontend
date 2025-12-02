@@ -14,7 +14,10 @@
     <link rel="stylesheet" href="../Static/profile.css">
     <link rel="stylesheet" href="../Static/dark-mode.css">
     <link rel="stylesheet" href="../Static/responsive.css">
-    <link rel="stylesheet" href="../Static/resume-builder.css">
+    <link rel="stylesheet" href="../Static/article.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <!-- Logout Modal -->
@@ -38,13 +41,18 @@
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
-
-    <!-- MOTIVATSIYA NOTIFICATION -->
+      
+    <!-- Motivation Toast Modal -->
     <div id="motivationToast" class="motivation-toast">
-      <div class="motivation-icon">🌟</div>
-      <div class="motivation-text"></div>
-      <button class="motivation-close" onclick="closeMotivation()">×</button>
+      <div class="motivation-icon">💡</div>
+      <div class="motivation-text">
+        <!-- JavaScript orqali yuklanadi -->
+      </div>
+      <button class="motivation-close" onclick="closeMotivation()" title="Yopish">
+        <i class="bi bi-x"></i>
+      </button>
     </div>
+    
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -115,7 +123,15 @@
               <span class="nav-icon material-symbols-outlined"
                 >chat_bubble</span
               >
-              <span class="nav-lebel">IELTS Feedback</span>
+              <span class="nav-lebel">Speaking</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tool="article">
+              <span class="material-symbols-outlined">
+                two_pager
+              </span>
+              <span class="nav-lebel">Articles</span>
             </a>
           </li>
         </ul>
@@ -233,104 +249,180 @@
     <!-- Main Section -->
      <main>
 <!-- Dashboard View -->
+<!-- Dashboard View - YANGI ZAMONAVIY VERSION -->
 <div class="tool-content active" id="dashboard-content">
-  <!-- Statistics Cards -->
-  <div class="stats-grid">
-    <div class="stat-card stat-blue">
-      <div class="stat-icon">⏱️</div>
-      <div class="stat-info">
-        <div class="stat-value" id="totalStudyTime">0h 0m</div>
-        <div class="stat-label">Total Study Time</div>
+  
+  <!-- Hero Stats Cards -->
+  <div class="hero-stats-grid">
+    
+    <!-- Study Time Card -->
+    <div class="hero-stat-card hero-purple">
+      <div class="hero-bg-circle"></div>
+      <i class="bi bi-clock-history hero-icon"></i>
+      <div class="hero-value" id="heroStudyTime">0h 0m</div>
+      <div class="hero-label">Total Study Time</div>
+      <div class="hero-badge">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>+15% this week</span>
       </div>
     </div>
 
-    <div class="stat-card stat-red">
-      <div class="stat-icon">🍅</div>
-      <div class="stat-info">
-        <div class="stat-value" id="totalPomodoros">0</div>
-        <div class="stat-label">Pomodoros Completed</div>
+    <!-- Weekly Goal Card -->
+    <div class="hero-stat-card hero-pink">
+      <div class="hero-bg-circle hero-bg-left"></div>
+      <i class="bi bi-bullseye hero-icon"></i>
+      <div class="hero-value" id="heroWeeklyGoal">0%</div>
+      <div class="hero-label">Weekly Goal</div>
+      <div class="hero-progress-bar">
+        <div class="hero-progress-fill" id="heroProgressFill"></div>
       </div>
     </div>
 
-    <div class="stat-card stat-green">
-      <div class="stat-icon">✅</div>
-      <div class="stat-info">
-        <div class="stat-value" id="homeworkCompleted">0</div>
-        <div class="stat-label">Homework Completed</div>
+    <!-- Points & Level Card -->
+    <div class="hero-stat-card hero-cyan">
+      <div class="hero-bg-circle"></div>
+      <i class="bi bi-trophy-fill hero-icon"></i>
+      <div class="hero-value" id="heroPoints">0</div>
+      <div class="hero-label">Total Points</div>
+      <div class="hero-badge">
+        <i class="bi bi-lightning-charge-fill"></i>
+        <span id="heroLevel">Level 1</span>
       </div>
     </div>
 
-    <div class="stat-card stat-purple">
-      <div class="stat-icon">📝</div>
-      <div class="stat-info">
-        <div class="stat-value" id="quizzesTaken">0</div>
-        <div class="stat-label">Quizzes Taken</div>
-      </div>
+    <!-- Streak Card -->
+    <div class="hero-stat-card hero-orange">
+      <div class="hero-bg-circle hero-bg-right"></div>
+      <i class="bi bi-fire hero-icon"></i>
+      <div class="hero-value" id="heroStreak">0</div>
+      <div class="hero-label">Day Streak 🔥</div>
+      <div class="hero-badge-small">Keep it burning!</div>
     </div>
   </div>
 
-  <!-- Most Used Tool -->
-  <!-- <div class="most-used-section">
-    <h3 style="color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-      <i class="bi bi-graph-up"></i> Your Activity
+  <!-- Main Content Grid -->
+  <div class="dashboard-main-grid">
+    
+    <!-- Weekly Performance Chart - 2/3 width -->
+    <div class="dashboard-card card-wide">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">
+            <i class="bi bi-activity"></i>
+            Weekly Performance
+          </h3>
+          <p class="card-subtitle">Your study hours and task completion</p>
+        </div>
+        <select class="dashboard-select" id="weekSelector">
+          <option>This Week</option>
+          <option>Last Week</option>
+          <option>This Month</option>
+        </select>
+      </div>
+      
+      <div class="chart-container" id="weeklyChart">
+        <!-- Canvas for chart -->
+        <canvas id="performanceChart" style="max-height: 300px;"></canvas>
+      </div>
+
+      <div class="chart-stats">
+        <div class="chart-stat-item">
+          <div class="chart-stat-value" id="totalWeekHours">0h</div>
+          <div class="chart-stat-label">Total This Week</div>
+        </div>
+        <div class="chart-stat-item">
+          <div class="chart-stat-value stat-green" id="goalProgress">+0%</div>
+          <div class="chart-stat-label">Goal Progress</div>
+        </div>
+        <div class="chart-stat-item">
+          <div class="chart-stat-value stat-purple" id="bestDay">0h</div>
+          <div class="chart-stat-label">Best Day</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity - 1/3 width -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="bi bi-book-half"></i>
+          Recent Activity
+        </h3>
+        <button class="view-all-btn">View All</button>
+      </div>
+      
+      <div class="activity-list" id="recentActivityList">
+        <!-- Activities will be inserted here by JS -->
+      </div>
+
+      <button class="dashboard-btn btn-gradient">
+        <i class="bi bi-plus-lg"></i>
+        Start New Activity
+      </button>
+    </div>
+  </div>
+
+  <!-- Tool Usage & Study Goals -->
+  <div class="dashboard-secondary-grid">
+    
+    <!-- Tool Usage Stats -->
+    <div class="dashboard-card">
+      <h3 class="card-title">
+        <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
+        Tool Usage This Week
+      </h3>
+      
+      <div class="tool-usage-list" id="toolUsageList">
+        <!-- Tool usage will be inserted here by JS -->
+      </div>
+    </div>
+
+    <!-- Study Goals -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="bi bi-bullseye"></i>
+          Study Goals
+        </h3>
+        <button class="view-all-btn">Edit Goals</button>
+      </div>
+      
+      <div class="goals-list" id="studyGoalsList">
+        <!-- Goals will be inserted here by JS -->
+      </div>
+
+      <button class="dashboard-btn btn-gradient-orange">
+        <i class="bi bi-plus-lg"></i>
+        Add New Goal
+      </button>
+    </div>
+  </div>
+
+  <!-- Achievements & Badges -->
+  <div class="dashboard-card">
+    <h3 class="card-title">
+      <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i>
+      Achievements & Badges
     </h3>
     
-    <div class="activity-cards">
-      <div class="activity-card">
-        <div class="activity-icon">🏆</div>
-        <div class="activity-info">
-          <div class="activity-label">Most Used Tool</div>
-          <div class="activity-value" id="mostUsedTool">Grammar Checker</div>
-          <div class="activity-count" id="mostUsedCount">0 times</div>
-        </div>
-      </div>
-
-      <div class="activity-card">
-        <div class="activity-icon">🌟</div>
-        <div class="activity-info">
-          <div class="activity-label">Least Used Tool</div>
-          <div class="activity-value" id="leastUsedTool">Resume Builder</div>
-          <div class="activity-count" id="leastUsedCount">0 times</div>
-        </div>
-      </div>
+    <div class="achievements-grid" id="achievementsList">
+      <!-- Achievements will be inserted here by JS -->
     </div>
-  </div> -->
 
-  <!-- Tools Grid -->
-  <div style="margin-top: 30px;">
-    <h3 class="dashboard-bc" style="color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-      <i class="bi bi-grid-3x3-gap-fill"></i> Quick Access Tools
-    </h3>
-    <div class="tools-grid">
-      <div class="tool-card gradient-1" data-tool="homework">
-        <div class="tool-card-icon">📚</div>
-        <h3>Homework Fixer</h3>
-        <p>Paste your homework and get instant corrections with explanations</p>
-        <div class="tool-usage-badge" id="usage-homework">Used 0 times</div>
+    <div class="next-level-card">
+      <div class="next-level-content">
+        <div>
+          <p class="next-level-title">Next Level Progress</p>
+          <p class="next-level-desc" id="nextLevelDesc">Earn more points to reach next level</p>
+        </div>
+        <div class="next-level-number" id="nextLevelNumber">2</div>
       </div>
-
-      <div class="tool-card gradient-2" data-tool="grammar">
-        <div class="tool-card-icon">✍️</div>
-        <h3>Grammar Checker</h3>
-        <p>Check and improve your grammar, spelling, and writing style</p>
-        <div class="tool-usage-badge" id="usage-grammar">Used 0 times</div>
-      </div>
-
-      <div class="tool-card gradient-3" data-tool="vocabulary">
-        <div class="tool-card-icon">📖</div>
-        <h3>Vocabulary Builder</h3>
-        <p>Learn new words and expand your vocabulary with examples</p>
-        <div class="tool-usage-badge" id="usage-vocabulary">Used 0 times</div>
-      </div>
-
-      <div class="tool-card gradient-4" data-tool="quiz">
-        <div class="tool-card-icon">❓</div>
-        <h3>Quiz Generator</h3>
-        <p>Generate custom quizzes from any text or topic</p>
-        <div class="tool-usage-badge" id="usage-quiz">Used 0 times</div>
+      <div class="next-level-progress">
+        <div class="next-level-fill" id="nextLevelFill"></div>
       </div>
     </div>
   </div>
+
 </div>
 
       <!-- Homework Fixer Tool - IMAGE UPLOAD QUSHILGAN -->
@@ -508,24 +600,24 @@
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
         <div>
           <label style="display: block; margin-bottom: 8px; color: #4b5563; font-weight: 600;">
-            🔢 Savollar Soni / Questions
+            🔢 Questions
           </label>
           <select id="quizQuestionCount" class="language-dropdown">
-            <option value="1">1 ta savol</option>
-            <option value="3" selected>3 ta savol</option>
-            <option value="5">5 ta savol</option>
-            <option value="10">10 ta savol</option>
+            <option value="1">1 question</option>
+            <option value="3" selected>3 questions</option>
+            <option value="5">5 questions</option>
+            <option value="10">10 questions</option>
           </select>
         </div>
 
         <div>
           <label style="display: block; margin-bottom: 8px; color: #4b5563; font-weight: 600;">
-            ⚡ Qiyinchilik / Difficulty
+            ⚡Difficulty
           </label>
           <select id="quizDifficulty" class="language-dropdown">
-            <option value="easy">Oson / Easy</option>
-            <option value="medium" selected>O'rtacha / Medium</option>
-            <option value="hard">Qiyin / Hard</option>
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
           </select>
         </div>
       </div>
@@ -536,7 +628,7 @@
 
       <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px; border-left: 4px solid #667eea;">
         <p style="margin: 0; color: #4b5563; font-size: 14px;">
-          💡 <strong>Maslahat:</strong> Matn qanchalik batafsil bo'lsa, savollar shunchalik qiziqarli bo'ladi!
+          💡 <strong>Tip:</strong> The more detailed your message is, the more accurate and helpful my answers will be!
         </p>
       </div>
     </div>
@@ -605,7 +697,7 @@
     <h4 style="margin-bottom: 15px; color: #1f2937">
       <i class="bi bi-mortarboard"></i> Study Assistant
     </h4>
-    <p style="color: #6b7280; margin-bottom: 20px;">O'qishda yordam beruvchi AI assistent - rejim tanlang va boshlang!</p>
+    <p style="color: #6b7280; margin-bottom: 20px;">AI study assistant – choose a mode and get started!</p>
 
     <!-- Mode tanlash tugmalari -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;">
@@ -666,17 +758,17 @@
     <!-- Input maydoni -->
     <textarea
       id="studyInput"
-      placeholder="Avval yuqoridan rejim tanlang..."
+      placeholder="First, select a mode from above…"
       style="min-height: 150px;"
     ></textarea>
 
     <!-- Tugmalar -->
     <div style="display: flex; gap: 12px; margin-top: 20px;">
       <button onclick="submitStudyAssistant()" style="flex: 1;">
-        <i class="bi bi-send"></i> Yuborish
+        <i class="bi bi-send"></i> Send
       </button>
       <button onclick="clearStudyAssistant()" style="flex: 0.4; background: #6b7280;">
-        <i class="bi bi-trash"></i> Tozalash
+        <i class="bi bi-trash"></i> Clear
       </button>
     </div>
 
@@ -684,7 +776,7 @@
     <div class="result-box" id="studyResult" style="display: none; margin-top: 25px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h5 style="color: #1f2937; margin: 0;">
-          <i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Natija:
+          <i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Result:
         </h5>
         <!-- <button onclick="copyStudyResult()" style="padding: 8px 16px; font-size: 14px; background: #6366f1;">
           <i class="bi bi-clipboard"></i> Nusxa
@@ -702,13 +794,13 @@
       <i class="bi bi-mic-fill"></i> IELTS / CEFR Speaking Feedback
     </h4>
     <p style="color: #6b7280; margin-bottom: 20px;">
-      Speaking javobingizni yozing yoki ovoz yozib oling — AI batafsil feedback beradi!
+      Write your spoken response or record your voice — the AI will give detailed feedback!
     </p>
 
     <!-- Exam Type Tanlash -->
     <div style="margin-bottom: 25px;">
       <label style="display: block; margin-bottom: 10px; color: #374151; font-weight: 600;">
-        📋 Imtihon Turini Tanlang:
+        📋 Select Exam Type:
       </label>
       <div style="display: flex; gap: 15px;">
         <button 
@@ -760,7 +852,7 @@
     <!-- Ovoz Yozish -->
     <div style="background: linear-gradient(135deg, #667eea15, #764ba215); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
       <h5 style="margin: 0 0 15px 0; color: #374151;">
-        <i class="bi bi-mic"></i> Ovoz Yozish
+        <i class="bi bi-mic"></i> Record Voice
       </h5>
       
       <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
@@ -788,7 +880,7 @@
         </div>
         
         <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-          🎤 Tugmani bosib gapiring, tugatgach yana bosing
+          🎤 Press the button to speak, and press again when finished.
         </p>
       </div>
     </div>
@@ -797,18 +889,18 @@
     <div style="position: relative; text-align: center; margin: 25px 0;">
       <hr style="border-color: #e5e7eb;">
       <span class="style-bc" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 0 15px; color: #9ca3af; font-weight: 600;">
-        YOKI
+        OR
       </span>
     </div>
 
     <!-- Text Input -->
     <div style="margin-bottom: 20px;">
       <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">
-        ✍️ Javobingizni Yozing:
+        ✍️ Write your answer:
       </label>
       <textarea 
         id="speakingTextInput"
-        placeholder="Speaking javobingizni shu yerga yozing..."
+        placeholder="Write your speaking response here...."
         style="min-height: 150px;"
       ></textarea>
     </div>
@@ -816,16 +908,21 @@
     <!-- Tugmalar -->
     <div style="display: flex; gap: 12px;">
       <button onclick="submitSpeakingText()" style="flex: 1;">
-        <i class="bi bi-send"></i> Feedback Olish
+        <i class="bi bi-send"></i> Get Feedback
       </button>
       <button onclick="clearSpeaking()" style="flex: 0.4; background: #6b7280;">
-        <i class="bi bi-trash"></i> Tozalash
+        <i class="bi bi-trash"></i> Clear
       </button>
     </div>
 
     <!-- Natija -->
     <div class="result-box" id="speakingResult" style="display: none; margin-top: 25px;">
       <div id="speakingOutput"></div>
+    </div>
+    <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px; border-left: 4px solid #667eea;">
+      <p style="margin: 0; color: #4b5563; font-size: 14px;">
+        💡 <strong>Tip:</strong> Sit in a quiet place and speak closer to the microphone so the AI can understand you more accurately! 
+      </p>
     </div>
   </div>
 </div>
@@ -996,7 +1093,19 @@
 </div>
 
 
-
+<div class="tool-content" id="article-content">
+  <div id="articlesListContainer">
+    <!-- Articles will be loaded here by article.js -->
+    <div class="articles-loading" style="text-align: center; padding: 60px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-size: 1.1rem; font-weight: 600;">
+        Loading articles...
+      </p>
+    </div>
+  </div>
+</div>
       
     </main>
 
@@ -1179,10 +1288,10 @@
   }
 }
 </style>
-    <script src="../JS/dashboard.js"></script>
-    <script src="../JS/resume-builder.js"></script>
-    <script src="../JS/dashboard-overview.js"></script>
-    <script src="../JS/profile.js"></script>
+<script src="../JS/dashboard-overview.js"></script>  
+<script src="../JS/dashboard.js"></script>           
+<script src="../JS/article.js"></script>  <!-- ✅ ENG OHIRIDA -->
+<script src="../JS/profile.js"></script>
 
   </body>
 </html>

@@ -1,27 +1,28 @@
-const API_URL = "https://zioai-backend.onrender.com";
-const API_BASE_URL = "/api";
+// ============================================
+// API CONFIGURATION - TUZATILGAN ✅
+// ============================================
+const API_URL = "https://zioai-backend.onrender.com/api";
 
-// Test qilish uchun:
 console.log("🌐 API URL:", API_URL);
-console.log("📍 Full endpoint:", `${API_URL}${API_BASE_URL}/audio-to-text`);
 
 // ============================================
 // BACKEND AVAILABILITY CHECKER
 // ============================================
 async function checkBackendStatus() {
   try {
-    const response = await fetch(`${API_URL}/api/test`);
+    const response = await fetch(API_URL.replace("/api", "/api/test"));
     const data = await response.json();
-    
+
     if (data.status === "OK") {
       console.log("✅ Backend ishlayapti!");
-      console.log("   Message:", data.message);
-      console.log("   API Key:", data.hasApiKey ? "✅" : "❌");
       return true;
     }
   } catch (error) {
     console.error("❌ Backend ishlamayapti:", error);
-    alert("⚠️ Backend serverga ulanib bo'lmadi!\n\nServer ishlayotganini tekshiring:\n" + API_URL);
+    alert(
+      "⚠️ Backend serverga ulanib bo'lmadi!\n\nServer ishlayotganini tekshiring:\n" +
+        API_URL
+    );
     return false;
   }
 }
@@ -61,7 +62,6 @@ const toolContents = document.querySelectorAll(".tool-content");
 const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
-// 1️⃣ TOOL TITLES - DYNAMIC USERNAME ✅
 const toolTitles = {
   dashboard: {
     title: "Welcome back!",
@@ -83,13 +83,17 @@ const toolTitles = {
     title: "Quiz Generator",
     subtitle: "Generate quizzes from any text",
   },
-  study: {  // ✅ QO'SHISH
+  study: {
     title: "Study Assistant",
     subtitle: "AI-powered study helper",
   },
-  speaking: {  // ✅ QO'SHISH
+  speaking: {
     title: "IELTS Feedback",
     subtitle: "Get feedback on your speaking",
+  },
+  article: {  // ✅ YANGI
+    title: "📚 Reading Articles",
+    subtitle: "Improve your English with curated articles"
   },
   profile: {
     title: "Profile Settings",
@@ -97,28 +101,25 @@ const toolTitles = {
   },
 };
 
-// ✅ YAXSHIroq regex pattern
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
-    return email ? email.split('@')[0] : 'User';
+    return email ? email.split("@")[0] : "User";
   }
-  
-  // ✅ Barcha emoji-larni olib tashlash (kengaytirilgan)
+
   let username = displayName
-    .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')  // Main emoji range
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc Symbols
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')  // Misc Symbols and Pictographs
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')  // Emoticons
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')  // Transport and Map
-    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')  // Supplemental Symbols
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{2600}-\u{26FF}]/gu, "")
+    .replace(/[\u{2700}-\u{27BF}]/gu, "")
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, "")
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, "")
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, "")
     .trim();
-  
-  // Agar bo'sh string qolsa, emaildan olish
+
   if (!username || username.length === 0 || /^\s*$/.test(username)) {
-    username = email ? email.split('@')[0] : 'User';
+    username = email ? email.split("@")[0] : "User";
   }
-  
+
   return username;
 }
 
@@ -130,59 +131,50 @@ function updateWelcomeMessage(username) {
 }
 
 function switchTool(toolName) {
-  // Navigation active holatini o'zgartirish
   navLinks.forEach((link) => link.classList.remove("active"));
   const activeLink = document.querySelector(
     `.nav-link[data-tool="${toolName}"]`
   );
   if (activeLink) activeLink.classList.add("active");
 
-  // Tool contentlarni yashirish/ko'rsatish
   toolContents.forEach((content) => content.classList.remove("active"));
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
     activeContent.classList.add("active");
-    
-    // ✅ Profile uchun maxsus ishlov
-    if (toolName === 'profile' && typeof showProfileTool === 'function') {
+
+    if (toolName === "profile" && typeof showProfileTool === "function") {
       showProfileTool();
     }
   }
 
-  // Header title yangilash
   if (toolTitles[toolName]) {
     headerTitle.textContent = toolTitles[toolName].title;
     headerSubtitle.textContent = toolTitles[toolName].subtitle;
-    
-    // ✅ Agar dashboard bo'lsa, username ni qo'shish
-    if (toolName === 'dashboard') {
+
+    if (toolName === "dashboard") {
       const auth = window.firebaseAuth;
       if (auth && auth.currentUser) {
-        const username = getUsernameFromDisplayName(auth.currentUser.displayName, auth.currentUser.email);
+        const username = getUsernameFromDisplayName(
+          auth.currentUser.displayName,
+          auth.currentUser.email
+        );
         headerTitle.textContent = `Welcome back, ${username}!`;
       }
     }
   }
 
-  // ✅ TO'G'RILANGAN TOOL USAGE TRACKING
-  // Faqat dashboard va profile dan tashqari
-  if (toolName !== 'dashboard' && toolName !== 'profile') {
-    console.log('🔧 Tracking tool:', toolName);
-    
-    // trackToolUsage funksiyasi mavjudligini tekshirish
-    if (typeof trackToolUsage === 'function') {
+  if (toolName !== "dashboard" && toolName !== "profile") {
+    if (typeof trackToolUsage === "function") {
       trackToolUsage(toolName);
-    } else {
-      console.warn('⚠️ trackToolUsage function not found');
     }
   }
 
-  // Mobil uchun sidebar yopish
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");
     toggleMenu(false);
   }
 }
+
 navLinks.forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
@@ -278,16 +270,14 @@ function removeImage() {
   document.getElementById("homeworkImageInput").value = "";
 }
 
-// HOMEWORK FIXER - WITH LAN
+// ============================================
+// HOMEWORK FIXER - TRACKING FAQAT SUCCESS DA ✅
+// ============================================
 async function fixHomework() {
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
-
-  // TIL OLISH
   const languageDropdown = document.getElementById("homework-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
-
-  console.log("🌐 Homework Til:", language);
 
   let homeworkContent = "";
 
@@ -309,19 +299,15 @@ async function fixHomework() {
   showLoading(output);
 
   try {
-    const requestBody = {
-      homework: currentHomeworkTab === "text" ? homeworkContent : null,
-      image: currentHomeworkTab === "image" ? homeworkContent : null,
-      type: currentHomeworkTab,
-      language: language,
-    };
-
-    console.log("📤 Yuborilayotgan:", requestBody);
-
-    const response = await fetch(`${API_URL}${API_BASE_URL}/fix-homework`, {
+    const response = await fetch(`${API_URL}/fix-homework`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        homework: currentHomeworkTab === "text" ? homeworkContent : null,
+        image: currentHomeworkTab === "image" ? homeworkContent : null,
+        type: currentHomeworkTab,
+        language: language,
+      }),
     });
 
     const data = await response.json();
@@ -330,47 +316,61 @@ async function fixHomework() {
       throw new Error(data.error || "Server error");
     }
 
-if (data.success && data.correctedHomework) {
-  output.innerHTML = `
-    <div class="alert alert-success">
-      <h5 class="alert-heading">
-        <i class="bi bi-check-circle-fill"></i> AI Analysis
-      </h5>
-      <hr>
-      <div style="white-space: pre-wrap; line-height: 1.8;">
-        ${data.correctedHomework}
-      </div>
-    </div>
-  `;
+    if (data.success && data.correctedHomework) {
+      output.innerHTML = `
+        <div class="alert alert-success">
+          <h5 class="alert-heading">
+            <i class="bi bi-check-circle-fill"></i> AI Analysis
+          </h5>
+          <hr>
+          <div style="white-space: pre-wrap; line-height: 1.8;">
+            ${data.correctedHomework}
+          </div>
+        </div>
+      `;
 
-  // ✅ STATISTIKA QO'SHISH
-  incrementStat('homeworkCompleted');
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log('📊 Homework completed successfully, tracking...');
+      
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('homework');
+      }
+      
+      if (typeof addRecentActivity === 'function') {
+        const score = Math.floor(Math.random() * (95 - 85 + 1)) + 85;
+        addRecentActivity('Homework Fixer', score, '📚', '#8b5cf6');
+      }
+      
+      if (typeof incrementStat === 'function') {
+        incrementStat('homeworkCompleted', 1);
+        incrementStat('totalStudyTime', 3); // 3 daqiqa
+      }
 
-  if (currentHomeworkTab === "image") {
-    removeImage();
-  }
-} else {
-  throw new Error("No response from AI");
-}
+      if (currentHomeworkTab === "image") {
+        removeImage();
+      }
+      
+      console.log('✅ Homework tracking completed!');
+      
+    } else {
+      throw new Error("No response from AI");
+    }
   } catch (error) {
     console.error("❌ Error:", error);
     showError(output, error.message);
+    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
 
 // ============================================
-// GRAMMAR CHECKER - TIL BILAN ✅
+// GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
 async function checkGrammar() {
   const input = document.getElementById("grammarInput").value;
   const result = document.getElementById("grammarResult");
   const output = document.getElementById("grammarOutput");
-
-  // TIL OLISH
   const languageDropdown = document.getElementById("grammar-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
-
-  console.log("🌐 Grammar Til:", language);
 
   if (!input.trim()) {
     alert("Please enter text!");
@@ -381,7 +381,7 @@ async function checkGrammar() {
   showLoading(output);
 
   try {
-    const response = await fetch(`${API_URL}${API_BASE_URL}/check-grammar`, {
+    const response = await fetch(`${API_URL}/check-grammar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -404,14 +404,39 @@ async function checkGrammar() {
           </div>
         </div>
       `;
+      
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log('📊 Grammar check completed, tracking...');
+      
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('grammar');
+      }
+      
+      if (typeof addRecentActivity === 'function') {
+        const score = Math.floor(Math.random() * (98 - 88 + 1)) + 88;
+        addRecentActivity('Grammar Checker', score, '✍️', '#ec4899');
+      }
+      
+      if (typeof incrementStat === 'function') {
+        incrementStat('totalStudyTime', 2); // 2 daqiqa
+      }
+      
+      console.log('✅ Grammar tracking completed!');
+      
     } else {
       throw new Error("No response from AI");
     }
   } catch (error) {
     console.error("❌ Error:", error);
     showError(output, error.message);
+    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
+
+
+
+
+
 
 // ============================================
 // AUTOMATIC LANGUAGE DETECTION ✅
@@ -502,9 +527,19 @@ function detectWordLanguage(word) {
 }
 
 // ============================================
-// VOCABULARY BUILDER - YANGILANGAN ✅
+// VOCABULARY BUILDER - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
+
+// ✅ FLAG to prevent duplicate tracking
+let isVocabProcessing = false;
+
 async function buildVocab() {
+  // ✅ Prevent duplicate calls
+  if (isVocabProcessing) {
+    console.log('⚠️ Vocabulary already processing, skipping...');
+    return;
+  }
+  
   const input = document.getElementById("vocabInput").value;
   const result = document.getElementById("vocabResult");
   const output = document.getElementById("vocabOutput");
@@ -520,11 +555,14 @@ async function buildVocab() {
     return;
   }
 
+  // ✅ Set processing flag
+  isVocabProcessing = true;
+  
   result.style.display = "block";
   showLoading(output);
 
   try {
-    const response = await fetch(`${API_URL}${API_BASE_URL}/vocabulary`, {
+    const response = await fetch(`${API_URL}/vocabulary`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -540,7 +578,6 @@ async function buildVocab() {
     }
 
     if (data.success && data.result) {
-      // ✅ So'z tilini avtomatik aniqlash
       const wordLanguage = detectWordLanguage(input);
       console.log("🔊 So'z tili:", wordLanguage);
 
@@ -563,32 +600,62 @@ async function buildVocab() {
           </div>
         </div>
       `;
+      
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA VA BIR MARTA
+      console.log('📊 Vocabulary learned successfully, tracking...');
+      
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('vocabulary');
+      }
+      
+      if (typeof addRecentActivity === 'function') {
+        const score = Math.floor(Math.random() * (95 - 82 + 1)) + 82;
+        addRecentActivity('Vocabulary Builder', score, '📖', '#3b82f6');
+      }
+      
+      if (typeof incrementStat === 'function') {
+        incrementStat('totalStudyTime', 1); // 1 daqiqa
+      }
+      
+      console.log('✅ Vocabulary tracking completed!');
+      
     } else {
       throw new Error("No response from AI");
     }
   } catch (error) {
     console.error("❌ Error:", error);
     showError(output, error.message);
+    // ❌ XATO BO'LSA TRACKING QILMAYDI
+  } finally {
+    // ✅ Reset processing flag after 1 second
+    setTimeout(() => {
+      isVocabProcessing = false;
+      console.log('🔓 Vocabulary processing unlocked');
+    }, 1000);
   }
 }
+
 
 // ============================================
 // AUDIO PRONUNCIATION - GOOGLE TTS ✅
 // ============================================
 function playPronunciation(word) {
   const audioBtn = event.target.closest(".audio-btn");
-  
+
   // Tugma holatini o'zgartirish
   if (audioBtn) {
-    audioBtn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+    audioBtn.style.background =
+      "linear-gradient(135deg, #10b981 0%, #059669 100%)";
     audioBtn.innerHTML = '<i class="bi bi-volume-mute-fill"></i> Playing...';
   }
 
   // Google Translate TTS - barcha browserlarda bir xil ishlaydi
-  const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=tw-ob`;
-  
+  const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
+    word
+  )}&tl=en&client=tw-ob`;
+
   const audio = new Audio(audioUrl);
-  
+
   audio.onended = () => {
     if (audioBtn) {
       audioBtn.style.background = "";
@@ -602,7 +669,7 @@ function playPronunciation(word) {
     fallbackSpeech(word, audioBtn);
   };
 
-  audio.play().catch(error => {
+  audio.play().catch((error) => {
     console.error("Audio play xatosi:", error);
     fallbackSpeech(word, audioBtn);
   });
@@ -644,49 +711,138 @@ function fallbackSpeech(word, audioBtn) {
 }
 
 // ============================================
-// MOTIVATION SYSTEM
+// MOTIVATION SYSTEM - TUZATILGAN ✅
 // ============================================
 let motivationInterval;
+let isMotivationVisible = false;
 
 async function showMotivation() {
+  // Agar modal hali ko'rinishda bo'lsa, yangi motivatsiya ko'rsatmang
+  if (isMotivationVisible) {
+    console.log("⏳ Motivatsiya hali ko'rinishda, yangi so'rovni kutish...");
+    return;
+  }
+
   try {
-    const response = await fetch(`${API_URL}/api/motivation`);
+    console.log("📤 Motivatsiya so'ralyapti...");
+
+    // ✅ TUZATILGAN API URL
+    const response = await fetch(`${API_URL}/motivation`);
     const data = await response.json();
+
+    console.log("📥 Motivatsiya olindi:", data);
 
     if (data.success) {
       const toast = document.getElementById("motivationToast");
       const text = document.querySelector(".motivation-text");
 
+      if (!toast || !text) {
+        console.error("❌ Motivatsiya elementlari topilmadi!");
+        return;
+      }
+
       text.innerHTML = `
         ${data.quote}
         <span style="display: block; font-style: italic; font-size: 0.85em; margin-top: 8px; opacity: 0.8;">
-          (${data.author.replace("— ", "")})
+          ${data.author}
         </span>
       `;
-      toast.classList.add("show");
 
+      // ✅ Modal animatsiyani to'g'ri ko'rsatish
+      isMotivationVisible = true;
+      toast.style.display = "flex"; // Avval display:flex qilish
+
+      // 50ms kechikish - brauzer DOM ni yangilashi uchun
       setTimeout(() => {
-        toast.classList.remove("show");
+        toast.classList.add("show");
+      }, 50);
+
+      console.log("✅ Motivatsiya ko'rsatildi!");
+
+      // ✅ 10 soniyadan keyin avtomatik yopish
+      setTimeout(() => {
+        closeMotivation();
       }, 10000);
     }
   } catch (error) {
-    console.error("Motivatsiya xatosi:", error);
+    console.error("❌ Motivatsiya xatosi:", error);
   }
 }
 
 function closeMotivation() {
-  document.getElementById("motivationToast").classList.remove("show");
+  const toast = document.getElementById("motivationToast");
+
+  if (!toast) return;
+
+  // ✅ Animatsiya bilan yopish
+  toast.classList.remove("show");
+
+  // Animatsiya tugagandan keyin display:none qilish
+  setTimeout(() => {
+    toast.style.display = "none";
+    isMotivationVisible = false;
+    console.log("✅ Motivatsiya yopildi");
+  }, 800); // ✅ CSS animation (0.8s) bilan mos kelishi kerak
 }
 
 function startMotivationSystem() {
+  console.log("🚀 Motivatsiya tizimi boshlandi");
+
+  // ✅ Sahifa yuklangandan 5 soniya keyin birinchi motivatsiya
   setTimeout(() => {
     showMotivation();
   }, 5000);
 
+  // ✅ Har 5 daqiqada (300000ms) yangi motivatsiya
   motivationInterval = setInterval(() => {
     showMotivation();
-  }, 300000);
+  }, 300000); // 5 daqiqa
 }
+
+// ✅ Sahifa yopilganda intervallarni to'xtatish
+window.addEventListener("beforeunload", () => {
+  if (motivationInterval) {
+    clearInterval(motivationInterval);
+  }
+});
+
+// ============================================
+// PAGE LOAD
+// ============================================
+window.addEventListener("load", () => {
+  updateMiniTimerDisplay();
+  startMotivationSystem(); // ✅ Motivatsiya tizimini ishga tushirish
+  initStats();
+
+  // ✅ Firebase auth tekshirish va username ni yangilash
+  const auth = window.firebaseAuth;
+  if (auth) {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        const username = getUsernameFromDisplayName(
+          user.displayName,
+          user.email
+        );
+        console.log("✅ Username extracted:", username);
+
+        // Header title ni yangilash (agar dashboard bo'lsa)
+        updateWelcomeMessage(username);
+
+        // Sidebar username ni yangilash
+        const userNameElement = document.getElementById("userName");
+        if (userNameElement) {
+          userNameElement.textContent = username;
+        }
+      }
+      unsubscribe(); // Bir marta ishlasin
+    });
+  }
+
+  setTimeout(() => {
+    document.querySelector(".spinner-wrapper").style.display = "none";
+  }, 500);
+});
+
 let miniTimerInterval;
 let miniTimeLeft = 25 * 60;
 let miniTimerRunning = false;
@@ -699,18 +855,21 @@ let timerDropdownOpen = false;
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
 }
 
 function updateMiniTimerDisplay() {
-  document.getElementById("miniTimerDisplay").textContent = formatTime(miniTimeLeft);
+  document.getElementById("miniTimerDisplay").textContent =
+    formatTime(miniTimeLeft);
 }
 
 function toggleTimerDropdown() {
   timerDropdownOpen = !timerDropdownOpen;
   const dropdown = document.getElementById("timerDropdown");
   const button = document.querySelector(".tomato-icon-btn");
-  
+
   if (timerDropdownOpen) {
     dropdown.classList.add("active");
     button.classList.add("hidden");
@@ -768,9 +927,9 @@ function onTimerComplete() {
 
   if (currentMode === "pomodoro") {
     // ✅ STATISTIKA QO'SHISH
-    incrementStat('totalPomodoros');
-    incrementStat('totalStudyTime', pomodoroMinutes);
-    
+    incrementStat("totalPomodoros");
+    incrementStat("totalStudyTime", pomodoroMinutes);
+
     icon.textContent = "🎉";
     title.textContent = "Pomodoro Complete!";
     message.textContent = "Great work! Time for a break?";
@@ -842,17 +1001,21 @@ function closeTimerSettings() {
 
 function setPomodoroTime(minutes) {
   pomodoroMinutes = minutes;
-  document.querySelectorAll(".setting-group:first-child .time-option").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+  document
+    .querySelectorAll(".setting-group:first-child .time-option")
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
   event.target.classList.add("active");
 }
 
 function setBreakTime(minutes) {
   breakMinutes = minutes;
-  document.querySelectorAll(".setting-group:nth-child(2) .time-option").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+  document
+    .querySelectorAll(".setting-group:nth-child(2) .time-option")
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
   event.target.classList.add("active");
 }
 
@@ -870,26 +1033,44 @@ function saveTimerSettings() {
 }
 
 // Close dropdown when clicking outside (but not when timer is running)
-document.addEventListener('click', function(event) {
-  const dropdown = document.getElementById('timerDropdown');
-  const button = document.querySelector('.tomato-icon-btn');
-  const settingsModal = document.getElementById('timerSettingsModal');
-  
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("timerDropdown");
+  const button = document.querySelector(".tomato-icon-btn");
+  const settingsModal = document.getElementById("timerSettingsModal");
+
   // Don't close if clicking on settings modal
-  if (settingsModal.classList.contains('active')) {
+  if (settingsModal.classList.contains("active")) {
     return;
   }
-  
+
   // Don't close if timer is running - keep it visible
   if (miniTimerRunning) {
     return;
   }
-  
-  if (timerDropdownOpen && !dropdown.contains(event.target) && !button.contains(event.target)) {
+
+  if (
+    timerDropdownOpen &&
+    !dropdown.contains(event.target) &&
+    !button.contains(event.target)
+  ) {
     toggleTimerDropdown();
   }
 });
 
+// function trackPomodoroSession() {
+//   if (typeof window.incrementStat === 'function') {
+//     window.incrementStat('totalPomodoros', 1);
+//     window.incrementStat('totalStudyTime', 25); // 25 minutes
+//     window.trackToolUsage('study');
+    
+//     // Add activity
+//     if (typeof window.addRecentActivity === 'function') {
+//       window.addRecentActivity('Study Session', 100, '🎓', '#f59e0b');
+//     }
+    
+//     console.log('✅ Pomodoro tracked: 25 minutes');
+//   }
+// }
 
 // ============================================
 // PAGE LOAD
@@ -898,20 +1079,23 @@ window.addEventListener("load", () => {
   updateMiniTimerDisplay();
   startMotivationSystem();
   initStats();
-  
+
   // ✅ Firebase auth tekshirish va username ni yangilash
   const auth = window.firebaseAuth;
   if (auth) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        const username = getUsernameFromDisplayName(user.displayName, user.email);
-        console.log('✅ Username extracted:', username);
-        
+        const username = getUsernameFromDisplayName(
+          user.displayName,
+          user.email
+        );
+        console.log("✅ Username extracted:", username);
+
         // Header title ni yangilash (agar dashboard bo'lsa)
         updateWelcomeMessage(username);
-        
+
         // Sidebar username ni yangilash
-        const userNameElement = document.getElementById('userName');
+        const userNameElement = document.getElementById("userName");
         if (userNameElement) {
           userNameElement.textContent = username;
         }
@@ -966,7 +1150,7 @@ async function generateQuizQuestions() {
     });
 
     // SERVER GA SO'ROV YUBORISH
-    const response = await fetch(`${API_URL}/api/generate-quiz`, {
+    const response = await fetch(`${API_URL}/generate-quiz`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1024,6 +1208,9 @@ async function generateQuizQuestions() {
     generateBtn.innerHTML = originalText;
   }
 }
+
+
+
 
 // Display Quiz Question
 function displayQuizQuestion() {
@@ -1136,24 +1323,42 @@ function startQuizTimer() {
   }, 1000);
 }
 
-// Finish Quiz
+// ============================================
+// FINISH QUIZ - TRACKING FAQAT SUCCESS DA ✅
+// ============================================
 function finishQuiz() {
-  // Stop timer
   if (quizTimerInterval) {
     clearInterval(quizTimerInterval);
   }
 
-  // ✅ STATISTIKA QO'SHISH
-  incrementStat('quizzesTaken');
+  // ✅ TRACKING - QUIZ YAKUNLANGANDA
+  console.log('📊 Quiz finished, tracking...');
+  
+  if (typeof incrementStat === 'function') {
+    incrementStat('quizzesTaken', 1);
+    
+    // Real time calculation
+    const questionCount = parseInt(document.getElementById('quizQuestionCount').value);
+    const totalSeconds = (questionCount * 60) - quizTimeLeft;
+    const minutes = Math.max(1, Math.ceil(totalSeconds / 60));
+    
+    console.log('⏱️ Quiz time:', { totalSeconds, minutes });
+    incrementStat('totalStudyTime', minutes);
+  }
+  
+  if (typeof trackToolUsage === 'function') {
+    trackToolUsage('quiz');
+  }
 
   // Hide quiz section
   document.getElementById("quizQuestionsSection").style.display = "none";
 
   // Show results
   displayQuizResults();
+  
+  console.log('✅ Quiz tracking completed!');
 }
 
-// Display Quiz Results
 function displayQuizResults() {
   // Calculate score
   let score = 0;
@@ -1164,15 +1369,17 @@ function displayQuizResults() {
   });
 
   const totalQuestions = quizData.questions.length;
-  const percentage = ((score / totalQuestions) * 100).toFixed(0);
+  const percentage = Math.round((score / totalQuestions) * 100);
+
+  // ✅ ADD ACTIVITY WITH REAL SCORE
+  if (typeof addRecentActivity === 'function') {
+    addRecentActivity('Quiz Generator', percentage, '❓', '#10b981');
+    console.log('✅ Quiz activity added with score:', percentage);
+  }
 
   // Update score display
-  document.getElementById(
-    "quizScoreDisplay"
-  ).textContent = `${score}/${totalQuestions}`;
-  document.getElementById(
-    "quizPercentageDisplay"
-  ).textContent = `${percentage}% to'g'ri!`;
+  document.getElementById("quizScoreDisplay").textContent = `${score}/${totalQuestions}`;
+  document.getElementById("quizPercentageDisplay").textContent = `${percentage}% to'g'ri!`;
 
   // Display detailed answers
   const reviewContainer = document.getElementById("quizAnswersReview");
@@ -1221,7 +1428,9 @@ function displayQuizResults() {
 
   // Confetti effect for high scores
   if (percentage >= 80) {
-    createConfetti();
+    if (typeof createConfetti === 'function') {
+      createConfetti();
+    }
   }
 }
 
@@ -1271,7 +1480,6 @@ window.addEventListener("beforeunload", () => {
   }
 });
 
-
 // ============================================
 // STUDY ASSISTANT - FRONTEND
 // ============================================
@@ -1282,15 +1490,15 @@ let selectedMode = null;
 // Mode tanlash
 function selectStudyMode(mode) {
   selectedMode = mode;
-  
+
   // Barcha tugmalardan active classni olib tashlash
-  document.querySelectorAll('.study-mode-btn').forEach(btn => {
-    btn.classList.remove('active');
+  document.querySelectorAll(".study-mode-btn").forEach((btn) => {
+    btn.classList.remove("active");
   });
-  
+
   // Tanlangan tugmaga active class qo'shish
-  event.target.closest('.study-mode-btn').classList.add('active');
-  
+  event.target.closest(".study-mode-btn").classList.add("active");
+
   // Placeholder textni o'zgartirish
   const placeholders = {
     explain: "Mavzuni yozing... (masalan: Pythagoras teoremasi)",
@@ -1299,16 +1507,19 @@ function selectStudyMode(mode) {
     plan: "O'quv reja uchun mavzuni yozing... (masalan: Matematika)",
     mistakes: "Xatongizni yoki savolingizni yozing...",
     flashcards: "Flashcard yaratish uchun mavzuni yozing...",
-    script: "Speaking/Writing mavzusini yozing..."
+    script: "Speaking/Writing mavzusini yozing...",
   };
-  
-  document.getElementById("studyInput").placeholder = placeholders[mode] || "Matn kiriting...";
+
+  document.getElementById("studyInput").placeholder =
+    placeholders[mode] || "Matn kiriting...";
   document.getElementById("studyInput").focus();
-  
+
   console.log("📚 Tanlangan mode:", mode);
 }
 
-// Study Assistant so'rov yuborish
+// ============================================
+// STUDY ASSISTANT - TRACKING FAQAT SUCCESS DA ✅
+// ============================================
 async function submitStudyAssistant() {
   const input = document.getElementById("studyInput").value;
   const result = document.getElementById("studyResult");
@@ -1317,7 +1528,6 @@ async function submitStudyAssistant() {
   const languageDropdown = document.getElementById("study-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
 
-  // Validatsiya
   if (!selectedMode) {
     alert("Iltimos, avval rejim tanlang!");
     return;
@@ -1332,7 +1542,7 @@ async function submitStudyAssistant() {
   showLoading(output);
 
   try {
-    const response = await fetch(`${API_URL}${API_BASE_URL}/study-assistant`, {
+    const response = await fetch(`${API_URL}/study-assistant`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1375,25 +1585,49 @@ async function submitStudyAssistant() {
           </div>
         </div>
       `;
+      
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log('📊 Study assistant completed, tracking...');
+      
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('study');
+      }
+      
+      if (typeof addRecentActivity === 'function') {
+        const score = Math.floor(Math.random() * (97 - 88 + 1)) + 88;
+        addRecentActivity('Study Assistant', score, '🎓', '#f59e0b');
+      }
+      
+      if (typeof incrementStat === 'function') {
+        incrementStat('totalStudyTime', 4); // 4 daqiqa
+      }
+      
+      console.log('✅ Study assistant tracking completed!');
+      
     } else {
       throw new Error("AI dan javob kelmadi");
     }
   } catch (error) {
     console.error("❌ Study Assistant xatosi:", error);
     showError(output, error.message);
+    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
+
 
 // Nusxa olish funksiyasi
 function copyToClipboard() {
   const content = document.getElementById("studyContent");
   const text = content.innerText;
-  
-  navigator.clipboard.writeText(text).then(() => {
-    alert("Nusxa olindi! ✅");
-  }).catch(err => {
-    console.error("Nusxa olishda xato:", err);
-  });
+
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      alert("Nusxa olindi! ✅");
+    })
+    .catch((err) => {
+      console.error("Nusxa olishda xato:", err);
+    });
 }
 
 // Tozalash
@@ -1401,9 +1635,9 @@ function clearStudyAssistant() {
   document.getElementById("studyInput").value = "";
   document.getElementById("studyResult").style.display = "none";
   selectedMode = null;
-  
-  document.querySelectorAll('.study-mode-btn').forEach(btn => {
-    btn.classList.remove('active');
+
+  document.querySelectorAll(".study-mode-btn").forEach((btn) => {
+    btn.classList.remove("active");
   });
 }
 
@@ -1423,125 +1657,133 @@ let recordedAudioBlob = null;
 // Exam type tanlash
 function selectExamType(type) {
   selectedExamType = type;
-  
-  document.querySelectorAll('.exam-type-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.style.background = '#fff';
-    btn.style.color = '#374151';
-    btn.style.border = '2px solid #e5e7eb';
+
+  document.querySelectorAll(".exam-type-btn").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.style.background = "#fff";
+    btn.style.color = "#374151";
+    btn.style.border = "2px solid #e5e7eb";
   });
-  
-  const activeBtn = event.target.closest('.exam-type-btn');
+
+  const activeBtn = event.target.closest(".exam-type-btn");
   if (activeBtn) {
-    activeBtn.classList.add('active');
-    activeBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
-    activeBtn.style.color = 'white';
-    activeBtn.style.border = '2px solid #6366f1';
+    activeBtn.classList.add("active");
+    activeBtn.style.background =
+      "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)";
+    activeBtn.style.color = "white";
+    activeBtn.style.border = "2px solid #6366f1";
   }
-  
-  const infoText = document.getElementById('examInfoText');
-  if (type === 'IELTS') {
-    infoText.innerHTML = '📊 <strong>IELTS:</strong> Band 1-9 gacha baholanadi (Fluency, Vocabulary, Grammar, Pronunciation)';
+
+  const infoText = document.getElementById("examInfoText");
+  if (type === "IELTS") {
+    infoText.innerHTML =
+      "📊 <strong>IELTS:</strong> Band 1-9 gacha baholanadi (Fluency, Vocabulary, Grammar, Pronunciation)";
   } else {
     infoText.innerHTML = `📊 <strong>Multilevel (O'zbekiston):</strong> 0-75 ball
     <br>• 0-37 = A1-A2 | 38-50 = B1 | 51-64 = B2 | 65-75 = C1`;
   }
-  
+
   console.log("📝 Exam type tanlandi:", type);
 }
 
 // ✅ Ovoz yozishni boshlash - TUZATILGAN
 async function startRecording() {
-  const topic = document.getElementById('speakingTopicInput').value.trim();
-  
+  const topic = document.getElementById("speakingTopicInput").value.trim();
+
   if (!topic) {
     alert("⚠️ Iltimos, avval topic kiriting!");
     return;
   }
-  
+
   if (!selectedExamType) {
     alert("⚠️ Iltimos, IELTS yoki Multilevel tanlang!");
     return;
   }
-  
+
   try {
     // ✅ Audio constraints - WAV format
-    const stream = await navigator.mediaDevices.getUserMedia({ 
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
-        sampleRate: 16000  // Deepgram uchun optimal
-      } 
+        sampleRate: 16000, // Deepgram uchun optimal
+      },
     });
-    
+
     // ✅ MIME type tekshirish
-    let mimeType = 'audio/webm;codecs=opus';
+    let mimeType = "audio/webm;codecs=opus";
     if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'audio/webm';
+      mimeType = "audio/webm";
     }
     if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'audio/ogg;codecs=opus';
+      mimeType = "audio/ogg;codecs=opus";
     }
-    
+
     console.log("🎤 Audio format:", mimeType);
-    
+
     mediaRecorder = new MediaRecorder(stream, { mimeType });
     audioChunks = [];
     recordedAudioBlob = null;
-    
+
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         audioChunks.push(event.data);
         console.log("📦 Audio chunk qo'shildi:", event.data.size, "bytes");
       }
     };
-    
+
     mediaRecorder.onstop = async () => {
       recordedAudioBlob = new Blob(audioChunks, { type: mimeType });
       console.log("✅ Audio yozib olindi:");
       console.log("  - Size:", recordedAudioBlob.size, "bytes");
       console.log("  - Type:", recordedAudioBlob.type);
       console.log("  - Duration:", recordingSeconds, "seconds");
-      
+
       // ✅ Audio hajmini tekshirish
       if (recordedAudioBlob.size < 1000) {
-        alert("❌ Audio juda qisqa yoki bo'sh!\n\nIltimos, qaytadan yozib ko'ring.");
+        alert(
+          "❌ Audio juda qisqa yoki bo'sh!\n\nIltimos, qaytadan yozib ko'ring."
+        );
         clearSpeaking();
         return;
       }
-      
+
       showFeedbackButton();
     };
-    
+
     mediaRecorder.onerror = (error) => {
       console.error("❌ MediaRecorder xatosi:", error);
       alert("❌ Ovoz yozishda xatolik:\n" + error);
       stopRecording();
     };
-    
+
     mediaRecorder.start(1000); // Har 1 sekundda chunk
     isRecording = true;
     recordingSeconds = 0;
-    
+
     // UI yangilash
-    document.getElementById('startRecordBtn').style.display = 'none';
-    document.getElementById('stopRecordBtn').style.display = 'flex';
-    document.getElementById('recordingStatus').style.display = 'flex';
-    
+    document.getElementById("startRecordBtn").style.display = "none";
+    document.getElementById("stopRecordBtn").style.display = "flex";
+    document.getElementById("recordingStatus").style.display = "flex";
+
     // Timer boshlash
     recordingTimer = setInterval(() => {
       recordingSeconds++;
       const mins = Math.floor(recordingSeconds / 60);
       const secs = recordingSeconds % 60;
-      document.getElementById('recordingTime').textContent = 
-        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      document.getElementById("recordingTime").textContent = `${mins
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }, 1000);
-    
+
     console.log("🎤 Ovoz yozish boshlandi");
-    
   } catch (error) {
     console.error("❌ Mikrofon xatosi:", error);
-    alert("❌ Mikrofonga ruxsat berilmadi!\n\n" + error.message + "\n\nBrauzer sozlamalaridan mikrofonga ruxsat bering.");
+    alert(
+      "❌ Mikrofonga ruxsat berilmadi!\n\n" +
+        error.message +
+        "\n\nBrauzer sozlamalaridan mikrofonga ruxsat bering."
+    );
   }
 }
 
@@ -1549,25 +1791,25 @@ async function startRecording() {
 function stopRecording() {
   if (mediaRecorder && isRecording) {
     mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    mediaRecorder.stream.getTracks().forEach((track) => track.stop());
     isRecording = false;
-    
+
     clearInterval(recordingTimer);
-    
-    document.getElementById('startRecordBtn').style.display = 'flex';
-    document.getElementById('stopRecordBtn').style.display = 'none';
-    document.getElementById('recordingStatus').style.display = 'none';
-    
+
+    document.getElementById("startRecordBtn").style.display = "flex";
+    document.getElementById("stopRecordBtn").style.display = "none";
+    document.getElementById("recordingStatus").style.display = "none";
+
     console.log("🛑 Ovoz yozish to'xtatildi");
   }
 }
 
 // Feedback tugmasini ko'rsatish
 function showFeedbackButton() {
-  const result = document.getElementById('speakingResult');
-  const output = document.getElementById('speakingOutput');
-  
-  result.style.display = 'block';
+  const result = document.getElementById("speakingResult");
+  const output = document.getElementById("speakingOutput");
+
+  result.style.display = "block";
   output.innerHTML = `
     <div class="alert alert-success" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: none; border-radius: 12px; padding: 25px; text-align: center;">
       <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
@@ -1590,7 +1832,9 @@ function showFeedbackButton() {
   `;
 }
 
-// ✅ Yozib olingan audio ni yuborish - YANGILANGAN
+// ============================================
+// SPEAKING FEEDBACK - TRACKING FAQAT SUCCESS DA ✅
+// ============================================
 async function submitRecordedAudio() {
   if (!recordedAudioBlob) {
     alert("❌ Audio yozilmagan!");
@@ -1608,56 +1852,33 @@ async function submitRecordedAudio() {
   showLoading(output);
   
   try {
-    // ✅ 1. Audio ni Speech-to-Text ga yuborish
-    console.log("📤 Audio backend ga yuborilmoqda...");
-    console.log("  - URL:", `${API_URL}/api/audio-to-text`);
-    console.log("  - Size:", recordedAudioBlob.size);
-    console.log("  - Type:", recordedAudioBlob.type);
-    
     const formData = new FormData();
-    
-    // ✅ MUHIM: File nomini to'g'ri formatda yuborish
-    const audioFileName = 'recording.webm'; // yoki .wav, .mp3
+    const audioFileName = 'recording.webm';
     formData.append('audio', recordedAudioBlob, audioFileName);
     
-    console.log("📦 FormData yaratildi:", {
-      hasAudio: formData.has('audio'),
-      audioSize: recordedAudioBlob.size
-    });
-    
-    const transcriptResponse = await fetch(`${API_URL}/api/audio-to-text`, {
+    const transcriptResponse = await fetch(`${API_URL.replace('/api', '')}/api/audio-to-text`, {
       method: 'POST',
       body: formData
-      // ❌ Content-Type qo'shmang - FormData avtomatik qo'shadi
     });
-    
-    console.log("📥 Backend javobi:", transcriptResponse.status);
     
     if (!transcriptResponse.ok) {
       const errorText = await transcriptResponse.text();
-      console.error("❌ Backend xato javobi:", errorText);
       throw new Error(`Backend xatosi (${transcriptResponse.status}): ${errorText}`);
     }
     
     const transcriptData = await transcriptResponse.json();
-    console.log("📄 Transcript data:", transcriptData);
     
     if (!transcriptData.success) {
       throw new Error(transcriptData.error || 'Speech-to-Text xatosi');
     }
     
     const transcript = transcriptData.transcript;
-    console.log("✅ Transcript olindi:", transcript);
     
-    // ✅ Transcript uzunligini tekshirish
     if (!transcript || transcript.trim().length < 10) {
-      throw new Error("❌ Ovoz aniq eshitilmadi yoki juda qisqa.\n\nIltimos:\n• Mikrofonga yaqinroq gapiring\n• Aniq talaffuz qiling\n• Kamida 30 soniya gapiring");
+      throw new Error("❌ Ovoz aniq eshitilmadi yoki juda qisqa.");
     }
     
-    // ✅ 2. Transcript bilan AI dan feedback olish
-    console.log("📤 Feedback so'ralyapti...");
-    
-    const feedbackResponse = await fetch(`${API_URL}/api/speaking-feedback`, {
+    const feedbackResponse = await fetch(`${API_URL}/speaking-feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1676,10 +1897,10 @@ async function submitRecordedAudio() {
     
     if (feedbackData.success && feedbackData.result) {
       output.innerHTML = `
-        <div class="alert alert-success" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: none; border-radius: 12px; padding: 25px;">
+        <div class="alert alert-success">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h5 style="margin: 0; color: #1f2937;">
-              <i class="bi bi-mic-fill" style="color: #6366f1;"></i> 
+              <i class="bi bi-mic-fill"></i> 
               ${selectedExamType} Speaking Feedback
             </h5>
             <span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
@@ -1701,6 +1922,25 @@ async function submitRecordedAudio() {
         </div>
       `;
       
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log('📊 Speaking feedback received, tracking...');
+      
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('speaking');
+      }
+      
+      if (typeof addRecentActivity === 'function') {
+        const score = Math.floor(Math.random() * (92 - 78 + 1)) + 78;
+        addRecentActivity('IELTS Feedback', score, '💬', '#06b6d4');
+      }
+      
+      if (typeof incrementStat === 'function') {
+        const minutes = Math.max(1, Math.ceil(recordingSeconds / 60));
+        incrementStat('totalStudyTime', minutes);
+      }
+      
+      console.log('✅ Speaking tracking completed!');
+      
       setTimeout(() => {
         result.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
@@ -1711,44 +1951,35 @@ async function submitRecordedAudio() {
     
   } catch (error) {
     console.error("❌ Xatolik:", error);
-    
-    // ✅ Batafsil xato ko'rsatish
-    let errorMessage = error.message;
-    
-    if (error.message.includes('404')) {
-      errorMessage = "❌ Backend API topilmadi!\n\nServer ishlamayotgan yoki URL noto'g'ri:\n" + API_URL;
-    } else if (error.message.includes('Failed to fetch')) {
-      errorMessage = "❌ Serverga ulanib bo'lmadi!\n\nInternet aloqangizni tekshiring yoki serverning ishlayotganini tasdiqlang.";
-    } else if (error.message.includes('NetworkError')) {
-      errorMessage = "❌ CORS xatosi!\n\nBackend CORS sozlamalarini tekshiring.";
-    }
-    
-    showError(output, errorMessage);
+    showError(output, error.message);
+    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
 
+
 // Speaking tozalash
 function clearSpeaking() {
-  document.getElementById('speakingTopicInput').value = '';
-  document.getElementById('speakingTextInput').value = '';
-  document.getElementById('speakingResult').style.display = 'none';
+  document.getElementById("speakingTopicInput").value = "";
+  document.getElementById("speakingTextInput").value = "";
+  document.getElementById("speakingResult").style.display = "none";
   selectedExamType = null;
   recordedAudioBlob = null;
-  
+
   // Recording ni to'xtatish (agar ishlayotgan bo'lsa)
   if (isRecording) {
     stopRecording();
   }
-  
-  document.querySelectorAll('.exam-type-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.style.background = '#fff';
-    btn.style.color = '#374151';
-    btn.style.border = '2px solid #e5e7eb';
+
+  document.querySelectorAll(".exam-type-btn").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.style.background = "#fff";
+    btn.style.color = "#374151";
+    btn.style.border = "2px solid #e5e7eb";
   });
-  
-  document.getElementById('examInfoText').innerHTML = '📊 Imtihon turini tanlang';
-  
+
+  document.getElementById("examInfoText").innerHTML =
+    "📊 Imtihon turini tanlang";
+
   console.log("🧹 Speaking tool tozalandi");
 }
 
@@ -1760,8 +1991,7 @@ function showLoading(element) {
         <span class="visually-hidden">Loading...</span>
       </div>
       <p style="margin-top: 20px; color: #6b7280; font-weight: 600;">✨ AI Processing...</p>
-      <p style="color: #9ca3af; font-size: 13px;">Deepgram speech-to-text ishlamoqda...</p>
-      <p style="color: #9ca3af; font-size: 13px;">Bu 20-30 soniya olishi mumkin.</p>
+      <p style="color: #9ca3af; font-size: 13px;">Bu 5-10 soniya olishi mumkin.</p>
     </div>
   `;
 }
@@ -1784,6 +2014,59 @@ function showError(element, message) {
   `;
 }
 
-
-
 // console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
+
+
+// ============================================
+// SWITCH TOOL FUNCTION - FAQAT BIR MARTA ✅
+// ============================================
+function switchTool(toolName) {
+  navLinks.forEach((link) => link.classList.remove("active"));
+  const activeLink = document.querySelector(
+    `.nav-link[data-tool="${toolName}"]`
+  );
+  if (activeLink) activeLink.classList.add("active");
+
+  toolContents.forEach((content) => content.classList.remove("active"));
+  const activeContent = document.getElementById(`${toolName}-content`);
+  if (activeContent) {
+    activeContent.classList.add("active");
+
+    // ✅ ARTICLES TOOL INITIALIZE
+    if (toolName === "article" && typeof showArticlesTool === "function") {
+      showArticlesTool();
+    }
+    
+    if (toolName === "profile" && typeof showProfileTool === "function") {
+      showProfileTool();
+    }
+  }
+
+  if (toolTitles[toolName]) {
+    headerTitle.textContent = toolTitles[toolName].title;
+    headerSubtitle.textContent = toolTitles[toolName].subtitle;
+
+    if (toolName === "dashboard") {
+      const auth = window.firebaseAuth;
+      if (auth && auth.currentUser) {
+        const username = getUsernameFromDisplayName(
+          auth.currentUser.displayName,
+          auth.currentUser.email
+        );
+        headerTitle.textContent = `Welcome back, ${username}!`;
+      }
+    }
+  }
+
+  // ✅ TRACKING - ARTICLES UCHUN HAM
+  if (toolName !== "dashboard" && toolName !== "profile") {
+    if (typeof trackToolUsage === "function") {
+      trackToolUsage(toolName);
+    }
+  }
+
+  if (window.innerWidth < 1024) {
+    sidebar.classList.remove("menu-active");
+    toggleMenu(false);
+  }
+}
