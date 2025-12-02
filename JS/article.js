@@ -12,44 +12,147 @@ let selectedArticleLanguage = 'uz';
 let userSummary = '';
 let highlightedText = '';
 
+// ✅ STORAGE KEYS - FAQAT BIR MARTA!
+const ARTICLES_STORAGE = {
+  CURRENT_ARTICLE: 'articles_current_article',
+  ARTICLE_VIEW: 'articles_current_view',
+  CUSTOM_VOCABULARY: 'articles_custom_vocabulary',
+  USER_SUMMARY: 'articles_user_summary',
+  ARTICLES_DATA: 'articles_data_cache'
+};
+
 console.log('🌐 Using API URL:', ARTICLE_API_URL);
 
+// Save to localStorage
+function saveToLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    console.log(`💾 Saved to localStorage:`, key);
+  } catch (error) {
+    console.error('❌ LocalStorage save error:', error);
+  }
+}
+
+// Load from localStorage
+function loadFromLocalStorage(key) {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('❌ LocalStorage load error:', error);
+    return null;
+  }
+}
+
+// Clear localStorage
+function clearArticleStorage() {
+  Object.values(ARTICLES_STORAGE).forEach(key => {
+    localStorage.removeItem(key);
+  });
+  console.log('🗑️ Article storage cleared');
+}
+
 // ============================================
-// INITIALIZE ARTICLES
+// INITIALIZE ARTICLES - ✅ WITH RESTORE STATE + DEBUG
 // ============================================
 async function initArticles() {
   console.log('📚 Initializing Articles Tool...');
   
   const container = document.getElementById('articlesListContainer');
   
-  if (container) {
-    container.innerHTML = `
-      <div class="articles-loading" style="text-align: center; padding: 60px;">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p style="margin-top: 20px; color: #6b7280; font-size: 1.1rem; font-weight: 600;">
-          📄 Loading PDF articles...
-        </p>
-      </div>
-    `;
+  if (!container) {
+    console.error('❌ Container not found: articlesListContainer');
+    alert('Error: Articles container not found in HTML!');
+    return;
   }
   
+  console.log('✅ Container found:', container);
+  
+  // ✅ CHECK IF USER WAS READING AN ARTICLE
+  const savedArticleId = loadFromLocalStorage(STORAGE_KEYS.CURRENT_ARTICLE);
+  const savedView = loadFromLocalStorage(STORAGE_KEYS.ARTICLE_VIEW);
+  
+  if (savedArticleId && savedView === 'article') {
+    console.log('🔄 Restoring previous article:', savedArticleId);
+    
+    // Load articles first
+    if (articlesData.length === 0) {
+      try {
+        console.log('📡 Fetching articles from API...');
+        const response = await fetch(`${ARTICLE_API_URL}/articles`);
+        console.log('📥 Response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          articlesData = data.articles || [];
+          console.log('✅ Articles loaded:', articlesData.length);
+        }
+      } catch (error) {
+        console.error('❌ Error loading articles:', error);
+      }
+    }
+    
+    // Restore the article
+    selectedArticle = articlesData.find(a => a.id === savedArticleId);
+    if (selectedArticle) {
+      currentArticleView = 'article';
+      
+      // ✅ RESTORE USER-ADDED VOCABULARY
+      const customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY);
+      if (customVocab && customVocab[savedArticleId]) {
+        selectedArticle.vocabulary = [
+          ...(selectedArticle.vocabulary || []),
+          ...customVocab[savedArticleId]
+        ];
+      }
+      
+      // ✅ RESTORE USER SUMMARY
+      userSummary = loadFromLocalStorage(STORAGE_KEYS.USER_SUMMARY) || '';
+      
+      renderArticleView();
+      console.log('✅ Article restored successfully');
+      return;
+    }
+  }
+  
+  // ✅ DEFAULT: SHOW ARTICLES LIST
+  container.innerHTML = `
+    <div class="articles-loading" style="text-align: center; padding: 60px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-size: 1.1rem; font-weight: 600;">
+        📄 Loading PDF articles...
+      </p>
+    </div>
+  `;
+  
+  console.log('⏳ Loading spinner displayed');
+  
   try {
+    console.log('📡 Fetching articles from:', `${ARTICLE_API_URL}/articles`);
     const response = await fetch(`${ARTICLE_API_URL}/articles`);
+    
+    console.log('📥 Response received:', response.status, response.statusText);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log('📦 Data received:', data);
     
     if (data.success && data.articles && data.articles.length > 0) {
       articlesData = data.articles;
-      console.log(`✅ Loaded ${articlesData.length} articles`);
-      renderArticlesList();
+      console.log(`✅ Loaded ${articlesData.length} articles:`, articlesData);
+      
+      // ✅ FORCE RENDER
+      setTimeout(() => {
+        console.log('🎨 Rendering articles list...');
+        renderArticlesList();
+      }, 100);
     } else {
-      throw new Error('No articles found');
+      throw new Error('No articles found in response');
     }
     
   } catch (error) {
@@ -124,7 +227,7 @@ function renderArticlesList() {
 }
 
 // ============================================
-// OPEN ARTICLE VIEW
+// OPEN ARTICLE VIEW - ✅ WITH STATE SAVING
 // ============================================
 function openArticle(articleId) {
   selectedArticle = articlesData.find(a => a.id === articleId);
@@ -137,7 +240,28 @@ function openArticle(articleId) {
   
   console.log('📖 Opening article:', selectedArticle.title);
   currentArticleView = 'article';
-  userSummary = '';
+  
+  // ✅ SAVE STATE
+  saveToLocalStorage(STORAGE_KEYS.CURRENT_ARTICLE, articleId);
+  saveToLocalStorage(STORAGE_KEYS.ARTICLE_VIEW, 'article');
+  
+  // ✅ RESTORE USER-ADDED VOCABULARY
+  const customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY);
+  if (customVocab && customVocab[articleId]) {
+    selectedArticle.vocabulary = [
+      ...(selectedArticle.vocabulary || []),
+      ...customVocab[articleId]
+    ];
+  }
+  
+  // ✅ RESTORE USER SUMMARY (if exists)
+  const savedSummary = loadFromLocalStorage(STORAGE_KEYS.USER_SUMMARY);
+  if (savedSummary) {
+    userSummary = savedSummary;
+  } else {
+    userSummary = '';
+  }
+  
   highlightedText = '';
   
   renderArticleView();
@@ -245,7 +369,14 @@ function renderArticleView() {
       <div id="summaryFeedbackDisplay" style="display: none;"></div>
     </div>
   `;
-  
+  // ✅ RESTORE USER SUMMARY (add after textarea is created)
+setTimeout(() => {
+  const summaryInput = document.getElementById('articleSummaryInput');
+  if (summaryInput && userSummary) {
+    summaryInput.value = userSummary;
+    updateSummaryValue(userSummary); // Update word count
+  }
+}, 100);
   enableVocabularyTooltips();
 }
 
@@ -798,6 +929,9 @@ function highlightTextInPlace(text) {
   enableVocabularyTooltips();
 }
 
+// ============================================
+// ADD HIGHLIGHTED WORD - ✅ WITH DELETE + SAVE
+// ============================================
 function addHighlightedWordToVocab(vocab) {
   const container = document.getElementById('vocabularyGridContainer');
   if (!container) return;
@@ -811,11 +945,15 @@ function addHighlightedWordToVocab(vocab) {
     return;
   }
   
-  // ✅ FIXED: Properly display example
   const exampleText = vocab.example || `"${vocab.word}" in context`;
   
   const cardHTML = `
-    <div class="vocabulary-card user-added-vocab" data-word="${vocab.word.toLowerCase()}" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 12px; animation: slideIn 0.5s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.2);">
+    <div class="vocabulary-card user-added-vocab" data-word="${vocab.word.toLowerCase()}" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 12px; animation: slideIn 0.5s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.2); position: relative;">
+      
+      <button onclick="deleteVocabularyCard('${vocab.word.toLowerCase()}')" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: bold; box-shadow: 0 2px 6px rgba(239,68,68,0.4); transition: all 0.3s;" title="Delete this word">
+        ✕
+      </button>
+      
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <div style="color: #92400e; font-size: 1.35rem; font-weight: 700;">
           ⭐ ${vocab.word}
@@ -863,15 +1001,97 @@ function addHighlightedWordToVocab(vocab) {
     }
   }, 100);
   
-  // ✅ Add to article vocabulary
+  // ✅ ADD TO ARTICLE VOCABULARY
   if (!selectedArticle.vocabulary) {
     selectedArticle.vocabulary = [];
   }
   selectedArticle.vocabulary.push(vocab);
   
-  console.log('✅ Card added with example:', exampleText);
+  // ✅ SAVE TO LOCALSTORAGE
+  saveCustomVocabulary(selectedArticle.id, vocab);
+  
+  console.log('✅ Card added with DELETE button');
+}
+// ============================================
+// DELETE VOCABULARY CARD - ✅ YANGI
+// ============================================
+function deleteVocabularyCard(word) {
+  if (!confirm(`Delete "${word}" from your vocabulary list?`)) {
+    return;
+  }
+  
+  console.log('🗑️ Deleting vocabulary:', word);
+  
+  // ✅ REMOVE FROM DOM
+  const card = document.querySelector(`[data-word="${word}"]`);
+  if (card) {
+    card.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => card.remove(), 300);
+  }
+  
+  // ✅ REMOVE FROM ARTICLE VOCABULARY
+  if (selectedArticle && selectedArticle.vocabulary) {
+    selectedArticle.vocabulary = selectedArticle.vocabulary.filter(
+      v => v.word.toLowerCase() !== word.toLowerCase()
+    );
+  }
+  
+  // ✅ REMOVE FROM LOCALSTORAGE
+  removeCustomVocabulary(selectedArticle.id, word);
+  
+  console.log('✅ Vocabulary deleted');
 }
 
+// Add fadeOut animation to CSS (add this to your styles)
+const style = document.createElement('style');
+style.textContent = `
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.9); }
+}
+`;
+document.head.appendChild(style);
+// ============================================
+// SAVE CUSTOM VOCABULARY - ✅ YANGI
+// ============================================
+function saveCustomVocabulary(articleId, vocab) {
+  let customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY) || {};
+  
+  if (!customVocab[articleId]) {
+    customVocab[articleId] = [];
+  }
+  
+  // Check if already exists
+  const exists = customVocab[articleId].some(
+    v => v.word.toLowerCase() === vocab.word.toLowerCase()
+  );
+  
+  if (!exists) {
+    customVocab[articleId].push(vocab);
+    saveToLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY, customVocab);
+    console.log('💾 Custom vocabulary saved');
+  }
+}
+
+// ============================================
+// REMOVE CUSTOM VOCABULARY - ✅ YANGI
+// ============================================
+function removeCustomVocabulary(articleId, word) {
+  let customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY) || {};
+  
+  if (customVocab[articleId]) {
+    customVocab[articleId] = customVocab[articleId].filter(
+      v => v.word.toLowerCase() !== word.toLowerCase()
+    );
+    
+    if (customVocab[articleId].length === 0) {
+      delete customVocab[articleId];
+    }
+    
+    saveToLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY, customVocab);
+    console.log('💾 Custom vocabulary removed from storage');
+  }
+}
 // ============================================
 // SUBMIT SUMMARY - ✅ FIXED WITH WORD COUNT
 // ============================================
@@ -1023,18 +1243,19 @@ function displaySummaryFeedback(feedback, score) {
 }
 
 // ============================================
-// HELPER FUNCTIONS
+// UPDATE SUMMARY VALUE - ✅ WITH AUTO-SAVE
 // ============================================
 function updateSummaryValue(value) {
   userSummary = value;
   
-  // ✅ SO'ZLARNI SANASH (harflarni emas!)
+  // ✅ SAVE SUMMARY TO LOCALSTORAGE
+  saveToLocalStorage(STORAGE_KEYS.USER_SUMMARY, value);
+  
   const words = value.trim().split(/\s+/).filter(w => w.length > 0);
   const wordCount = words.length;
   
   document.getElementById('summaryWordCount').textContent = wordCount;
   
-  // ✅ Minimum 50 so'z kerak
   const submitBtn = document.getElementById('submitSummaryBtn');
   if (wordCount < 50) {
     submitBtn.disabled = true;
@@ -1059,13 +1280,22 @@ function resetSummary() {
   submitBtn.style.opacity = '0.5';
 }
 
+// ============================================
+// BACK TO ARTICLES LIST - ✅ CLEAR STATE
+// ============================================
 function backToArticlesList() {
   currentArticleView = 'list';
   selectedArticle = null;
   userSummary = '';
   highlightedText = '';
+  
+  // ✅ CLEAR LOCALSTORAGE
+  clearArticleStorage();
+  
   renderArticlesList();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  console.log('🔙 Returned to articles list, state cleared');
 }
 
 function changeArticleLanguage(lang) {
@@ -1123,7 +1353,7 @@ function escapeHtml(text) {
 }
 
 // ============================================
-// GLOBAL EXPORTS
+// GLOBAL EXPORTS - ✅ ADD NEW FUNCTIONS
 // ============================================
 window.showArticlesTool = showArticlesTool;
 window.openArticle = openArticle;
@@ -1134,5 +1364,6 @@ window.submitSummary = submitSummary;
 window.resetSummary = resetSummary;
 window.handleTextSelection = handleTextSelection;
 window.highlightSelectedText = highlightSelectedText;
+window.deleteVocabularyCard = deleteVocabularyCard; // ✅ YANGI
 
 console.log('✅ Articles module loaded - Complete Fixed Version');
