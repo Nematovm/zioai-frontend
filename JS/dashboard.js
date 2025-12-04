@@ -92,7 +92,7 @@ const toolTitles = {
     subtitle: "Get feedback on your speaking",
   },
   article: {  // ✅ YANGI
-    title: "📚 Reading Articles",
+    title: "Reading Articles",
     subtitle: "Improve your English with curated articles"
   },
   profile: {

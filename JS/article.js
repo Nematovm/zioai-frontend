@@ -71,9 +71,9 @@ async function initArticles() {
   
   console.log('✅ Container found:', container);
   
-  // ✅ CHECK IF USER WAS READING AN ARTICLE
-  const savedArticleId = loadFromLocalStorage(STORAGE_KEYS.CURRENT_ARTICLE);
-  const savedView = loadFromLocalStorage(STORAGE_KEYS.ARTICLE_VIEW);
+  // ✅ CHECK IF USER WAS READING AN ARTICLE (ARTICLES_STORAGE ishlatiladi)
+  const savedArticleId = loadFromLocalStorage(ARTICLES_STORAGE.CURRENT_ARTICLE);
+  const savedView = loadFromLocalStorage(ARTICLES_STORAGE.ARTICLE_VIEW);
   
   if (savedArticleId && savedView === 'article') {
     console.log('🔄 Restoring previous article:', savedArticleId);
@@ -101,7 +101,7 @@ async function initArticles() {
       currentArticleView = 'article';
       
       // ✅ RESTORE USER-ADDED VOCABULARY
-      const customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY);
+      const customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY);
       if (customVocab && customVocab[savedArticleId]) {
         selectedArticle.vocabulary = [
           ...(selectedArticle.vocabulary || []),
@@ -110,7 +110,7 @@ async function initArticles() {
       }
       
       // ✅ RESTORE USER SUMMARY
-      userSummary = loadFromLocalStorage(STORAGE_KEYS.USER_SUMMARY) || '';
+      userSummary = loadFromLocalStorage(ARTICLES_STORAGE.USER_SUMMARY) || '';
       
       renderArticleView();
       console.log('✅ Article restored successfully');
@@ -177,7 +177,7 @@ function renderArticlesList() {
   
   container.innerHTML = `
     <div class="articles-header">
-      <h2>📚 Reading Articles</h2>
+      <h2>Reading Articles</h2>
       <p class="articles-subtitle">
         ${articlesData.length} articles • Improve your English reading skills
       </p>
@@ -230,13 +230,17 @@ function renderArticlesList() {
 }
 
 // ============================================
-// OPEN ARTICLE VIEW - ✅ WITH STATE SAVING
+// OPEN ARTICLE VIEW - ✅ WITH STATE SAVING + LANGUAGE FIX
 // ============================================
 function openArticle(articleId) {
+  console.log('🔍 Opening article with ID:', articleId);
+  console.log('📚 Available articles:', articlesData);
+  
   selectedArticle = articlesData.find(a => a.id === articleId);
   
   if (!selectedArticle) {
     console.error('❌ Article not found:', articleId);
+    console.log('Available IDs:', articlesData.map(a => a.id));
     alert('Article not found!');
     return;
   }
@@ -245,20 +249,45 @@ function openArticle(articleId) {
   currentArticleView = 'article';
   
   // ✅ SAVE STATE
-  saveToLocalStorage(STORAGE_KEYS.CURRENT_ARTICLE, articleId);
-  saveToLocalStorage(STORAGE_KEYS.ARTICLE_VIEW, 'article');
+  saveToLocalStorage(ARTICLES_STORAGE.CURRENT_ARTICLE, articleId);
+  saveToLocalStorage(ARTICLES_STORAGE.ARTICLE_VIEW, 'article');
   
-  // ✅ RESTORE USER-ADDED VOCABULARY
-  const customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY);
+// ✅ RESTORE USER-ADDED VOCABULARY
+  const customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY);
   if (customVocab && customVocab[articleId]) {
-    selectedArticle.vocabulary = [
-      ...(selectedArticle.vocabulary || []),
-      ...customVocab[articleId]
-    ];
+    console.log('🔄 Restoring custom vocabulary:', customVocab[articleId].length, 'words');
+    
+    // ✅ FIXED: Merge with existing vocabulary
+    const existingWords = (selectedArticle.vocabulary || []).map(v => v.word.toLowerCase());
+    
+    customVocab[articleId].forEach(customWord => {
+      if (!existingWords.includes(customWord.word.toLowerCase())) {
+        // ✅ CRITICAL FIX: Check if Russian translation is actually valid (MORE LENIENT)
+        if (!customWord.translation_uz || customWord.translation_uz === customWord.word) {
+          customWord.translation_uz = customWord.word;
+        }
+        
+        const hasValidRussian = customWord.translation_ru && 
+                                customWord.translation_ru.length > 2 &&
+                                /[а-яА-ЯёЁ]/.test(customWord.translation_ru);
+        
+        if (!hasValidRussian) {
+          // ✅ Set fallback that will be detected later
+          customWord.translation_ru = `${customWord.word} (перевод не найден)`;
+        }
+        
+        selectedArticle.vocabulary = [
+          ...(selectedArticle.vocabulary || []),
+          customWord
+        ];
+      }
+    });
+    
+    console.log('✅ Custom vocabulary restored with validated translations');
   }
   
   // ✅ RESTORE USER SUMMARY (if exists)
-  const savedSummary = loadFromLocalStorage(STORAGE_KEYS.USER_SUMMARY);
+  const savedSummary = loadFromLocalStorage(ARTICLES_STORAGE.USER_SUMMARY);
   if (savedSummary) {
     userSummary = savedSummary;
   } else {
@@ -272,12 +301,37 @@ function openArticle(articleId) {
 }
 
 // ============================================
-// RENDER ARTICLE VIEW
+// RENDER ARTICLE VIEW - ✅ FIXED WITH LANGUAGE-AWARE RESTORE
 // ============================================
 function renderArticleView() {
   const container = document.getElementById('articlesListContainer');
   
-  if (!container || !selectedArticle) return;
+  if (!container) {
+    console.error('❌ Container not found!');
+    return;
+  }
+  
+  if (!selectedArticle) {
+    console.error('❌ No article selected!');
+    return;
+  }
+  
+  console.log('📄 Rendering article:', selectedArticle.title);
+  console.log('🌐 Current language:', selectedArticleLanguage);
+  console.log('📚 Vocabulary count:', selectedArticle.vocabulary?.length || 0);
+  
+  // ✅ FIXED: Ensure all vocabulary has translations for current language
+  if (selectedArticle.vocabulary) {
+    selectedArticle.vocabulary.forEach(vocab => {
+      // Check if translations exist, if not set fallbacks
+      if (!vocab.translation_uz) {
+        vocab.translation_uz = vocab.word;
+      }
+      if (!vocab.translation_ru) {
+        vocab.translation_ru = vocab.definition || vocab.word;
+      }
+    });
+  }
   
   const formattedContent = selectedArticle.content
     .split('\n\n')
@@ -372,15 +426,18 @@ function renderArticleView() {
       <div id="summaryFeedbackDisplay" style="display: none;"></div>
     </div>
   `;
-  // ✅ RESTORE USER SUMMARY (add after textarea is created)
-setTimeout(() => {
-  const summaryInput = document.getElementById('articleSummaryInput');
-  if (summaryInput && userSummary) {
-    summaryInput.value = userSummary;
-    updateSummaryValue(userSummary); // Update word count
-  }
-}, 100);
+  
+  // ✅ RESTORE USER SUMMARY
+  setTimeout(() => {
+    const summaryInput = document.getElementById('articleSummaryInput');
+    if (summaryInput && userSummary) {
+      summaryInput.value = userSummary;
+      updateSummaryValue(userSummary);
+    }
+  }, 100);
+  
   enableVocabularyTooltips();
+  console.log('✅ Article view rendered successfully with language:', selectedArticleLanguage);
 }
 
 // ============================================
@@ -403,16 +460,20 @@ function highlightVocabularyInText(content, vocabulary) {
 }
 
 // ============================================
-// RENDER VOCABULARY CARDS
+// RENDER VOCABULARY CARDS - ✅ WITH DYNAMIC TRANSLATION
 // ============================================
 function renderVocabularyCards(vocabulary) {
+  if (!vocabulary || vocabulary.length === 0) {
+    return '<p>No vocabulary words available.</p>';
+  }
+  
   return vocabulary.map((vocab, index) => `
     <div class="vocabulary-card" id="vocab-card-${index}" data-word="${vocab.word.toLowerCase()}">
       <div class="vocab-word">${vocab.word}</div>
       <div class="vocab-definition">
-        📖 ${vocab.definition}
+        📖 ${vocab.definition || 'No definition available'}
       </div>
-      <div class="vocab-translation">
+      <div class="vocab-translation vocab-translation-dynamic">
         ${getVocabTranslation(vocab)}
       </div>
       ${vocab.example ? `
@@ -423,25 +484,6 @@ function renderVocabularyCards(vocabulary) {
       ` : ''}
     </div>
   `).join('');
-}
-
-// ============================================
-// GET VOCABULARY TRANSLATION
-// ============================================
-function getVocabTranslation(vocab) {
-  const translations = {
-    'uz': vocab.translation_uz || `${vocab.word} (tarjima)`,
-    'ru': vocab.translation_ru || `${vocab.word} (перевод)`,
-    'en': vocab.definition
-  };
-  
-  const flags = {
-    'uz': '🇺🇿',
-    'ru': '🇷🇺',
-    'en': '🇬🇧'
-  };
-  
-  return `${flags[selectedArticleLanguage]} ${translations[selectedArticleLanguage]}`;
 }
 
 // ============================================
@@ -509,6 +551,62 @@ function enableVocabularyTooltips() {
   });
 }
 
+// ============================================
+// GET VOCABULARY TRANSLATION - ✅ DETECT DUPLICATE DEFINITION
+// ============================================
+function getVocabTranslation(vocab) {
+  // ✅ IMPROVED: Detect if translation is actually definition
+  let translation = '';
+  let hasTranslation = true;
+  
+  if (selectedArticleLanguage === 'uz') {
+    translation = vocab.translation_uz;
+    
+    // ✅ Check if it's same as definition or word
+    if (!translation || 
+        translation.trim().length === 0 ||
+        translation === vocab.definition ||
+        translation === vocab.word) {
+      translation = `${vocab.word} (tarjima topilmadi)`;
+      hasTranslation = false;
+      console.log('⚠️ No valid Uzbek translation for:', vocab.word);
+    }
+    
+  } else if (selectedArticleLanguage === 'ru') {
+    translation = vocab.translation_ru || vocab.russian;
+    
+    // ✅ CRITICAL CHECK: Is it actually Russian or just definition copy?
+    const isActuallyRussian = translation && 
+                              translation.length > 2 &&
+                              /[а-яА-ЯёЁ]/.test(translation);
+    
+    if (!isActuallyRussian) {
+      translation = `${vocab.word} (перевод не найден)`;
+      hasTranslation = false;
+      console.log('⚠️ No valid Russian translation for:', vocab.word);
+    }
+    
+  } else if (selectedArticleLanguage === 'en') {
+    // ✅ For English, always show the definition
+    translation = vocab.definition || vocab.word;
+  }
+  
+  const flags = {
+    'uz': '🇺🇿 O\'ZBEK',
+    'ru': '🇷🇺 РУССКИЙ',
+    'en': '🇬🇧 ENGLISH'
+  };
+  
+  return `
+    <div style="font-size: 0.8rem; color: #92400e; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">
+      ${flags[selectedArticleLanguage]}
+    </div>
+    <div style="font-size: 1.05rem; color: ${hasTranslation ? '#78350f' : '#6b7280'}; font-weight: ${hasTranslation ? '700' : '500'}; ${!hasTranslation ? 'font-style: italic;' : ''}">
+      ${translation}
+    </div>
+  `;
+}
+
 
 function handleTextSelection() {
   const selection = window.getSelection();
@@ -542,66 +640,80 @@ function parseVocabularyResponse(aiResponse, word) {
   
   console.log('🧹 Cleaned response:', cleaned);
   
-  // ✅ Extract DEFINITION - FIXED PATTERNS
+  // ✅ Extract DEFINITION
   let definition = '';
   
   const defPatterns = [
-    /📖\s*MA'NOSI[:：]\s*([^\n]+)/i,
-    /MA'NOSI[:：]\s*([^\n]+)/i,
-    /📖\s*DEFINITION[:：]\s*([^\n]+)/i,
-    /DEFINITION[:：]\s*([^\n]+)/i,
-    /📖\s*([A-Z][a-zA-Z\s,'-]{10,})/,  // Any sentence starting with capital
+    /📖\s*(?:MA'NOSI|DEFINITION)[:：]\s*([^\n]+)/i,
+    /(?:MA'NOSI|DEFINITION)[:：]\s*([^\n]+)/i,
+    /📖\s*([A-Z][a-z\s,'-]{15,}[.!?])/,
+    /^([A-Z][a-z\s,'-]{15,}[.!?])/m
   ];
   
   for (let pattern of defPatterns) {
     const match = cleaned.match(pattern);
-    if (match && match[1] && match[1].length > 5) {
-      definition = match[1].trim();
-      // Take only first sentence
-      const sentenceEnd = definition.search(/[.!?]/);
+    if (match && match[1]) {
+      let def = match[1].trim();
+      def = def.replace(/[""]/g, '').trim();
+      const sentenceEnd = def.search(/[.!?]/);
       if (sentenceEnd > 0) {
-        definition = definition.substring(0, sentenceEnd).trim();
+        def = def.substring(0, sentenceEnd + 1).trim();
       }
-      break;
-    }
-  }
-  
-  // ✅ If no match, try to get first English sentence
-  if (!definition) {
-    const lines = cleaned.split('\n').filter(l => l.trim().length > 0);
-    for (const line of lines) {
-      // Skip Uzbek/Russian lines
-      if (line.match(/[а-яА-ЯўқғҳҚҒҲЎ]/)) continue;
-      // Skip lines with emojis only
-      if (line.match(/^[📖🇺🇿💬\s]+$/)) continue;
-      // Take first English sentence
-      if (line.length > 15 && /[a-zA-Z]/.test(line)) {
-        definition = line.trim();
-        const sentenceEnd = definition.search(/[.!?]/);
-        if (sentenceEnd > 0) {
-          definition = definition.substring(0, sentenceEnd).trim();
-        }
+      if (def.length > 10) {
+        definition = def;
         break;
       }
     }
   }
   
   // ✅ Extract O'ZBEK translation
-  let translation = '';
+  let translation_uz = '';
   
   const uzPatterns = [
-    /🇺🇿\s*O'ZBEK[:：]\s*([^\n]+)/i,
-    /O'ZBEK[:：]\s*([^\n]+)/i,
-    /uz\s+O'ZBEK[:：]\s*([^\n]+)/i,
+    /🇺🇿\s*O'?ZBEK(?:\s+TARJIMASI)?[:：]\s*([^\n]+)/i,
+    /uz\s+O'?ZBEK[:：]\s*([^\n]+)/i,
+    /O'?ZBEK[:：]\s*([^\n]+)/i
   ];
   
   for (let pattern of uzPatterns) {
     const match = cleaned.match(pattern);
-    if (match && match[1] && match[1].length > 3) {
-      translation = match[1].trim();
-      // Remove any remaining labels
-      translation = translation.replace(/^(uz\s+)?O'ZBEK[:：]?\s*/i, '').trim();
-      break;
+    if (match && match[1]) {
+      let trans = match[1].trim();
+      trans = trans
+        .replace(/^(uz\s+)?O'?ZBEK(?:\s+TARJIMASI)?[:：]?\s*/i, '')
+        .replace(/[🇺🇿📖💬]/g, '')
+        .trim();
+      
+      if (trans.length > 3 && trans.length < 50) {
+        translation_uz = trans;
+        break;
+      }
+    }
+  }
+  
+  // ✅ Extract RUSSIAN translation (IMPROVED)
+  let translation_ru = '';
+  
+  const ruPatterns = [
+    /🇷🇺\s*(?:РУССКИЙ|RUSSIAN)[:：]\s*([^\n]+)/i,
+    /ru\s+(?:РУССКИЙ|RUSSIAN)[:：]\s*([^\n]+)/i,
+    /(?:РУССКИЙ|RUSSIAN)[:：]\s*([^\n]+)/i
+  ];
+  
+  for (let pattern of ruPatterns) {
+    const match = cleaned.match(pattern);
+    if (match && match[1]) {
+      let trans = match[1].trim()
+        .replace(/^(ru\s+)?(?:РУССКИЙ|RUSSIAN)[:：]?\s*/i, '')
+        .replace(/[🇷🇺📖💬]/g, '')
+        .replace(/\(.*?\)/g, '') // Remove parentheses content
+        .trim();
+      
+      // ✅ More lenient check - just needs some length and Cyrillic
+      if (trans.length > 2 && /[а-яА-ЯёЁ]/.test(trans)) {
+        translation_ru = trans;
+        break;
+      }
     }
   }
   
@@ -609,48 +721,57 @@ function parseVocabularyResponse(aiResponse, word) {
   let example = '';
   
   const exPatterns = [
-    /💬\s*MISOL[:：]\s*"([^"]+)"/i,
-    /MISOL[:：]\s*"([^"]+)"/i,
-    /💬\s*EXAMPLE[:：]\s*"([^"]+)"/i,
-    /EXAMPLE[:：]\s*"([^"]+)"/i,
-    /💬\s*"([^"]+)"/i,
-    /"([^"]{20,})"/
+    /💬\s*(?:MISOL|EXAMPLE)[:：]\s*[""']([^""']+)[""']/i,
+    /(?:MISOL|EXAMPLE)[:：]\s*[""']([^""']+)[""']/i,
+    /💬\s*[""']([^""']{15,})[""']/,
+    /[""']([^""']{15,})[""']/
   ];
   
   for (let pattern of exPatterns) {
     const match = cleaned.match(pattern);
-    if (match && match[1] && match[1].length > 10) {
-      example = match[1].trim();
-      // Remove problematic phrases
-      example = example.replace(/so'zi\s+haqida.*$/gi, '').trim();
-      if (example.length > 10) break;
+    if (match && match[1]) {
+      let ex = match[1].trim();
+      if (ex.length > 15 && (ex.toLowerCase().includes(word.toLowerCase()) || /[.!?]$/.test(ex))) {
+        example = ex;
+        break;
+      }
     }
   }
   
-  // ✅ Fallback values
+  // ✅ IMPROVED FALLBACKS
   if (!definition || definition.length < 5) {
-    definition = `To count or calculate numbers`;
+    definition = `The word "${word}"`;
   }
-  if (!translation || translation.length < 3) {
-    translation = `Sanash, hisoblash`;
+  if (!translation_uz || translation_uz.length < 2) {
+    translation_uz = word;
+  }
+  if (!translation_ru || translation_ru.length < 2 || !(/[а-яА-ЯёЁ]/.test(translation_ru))) {
+    // ✅ Only use fallback if NO Cyrillic characters found
+    translation_ru = `${word} (перевод не найден)`;
   }
   if (!example || example.length < 10) {
-    example = `She spent the evening counting her money`;
+    example = `Example with "${word}"`;
   }
   
-  console.log('✅ Final parsed:', { word, definition, translation, example });
-  
-  return {
+  const result = {
     word: word,
     definition: definition,
-    translation_uz: translation,
-    translation_ru: translation,
+    translation_uz: translation_uz,
+    translation_ru: translation_ru,
     example: example
   };
+  
+  console.log('✅ Final parsed:', result);
+  
+  return result;
 }
 
+// ============================================
+// SHOW WORD TRANSLATION - ✅ DETECT DUPLICATE DEFINITION
+// ============================================
 function showWordTranslation(vocab) {
   console.log('📖 Showing translation for:', vocab);
+  console.log('🌐 Current language:', selectedArticleLanguage);
   
   const existing = document.querySelector('.translation-popup-overlay');
   if (existing) existing.remove();
@@ -671,7 +792,48 @@ function showWordTranslation(vocab) {
     animation: fadeIn 0.3s ease !important;
   `;
   
-  // ✅ FIXED: Properly display example
+  // ✅ IMPROVED: Detect if translation is actually definition
+  let translation = '';
+  let languageLabel = '🇺🇿 O\'ZBEK TARJIMASI';
+  let hasTranslation = true;
+  
+  if (selectedArticleLanguage === 'uz') {
+    translation = vocab.translation_uz;
+    languageLabel = '🇺🇿 O\'ZBEK TARJIMASI';
+    
+    // ✅ Check if it's same as definition or word
+    if (!translation || 
+        translation.trim().length === 0 ||
+        translation === vocab.definition ||
+        translation === vocab.word) {
+      translation = `${vocab.word} (tarjima topilmadi)`;
+      hasTranslation = false;
+    }
+    
+  } else if (selectedArticleLanguage === 'ru') {
+    translation = vocab.translation_ru || vocab.russian;
+    languageLabel = '🇷🇺 РУССКИЙ ПЕРЕВОД';
+    
+    // ✅ CRITICAL CHECK: Is it actually Russian or just definition copy?
+    const isActuallyRussian = translation && 
+                              translation !== vocab.definition && 
+                              translation !== vocab.word &&
+                              translation !== 'сложное слово' &&
+                              translation.trim().length > 0 &&
+                              // Check if contains Cyrillic characters
+                              /[а-яА-ЯёЁ]/.test(translation);
+    
+    if (!isActuallyRussian) {
+      translation = `${vocab.word} (перевод не найден)`;
+      hasTranslation = false;
+      console.log('⚠️ Russian translation is invalid (duplicate definition)');
+    }
+    
+  } else if (selectedArticleLanguage === 'en') {
+    translation = vocab.definition || vocab.word;
+    languageLabel = '🇬🇧 ENGLISH DEFINITION';
+  }
+  
   const exampleText = vocab.example || `"${vocab.word}" in a sentence`;
   
   popup.innerHTML = `
@@ -705,12 +867,12 @@ function showWordTranslation(vocab) {
           </div>
         </div>
         
-        <div style="padding: 16px; background: #fef3c7; border-radius: 12px; border-left: 4px solid #f59e0b; margin-bottom: 18px;">
-          <div style="color: #92400e; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
-            🇺🇿 O'ZBEK TARJIMASI
+        <div style="padding: 16px; background: ${hasTranslation ? '#fef3c7' : '#f3f4f6'}; border-radius: 12px; border-left: 4px solid ${hasTranslation ? '#f59e0b' : '#9ca3af'}; margin-bottom: 18px;">
+          <div style="color: ${hasTranslation ? '#92400e' : '#6b7280'}; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
+            ${languageLabel}
           </div>
-          <span style="color: #92400e; font-weight: 700; font-size: 1.15rem;">
-            ${vocab.translation_uz || vocab.word}
+          <span style="color: ${hasTranslation ? '#92400e' : '#6b7280'}; font-weight: ${hasTranslation ? '700' : '500'}; font-size: 1.15rem; ${!hasTranslation ? 'font-style: italic;' : ''}">
+            ${translation}
           </span>
         </div>
         
@@ -760,7 +922,7 @@ function showWordTranslation(vocab) {
     if (popup.parentElement) popup.remove();
   }, 15000);
   
-  console.log('✅ Translation popup shown with example:', exampleText);
+  console.log('✅ Translation popup shown:', selectedArticleLanguage, '→', translation, '(valid:', hasTranslation, ')');
 }
 async function highlightSelectedText() {
   if (!highlightedText) {
@@ -916,7 +1078,8 @@ function highlightTextInPlace(text) {
       return;
     }
     
-    const regex = new RegExp(`(${escapeRegex(text)})`, 'gi');
+    // ✅ WORD BOUNDARY qo'shildi (\b...\b)
+    const regex = new RegExp(`\\b(${escapeRegex(text)})\\b`, 'gi');
     const nodeText = node.textContent;
     
     if (regex.test(nodeText)) {
@@ -933,27 +1096,50 @@ function highlightTextInPlace(text) {
 }
 
 // ============================================
-// ADD HIGHLIGHTED WORD - ✅ WITH DELETE + SAVE
+// ADD HIGHLIGHTED WORD - ✅ FIXED WITH CORRECT LANGUAGE
 // ============================================
 function addHighlightedWordToVocab(vocab) {
   const container = document.getElementById('vocabularyGridContainer');
   if (!container) return;
   
-  // ✅ Check if already exists
-  const existingCard = container.querySelector(`[data-word="${vocab.word.toLowerCase()}"]`);
+  // ✅ CHECK IF WORD ALREADY EXISTS (case-insensitive)
+  const wordLower = vocab.word.toLowerCase();
+  const existingCard = Array.from(container.querySelectorAll('.vocabulary-card')).find(
+    card => card.getAttribute('data-word') === wordLower
+  );
+  
   if (existingCard) {
+    console.log('⚠️ Word already exists:', vocab.word);
     existingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     existingCard.classList.add('highlight-flash');
     setTimeout(() => existingCard.classList.remove('highlight-flash'), 3000);
     return;
   }
   
+  // ✅ FIXED: Use correct translation based on current language
+  let translation = vocab.word;
+  let languageLabel = '🇺🇿 O\'ZBEK';
+  
+  if (selectedArticleLanguage === 'uz') {
+    translation = vocab.translation_uz || vocab.word;
+    languageLabel = '🇺🇿 O\'ZBEK';
+  } else if (selectedArticleLanguage === 'ru') {
+    translation = vocab.translation_ru || vocab.russian || vocab.word;
+    if (translation === 'сложное слово' || translation.includes('(сложное слово)')) {
+      translation = vocab.definition || vocab.word;
+    }
+    languageLabel = '🇷🇺 РУССКИЙ';
+  } else if (selectedArticleLanguage === 'en') {
+    translation = vocab.definition || vocab.word;
+    languageLabel = '🇬🇧 ENGLISH';
+  }
+  
   const exampleText = vocab.example || `"${vocab.word}" in context`;
   
   const cardHTML = `
-    <div class="vocabulary-card user-added-vocab" data-word="${vocab.word.toLowerCase()}" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 12px; animation: slideIn 0.5s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.2); position: relative;">
+    <div class="vocabulary-card user-added-vocab" data-word="${wordLower}" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 12px; animation: slideIn 0.5s ease; box-shadow: 0 4px 12px rgba(245,158,11,0.2); position: relative;">
       
-      <button onclick="deleteVocabularyCard('${vocab.word.toLowerCase()}')" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: bold; box-shadow: 0 2px 6px rgba(239,68,68,0.4); transition: all 0.3s;" title="Delete this word">
+      <button onclick="deleteVocabularyCard('${wordLower}')" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: bold; box-shadow: 0 2px 6px rgba(239,68,68,0.4); transition: all 0.3s;" title="Delete this word">
         ✕
       </button>
       
@@ -975,12 +1161,12 @@ function addHighlightedWordToVocab(vocab) {
         </div>
       </div>
       
-      <div style="margin-bottom: 12px; padding: 12px; background: #fde68a; border-radius: 8px;">
+      <div class="vocab-translation-dynamic" style="margin-bottom: 12px; padding: 12px; background: #fde68a; border-radius: 8px;">
         <div style="font-size: 0.8rem; color: #92400e; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">
-          🇺🇿 O'ZBEK
+          ${languageLabel}
         </div>
         <div style="font-size: 1.05rem; color: #78350f; font-weight: 700;">
-          ${vocab.translation_uz || vocab.word}
+          ${translation}
         </div>
       </div>
       
@@ -998,22 +1184,26 @@ function addHighlightedWordToVocab(vocab) {
   container.insertAdjacentHTML('beforeend', cardHTML);
   
   setTimeout(() => {
-    const newCard = container.querySelector(`[data-word="${vocab.word.toLowerCase()}"]`);
+    const newCard = container.querySelector(`[data-word="${wordLower}"]`);
     if (newCard) {
       newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, 100);
   
-  // ✅ ADD TO ARTICLE VOCABULARY
+  // ✅ ADD TO ARTICLE VOCABULARY (check duplicates)
   if (!selectedArticle.vocabulary) {
     selectedArticle.vocabulary = [];
   }
-  selectedArticle.vocabulary.push(vocab);
   
-  // ✅ SAVE TO LOCALSTORAGE
-  saveCustomVocabulary(selectedArticle.id, vocab);
+  const exists = selectedArticle.vocabulary.some(
+    v => v.word.toLowerCase() === wordLower
+  );
   
-  console.log('✅ Card added with DELETE button');
+  if (!exists) {
+    selectedArticle.vocabulary.push(vocab);
+    saveCustomVocabulary(selectedArticle.id, vocab);
+    console.log('✅ Card added with correct translation:', selectedArticleLanguage, '→', translation);
+  }
 }
 // ============================================
 // DELETE VOCABULARY CARD - ✅ YANGI
@@ -1058,7 +1248,7 @@ document.head.appendChild(style);
 // SAVE CUSTOM VOCABULARY - ✅ YANGI
 // ============================================
 function saveCustomVocabulary(articleId, vocab) {
-  let customVocab = loadFromLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY) || {};
+  let customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY) || {};
   
   if (!customVocab[articleId]) {
     customVocab[articleId] = [];
@@ -1071,8 +1261,28 @@ function saveCustomVocabulary(articleId, vocab) {
   
   if (!exists) {
     customVocab[articleId].push(vocab);
-    saveToLocalStorage(STORAGE_KEYS.CUSTOM_VOCABULARY, customVocab);
+    saveToLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY, customVocab);
     console.log('💾 Custom vocabulary saved');
+  }
+}
+
+// ============================================
+// REMOVE CUSTOM VOCABULARY - ✅ YANGI
+// ============================================
+function removeCustomVocabulary(articleId, word) {
+  let customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY) || {};
+  
+  if (customVocab[articleId]) {
+    customVocab[articleId] = customVocab[articleId].filter(
+      v => v.word.toLowerCase() !== word.toLowerCase()
+    );
+    
+    if (customVocab[articleId].length === 0) {
+      delete customVocab[articleId];
+    }
+    
+    saveToLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY, customVocab);
+    console.log('💾 Custom vocabulary removed from storage');
   }
 }
 
@@ -1251,8 +1461,8 @@ function displaySummaryFeedback(feedback, score) {
 function updateSummaryValue(value) {
   userSummary = value;
   
-  // ✅ SAVE SUMMARY TO LOCALSTORAGE
-  saveToLocalStorage(STORAGE_KEYS.USER_SUMMARY, value);
+  // ✅ SAVE SUMMARY TO LOCALSTORAGE (ARTICLES_STORAGE)
+  saveToLocalStorage(ARTICLES_STORAGE.USER_SUMMARY, value);
   
   const words = value.trim().split(/\s+/).filter(w => w.length > 0);
   const wordCount = words.length;
@@ -1301,15 +1511,103 @@ function backToArticlesList() {
   console.log('🔙 Returned to articles list, state cleared');
 }
 
+// ============================================
+// CHANGE ARTICLE LANGUAGE - ✅ DETECT DUPLICATE DEFINITION
+// ============================================
 function changeArticleLanguage(lang) {
   selectedArticleLanguage = lang;
   console.log('🌐 Language changed to:', lang);
   
   if (currentArticleView === 'article' && selectedArticle) {
-    const container = document.getElementById('vocabularyGridContainer');
-    if (container && selectedArticle.vocabulary) {
-      container.innerHTML = renderVocabularyCards(selectedArticle.vocabulary);
-    }
+    // ✅ UPDATE ALL VOCABULARY CARDS (INCLUDING USER-ADDED)
+    const vocabCards = document.querySelectorAll('.vocabulary-card');
+    
+    vocabCards.forEach(card => {
+      const word = card.getAttribute('data-word');
+      const vocab = selectedArticle.vocabulary.find(
+        v => v.word.toLowerCase() === word
+      );
+      
+      if (vocab) {
+        console.log('🔍 Processing vocab:', word, vocab);
+        
+        // ✅ Find translation div (works for both regular and user-added cards)
+        let translationDiv = card.querySelector('.vocab-translation, .vocab-translation-dynamic');
+        
+        // ✅ If not found, try finding by style (for inline-styled cards)
+        if (!translationDiv) {
+          const allDivs = card.querySelectorAll('div[style*="background: #fde68a"], div[style*="background: #fef3c7"]');
+          translationDiv = Array.from(allDivs).find(div => {
+            const text = div.textContent.toLowerCase();
+            return text.includes('uzbek') || text.includes('русский') || text.includes('english') || 
+                   text.includes('o\'zbek') || text.includes('рус') || text.includes('tarjima') || text.includes('перевод');
+          });
+        }
+        
+        if (translationDiv) {
+          const flags = {
+            'uz': '🇺🇿 O\'ZBEK',
+            'ru': '🇷🇺 РУССКИЙ',
+            'en': '🇬🇧 ENGLISH'
+          };
+          
+          // ✅ IMPROVED: Detect if translation is actually definition
+          let translation = '';
+          let hasTranslation = true;
+          
+          if (lang === 'uz') {
+            translation = vocab.translation_uz;
+            
+            // ✅ Check if it's same as definition or word
+            if (!translation || 
+                translation.trim().length === 0 ||
+                translation === vocab.definition ||
+                translation === vocab.word) {
+              translation = `${vocab.word} (tarjima topilmadi)`;
+              hasTranslation = false;
+            }
+            
+          } else if (lang === 'ru') {
+            translation = vocab.translation_ru || vocab.russian;
+            
+            // ✅ CRITICAL CHECK: Is it actually Russian or just definition copy?
+            const isActuallyRussian = translation && 
+                                      translation !== vocab.definition && 
+                                      translation !== vocab.word &&
+                                      translation !== 'сложное слово' &&
+                                      translation.trim().length > 0 &&
+                                      // Check if contains Cyrillic characters
+                                      /[а-яА-ЯёЁ]/.test(translation);
+            
+            if (!isActuallyRussian) {
+              translation = `${vocab.word} (перевод не найден)`;
+              hasTranslation = false;
+              console.log('⚠️ Russian translation is invalid (duplicate definition):', vocab.word);
+            }
+            
+          } else if (lang === 'en') {
+            // ✅ For English, always show the definition
+            translation = vocab.definition || vocab.word;
+          }
+          
+          // ✅ Update with proper styling
+          translationDiv.innerHTML = `
+            <div style="font-size: 0.8rem; color: #92400e; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">
+              ${flags[lang]}
+            </div>
+            <div style="font-size: 1.05rem; color: ${hasTranslation ? '#78350f' : '#6b7280'}; font-weight: ${hasTranslation ? '700' : '500'}; ${!hasTranslation ? 'font-style: italic;' : ''}">
+              ${translation}
+            </div>
+          `;
+          
+          console.log('✅ Updated translation for:', word, 'to', lang, '→', translation, '(valid:', hasTranslation, ')');
+        } else {
+          console.warn('⚠️ Translation div not found for:', word);
+        }
+      }
+    });
+    
+    console.log('✅ All translations updated to:', lang);
   }
 }
 
