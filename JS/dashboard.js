@@ -1,7 +1,10 @@
+
 // ============================================
 // API CONFIGURATION - TUZATILGAN ✅
 // ============================================
-const API_URL = "https://zioai-backend.onrender.com/api";
+const API_URL = window.location.hostname.includes("onrender.com")
+    ? "https://zioai-backend.onrender.com/api"
+    : "http://localhost:3000/api";
 
 console.log("🌐 API URL:", API_URL);
 

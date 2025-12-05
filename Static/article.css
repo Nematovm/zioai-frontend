@@ -165,8 +165,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  background: white;
-  color: #667eea;
+  background: var(--primary-color);
   font-weight: 800;
   font-size: 1.1rem;
   padding: 10px 18px;
