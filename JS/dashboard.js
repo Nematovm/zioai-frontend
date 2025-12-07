@@ -1,4 +1,3 @@
-
 // ============================================
 // API CONFIGURATION - TUZATILGAN ✅
 // ============================================
@@ -145,6 +144,10 @@ function switchTool(toolName) {
   if (activeContent) {
     activeContent.classList.add("active");
 
+    if (toolName === "article" && typeof showArticlesTool === "function") {
+      showArticlesTool();
+    }
+    
     if (toolName === "profile" && typeof showProfileTool === "function") {
       showProfileTool();
     }
@@ -166,11 +169,7 @@ function switchTool(toolName) {
     }
   }
 
-  if (toolName !== "dashboard" && toolName !== "profile") {
-    if (typeof trackToolUsage === "function") {
-      trackToolUsage(toolName);
-    }
-  }
+
 
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");
@@ -212,69 +211,116 @@ function showError(outputElement, message) {
   `;
 }
 
-// IMAGE UPLOAD SYSTEM
-let currentHomeworkTab = "text";
-let uploadedImageBase64 = null;
 
+// ============================================
+// SWITCH HOMEWORK TAB
+// ============================================
 function switchHomeworkTab(tab) {
-  currentHomeworkTab = tab;
-
-  const textTab = document.getElementById("textInputTab");
-  const imageTab = document.getElementById("imageInputTab");
-  const textBtn = document.getElementById("textTabBtn");
-  const imageBtn = document.getElementById("imageTabBtn");
-
-  if (tab === "text") {
-    textTab.style.display = "block";
-    imageTab.style.display = "none";
-    textBtn.style.background =
-      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
-    textBtn.style.color = "white";
-    imageBtn.style.background = "#f3f4f6";
-    imageBtn.style.color = "#6b7280";
+  const textTab = document.getElementById('textInputTab');
+  const imageTab = document.getElementById('imageInputTab');
+  const textBtn = document.getElementById('textTabBtn');
+  const imageBtn = document.getElementById('imageTabBtn');
+  
+  if (tab === 'text') {
+    textTab.style.display = 'block';
+    imageTab.style.display = 'none';
+    textBtn.classList.add('active', 'linear-act-bc');
+    textBtn.classList.remove('bg-bc');
+    textBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    textBtn.style.color = 'white';
+    imageBtn.classList.remove('active', 'linear-act-bc');
+    imageBtn.classList.add('bg-bc');
+    imageBtn.style.background = '#f3f4f6';
+    imageBtn.style.color = '#6b7280';
   } else {
-    textTab.style.display = "none";
-    imageTab.style.display = "block";
-    imageBtn.style.background =
-      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
-    imageBtn.style.color = "white";
-    textBtn.style.background = "#f3f4f6";
-    textBtn.style.color = "#6b7280";
+    textTab.style.display = 'none';
+    imageTab.style.display = 'block';
+    imageBtn.classList.add('active', 'linear-act-bc');
+    imageBtn.classList.remove('bg-bc');
+    imageBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    imageBtn.style.color = 'white';
+    textBtn.classList.remove('active', 'linear-act-bc');
+    textBtn.classList.add('bg-bc');
+    textBtn.style.background = '#f3f4f6';
+    textBtn.style.color = '#6b7280';
   }
 }
 
-function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Image size must be less than 5MB!");
+// ============================================
+// PROCESS IMAGE FILE
+// ============================================
+function processImageFile(file) {
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    alert('❌ File too large! Maximum size is 5MB.');
     return;
   }
-
-  if (!file.type.startsWith("image/")) {
-    alert("Please upload an image file!");
+  
+  if (!file.type.startsWith('image/')) {
+    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
     return;
   }
-
+  
+  uploadedImage = file;
+  
   const reader = new FileReader();
-  reader.onload = function (e) {
-    uploadedImageBase64 = e.target.result;
-    document.getElementById("previewImg").src = e.target.result;
-    document.getElementById("imageFileName").textContent = file.name;
-    document.getElementById("imagePreview").style.display = "block";
+  reader.onload = (e) => {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('imageFileName').textContent = file.name;
+    document.getElementById('imageUploadArea').style.display = 'none';
+    document.getElementById('imagePreview').style.display = 'block';
   };
   reader.readAsDataURL(file);
 }
 
-function removeImage() {
-  uploadedImageBase64 = null;
-  document.getElementById("imagePreview").style.display = "none";
-  document.getElementById("homeworkImageInput").value = "";
+// ============================================
+// HANDLE FILE INPUT CHANGE
+// ============================================
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    processImageFile(file);
+  }
 }
 
 // ============================================
-// HOMEWORK FIXER - TRACKING FAQAT SUCCESS DA ✅
+// REMOVE IMAGE
+// ============================================
+function removeImage() {
+  uploadedImage = null;
+  
+  document.getElementById('previewImg').src = '';
+  document.getElementById('imageFileName').textContent = '';
+  
+  const fileInput = document.getElementById('homeworkImageInput');
+  fileInput.value = '';
+  
+  // ✅ SHOW UPLOAD AREA AGAIN
+  document.getElementById('imageUploadArea').style.display = 'block';
+  document.getElementById('imagePreview').style.display = 'none';
+  
+  console.log('✅ Image removed, upload area restored');
+}
+
+// ============================================
+// PASTE FROM CLIPBOARD
+// ============================================
+document.addEventListener('paste', (e) => {
+  const imageTab = document.getElementById('imageInputTab');
+  if (imageTab?.style.display === 'none') return;
+  
+  const items = e.clipboardData.items;
+  for (let item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile();
+      processImageFile(file);
+      break;
+    }
+  }
+});
+
+// ============================================
+// FIX HOMEWORK - WITH IMAGE SUPPORT ✅
 // ============================================
 async function fixHomework() {
   const result = document.getElementById("homeworkResult");
@@ -282,22 +328,85 @@ async function fixHomework() {
   const languageDropdown = document.getElementById("homework-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
 
-  let homeworkContent = "";
+  let homework = document.getElementById("homeworkInput").value.trim();
 
-  if (currentHomeworkTab === "text") {
-    homeworkContent = document.getElementById("homeworkInput").value;
-    if (!homeworkContent.trim()) {
-      alert("Please enter your homework!");
-      return;
-    }
-  } else {
-    if (!uploadedImageBase64) {
-      alert("Please upload an image!");
-      return;
-    }
-    homeworkContent = uploadedImageBase64;
+  // ✅ CHECK: If image is uploaded, use image mode
+  if (uploadedImage) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageData = e.target.result;
+      
+      result.style.display = "block";
+      showLoading(output);
+      
+      try {
+        const response = await fetch(`${API_URL}/fix-homework`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            homework: null,
+            image: imageData,
+            type: 'image',
+            language: language,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Server error");
+        }
+
+        if (data.success && data.correctedHomework) {
+          const subjectBadge = data.detectedSubject ? `
+            <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+              ${data.subjectEmoji || '📚'} ${data.detectedSubject.toUpperCase()}
+            </div>
+          ` : '';
+          
+          output.innerHTML = `
+            ${subjectBadge}
+            <div class="alert alert-success">
+              <h5 class="alert-heading">
+                <i class="bi bi-check-circle-fill"></i> AI Analysis
+              </h5>
+              <hr>
+              <div style="white-space: pre-wrap; line-height: 1.8;">
+                ${data.correctedHomework}
+              </div>
+            </div>
+          `;
+          
+          if (typeof trackToolUsage === 'function') trackToolUsage('homework');
+          if (typeof incrementStat === 'function') {
+            incrementStat('homeworkCompleted', 1);
+            incrementStat('totalStudyTime', 3);
+          }
+          if (typeof addRecentActivity === 'function') {
+            addRecentActivity('Homework Fixer', 87, '✏️', '#10b981');
+          }
+          
+          console.log('📊 Homework completed successfully');
+          
+        } else {
+          throw new Error("No response from AI");
+        }
+      } catch (error) {
+        console.error("❌ Error:", error);
+        showError(output, error.message);
+      }
+    };
+    reader.readAsDataURL(uploadedImage);
+    return;
   }
 
+  // ✅ CHECK: If no image and no text, show error
+  if (!homework) {
+    alert('⚠️ Please enter your homework or upload an image!');
+    return;
+  }
+
+  // ✅ TEXT HOMEWORK
   result.style.display = "block";
   showLoading(output);
 
@@ -306,9 +415,9 @@ async function fixHomework() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        homework: currentHomeworkTab === "text" ? homeworkContent : null,
-        image: currentHomeworkTab === "image" ? homeworkContent : null,
-        type: currentHomeworkTab,
+        homework: homework,
+        image: null,
+        type: 'text',
         language: language,
       }),
     });
@@ -320,7 +429,14 @@ async function fixHomework() {
     }
 
     if (data.success && data.correctedHomework) {
+      const subjectBadge = data.detectedSubject ? `
+        <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+          ${data.subjectEmoji || '📚'} ${data.detectedSubject.toUpperCase()}
+        </div>
+      ` : '';
+      
       output.innerHTML = `
+        ${subjectBadge}
         <div class="alert alert-success">
           <h5 class="alert-heading">
             <i class="bi bi-check-circle-fill"></i> AI Analysis
@@ -331,26 +447,14 @@ async function fixHomework() {
           </div>
         </div>
       `;
-
-      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
-      console.log('📊 Homework completed successfully, tracking...');
       
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('homework');
-      }
-      
-      if (typeof addRecentActivity === 'function') {
-        const score = Math.floor(Math.random() * (95 - 85 + 1)) + 85;
-        addRecentActivity('Homework Fixer', score, '📚', '#8b5cf6');
-      }
-      
+      if (typeof trackToolUsage === 'function') trackToolUsage('homework');
       if (typeof incrementStat === 'function') {
         incrementStat('homeworkCompleted', 1);
-        incrementStat('totalStudyTime', 3); // 3 daqiqa
+        incrementStat('totalStudyTime', 3);
       }
-
-      if (currentHomeworkTab === "image") {
-        removeImage();
+      if (typeof addRecentActivity === 'function') {
+        addRecentActivity('Homework Fixer', 87, '✏️', '#10b981');
       }
       
       console.log('✅ Homework tracking completed!');
@@ -361,9 +465,85 @@ async function fixHomework() {
   } catch (error) {
     console.error("❌ Error:", error);
     showError(output, error.message);
-    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
+
+// Helper Functions
+function showLoading(outputElement) {
+  outputElement.innerHTML = `
+    <div style="text-align: center; padding: 30px;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 15px; color: #6b7280;">AI processing...</p>
+    </div>
+  `;
+}
+
+function showError(outputElement, message) {
+  outputElement.innerHTML = `
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <strong>Error:</strong> ${message}
+    </div>
+  `;
+}
+
+// ============================================
+// INITIALIZE ON PAGE LOAD ✅
+// ============================================
+window.addEventListener("load", () => {
+  // IMAGE UPLOAD EVENT LISTENERS
+  const fileInput = document.getElementById('homeworkImageInput');
+  const uploadArea = document.getElementById('imageUploadArea');
+  const fixBtn = document.getElementById('fixHomeworkBtn'); // ✅ YANGI
+  const removeBtn = document.getElementById('removeImageBtn');
+if (removeBtn) {
+  removeBtn.addEventListener('click', removeImage);
+}
+  
+  if (fileInput) {
+    fileInput.addEventListener('change', handleImageUpload);
+    console.log('✅ File input listener added');
+  }
+  
+  if (uploadArea) {
+    // Click to upload
+    uploadArea.addEventListener('click', () => {
+      if (fileInput) fileInput.click();
+    });
+    
+    // Drag over
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#667eea';
+      uploadArea.style.background = '#f0f2ff';
+      uploadArea.style.borderWidth = '4px';
+    });
+
+    // Drag leave
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = '#d1d5db';
+      uploadArea.style.background = '#f9fafb';
+      uploadArea.style.borderWidth = '3px';
+    });
+
+    // Drop
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#d1d5db';
+      uploadArea.style.background = '#f9fafb';
+      uploadArea.style.borderWidth = '3px';
+      
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        processImageFile(file);
+      }
+    });
+    
+    console.log('✅ Upload area listeners added');
+  }
+});
 
 // ============================================
 // GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
@@ -407,22 +587,13 @@ async function checkGrammar() {
           </div>
         </div>
       `;
+      trackToolUsage('grammar');
+      incrementStat('totalStudyTime', 2);
+      addRecentActivity('Grammar Checker', 88, '✍️', '#ec4899');
       
       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
       console.log('📊 Grammar check completed, tracking...');
-      
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('grammar');
-      }
-      
-      if (typeof addRecentActivity === 'function') {
-        const score = Math.floor(Math.random() * (98 - 88 + 1)) + 88;
-        addRecentActivity('Grammar Checker', score, '✍️', '#ec4899');
-      }
-      
-      if (typeof incrementStat === 'function') {
-        incrementStat('totalStudyTime', 2); // 2 daqiqa
-      }
+
       
       console.log('✅ Grammar tracking completed!');
       
@@ -603,23 +774,13 @@ async function buildVocab() {
           </div>
         </div>
       `;
-      
+       trackToolUsage('vocabulary');
+       incrementStat('totalStudyTime', 1);
+       addRecentActivity('Vocabulary Builder', 92, '📖', '#3b82f6');
+           
       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA VA BIR MARTA
       console.log('📊 Vocabulary learned successfully, tracking...');
-      
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('vocabulary');
-      }
-      
-      if (typeof addRecentActivity === 'function') {
-        const score = Math.floor(Math.random() * (95 - 82 + 1)) + 82;
-        addRecentActivity('Vocabulary Builder', score, '📖', '#3b82f6');
-      }
-      
-      if (typeof incrementStat === 'function') {
-        incrementStat('totalStudyTime', 1); // 1 daqiqa
-      }
-      
+
       console.log('✅ Vocabulary tracking completed!');
       
     } else {
@@ -1349,9 +1510,15 @@ function finishQuiz() {
     incrementStat('totalStudyTime', minutes);
   }
   
-  if (typeof trackToolUsage === 'function') {
-    trackToolUsage('quiz');
-  }
+  // ✅ MANA SHU JOYGA (quiz yakunlanganda):
+  incrementStat('quizzesTaken', 1);
+  
+  const questionCount = parseInt(document.getElementById('quizQuestionCount').value);
+  const totalSeconds = (questionCount * 60) - quizTimeLeft;
+  const minutes = Math.max(1, Math.ceil(totalSeconds / 60));
+  
+  incrementStat('totalStudyTime', minutes);
+  trackToolUsage('quiz');
 
   // Hide quiz section
   document.getElementById("quizQuestionsSection").style.display = "none";
@@ -1373,12 +1540,9 @@ function displayQuizResults() {
 
   const totalQuestions = quizData.questions.length;
   const percentage = Math.round((score / totalQuestions) * 100);
+  addRecentActivity('Quiz Generator', percentage, '❓', '#10b981');
 
-  // ✅ ADD ACTIVITY WITH REAL SCORE
-  if (typeof addRecentActivity === 'function') {
-    addRecentActivity('Quiz Generator', percentage, '❓', '#10b981');
-    console.log('✅ Quiz activity added with score:', percentage);
-  }
+
 
   // Update score display
   document.getElementById("quizScoreDisplay").textContent = `${score}/${totalQuestions}`;
@@ -1588,23 +1752,13 @@ async function submitStudyAssistant() {
           </div>
         </div>
       `;
+      trackToolUsage('study');
+      incrementStat('totalStudyTime', 4);
+      addRecentActivity('Study Assistant', 90, '🎓', '#f59e0b');
       
       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
       console.log('📊 Study assistant completed, tracking...');
-      
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('study');
-      }
-      
-      if (typeof addRecentActivity === 'function') {
-        const score = Math.floor(Math.random() * (97 - 88 + 1)) + 88;
-        addRecentActivity('Study Assistant', score, '🎓', '#f59e0b');
-      }
-      
-      if (typeof incrementStat === 'function') {
-        incrementStat('totalStudyTime', 4); // 4 daqiqa
-      }
-      
+
       console.log('✅ Study assistant tracking completed!');
       
     } else {
@@ -1928,15 +2082,14 @@ async function submitRecordedAudio() {
       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
       console.log('📊 Speaking feedback received, tracking...');
       
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('speaking');
-      }
       
       if (typeof addRecentActivity === 'function') {
         const score = Math.floor(Math.random() * (92 - 78 + 1)) + 78;
         addRecentActivity('IELTS Feedback', score, '💬', '#06b6d4');
       }
       
+      trackToolUsage('speaking');
+
       if (typeof incrementStat === 'function') {
         const minutes = Math.max(1, Math.ceil(recordingSeconds / 60));
         incrementStat('totalStudyTime', minutes);
@@ -2021,7 +2174,7 @@ function showError(element, message) {
 
 
 // ============================================
-// SWITCH TOOL FUNCTION - FAQAT BIR MARTA ✅
+// SWITCH TOOL FUNCTION - TRACKING YO'Q ✅
 // ============================================
 function switchTool(toolName) {
   navLinks.forEach((link) => link.classList.remove("active"));
@@ -2061,12 +2214,12 @@ function switchTool(toolName) {
     }
   }
 
-  // ✅ TRACKING - ARTICLES UCHUN HAM
-  if (toolName !== "dashboard" && toolName !== "profile") {
-    if (typeof trackToolUsage === "function") {
-      trackToolUsage(toolName);
-    }
-  }
+  // ❌ BU BUTUN BLOKNI OLIB TASHLADIK:
+  // if (toolName !== "dashboard" && toolName !== "profile") {
+  //   if (typeof trackToolUsage === "function") {
+  //     trackToolUsage(toolName);
+  //   }
+  // }
 
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");

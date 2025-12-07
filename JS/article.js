@@ -384,7 +384,7 @@ function renderArticleView() {
     <div class="article-vocabulary-section">
       <h2 class="section-title">
         <i class="bi bi-book-half"></i>
-        Advanced Vocabulary (C1-C2 Level)
+        Advanced Vocabulary
       </h2>
       
       <div id="vocabularyGridContainer" class="vocabulary-grid">

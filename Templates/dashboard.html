@@ -71,13 +71,17 @@
       <nav class="sidebar-nav">
         <ul class="nav-list primary-nav">
           <li class="nav-item">
-            <a class="nav-link active" data-tool="dashboard">
+            <!-- <a class="nav-link active" data-tool="dashboard"> -->
+            <a class="nav-link" id="dashboard-lock" data-tool="dashboard">
               <span class="nav-icon material-symbols-outlined">dashboard</span>
               <span class="nav-lebel">Dashboard</span>
+              <span class="nav-icon material-symbols-outlined" id="lock-icon">
+                lock
+              </span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" data-tool="homework">
+            <a class="nav-link active" data-tool="homework">
               <span class="nav-icon material-symbols-outlined">book_ribbon</span>
               <span class="nav-lebel">Homework Fixer</span>
             </a>
@@ -250,7 +254,8 @@
      <main>
 <!-- Dashboard View -->
 <!-- Dashboard View - YANGI ZAMONAVIY VERSION -->
-<div class="tool-content active" id="dashboard-content">
+<!-- <div class="tool-content active" id="dashboard-content"> -->
+<div class="tool-content" id="dashboard-content">
   
   <!-- Hero Stats Cards -->
   <div class="hero-stats-grid">
@@ -426,12 +431,12 @@
 </div>
 
       <!-- Homework Fixer Tool - IMAGE UPLOAD QUSHILGAN -->
-<!-- HOMEWORK FIXER TOOL - TO'LIQ YANGILANGAN -->
-<div class="tool-content" id="homework-content">
+<!-- HOMEWORK FIXER TOOL - DRAG & DROP + PASTE ENABLED -->
+<div class="tool-content active" id="homework-content">
   <div class="tool-interface">
     <h4 style="margin-bottom: 15px; color: #1f2937">Your Homework</h4>
     
-    <!-- ✅ TIL TANLASH - ENG YUQORIDA -->
+    <!-- TIL TANLASH -->
     <div class="language-selector" style="margin-bottom: 20px;">
       <label for="homework-language">🌐 Til / Language / Язык:</label>
       <select id="homework-language" class="language-dropdown">
@@ -467,12 +472,16 @@
       ></textarea>
     </div>
 
-    <!-- Image Upload Tab -->
+    <!-- Image Upload Tab - DRAG & DROP + PASTE ENABLED -->
     <div id="imageInputTab" style="display: none;">
-      <div style="border: 3px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; cursor: pointer;" onclick="document.getElementById('homeworkImageInput').click()">
+      <div 
+        id="imageUploadArea"
+        style="border: 3px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; cursor: pointer; transition: all 0.3s;" 
+        onclick="document.getElementById('homeworkImageInput').click()">
         <i class="bi bi-cloud-upload" style="font-size: 48px; color: #9ca3af; margin-bottom: 15px;"></i>
         <p style="color: #6b7280; font-size: 16px; margin: 10px 0;">Click to upload or drag and drop</p>
         <p style="color: #9ca3af; font-size: 14px;">PNG, JPG, JPEG (MAX. 5MB)</p>
+        <p style="color: #8b5cf6; font-size: 14px; margin-top: 10px;">💡 <strong>Or press Ctrl+V to paste!</strong></p>
         <input 
           type="file" 
           id="homeworkImageInput" 
@@ -1111,6 +1120,147 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     
+    <script>
+// ============================================
+// HOMEWORK IMAGE UPLOAD - DRAG & DROP + PASTE
+// ============================================
+
+let uploadedImage = null;
+const uploadArea = document.getElementById('imageUploadArea');
+const fileInput = document.getElementById('homeworkImageInput');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const imageFileName = document.getElementById('imageFileName');
+
+// ============================================
+// 1️⃣ DRAG & DROP EVENTS
+// ============================================
+uploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = '#667eea';
+  uploadArea.style.background = '#f0f2ff';
+  uploadArea.style.borderWidth = '4px';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.style.borderColor = '#d1d5db';
+  uploadArea.style.background = '#f9fafb';
+  uploadArea.style.borderWidth = '3px';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = '#d1d5db';
+  uploadArea.style.background = '#f9fafb';
+  uploadArea.style.borderWidth = '3px';
+  
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    processImageFile(file);
+  } else {
+    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+  }
+});
+
+// ============================================
+// 2️⃣ PASTE FROM CLIPBOARD (Ctrl+V)
+// ============================================
+document.addEventListener('paste', (e) => {
+  // Faqat image upload tab ochiq bo'lsa ishlaydi
+  const imageTab = document.getElementById('imageInputTab');
+  if (imageTab.style.display === 'none') return;
+  
+  const items = e.clipboardData.items;
+  for (let item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile();
+      processImageFile(file);
+      break;
+    }
+  }
+});
+
+// ============================================
+// 3️⃣ PROCESS IMAGE FILE
+// ============================================
+function processImageFile(file) {
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert('❌ File too large! Maximum size is 5MB.');
+    return;
+  }
+  
+  // Store file
+  uploadedImage = file;
+  
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    imageFileName.textContent = file.name;
+    uploadArea.style.display = 'none';
+    imagePreview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================
+// 4️⃣ HANDLE FILE INPUT CHANGE
+// ============================================
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    processImageFile(file);
+  }
+}
+
+// ============================================
+// 5️⃣ REMOVE IMAGE
+// ============================================
+function removeImage() {
+  uploadedImage = null;
+  previewImg.src = '';
+  imageFileName.textContent = '';
+  fileInput.value = '';
+  uploadArea.style.display = 'block';
+  imagePreview.style.display = 'none';
+}
+
+// ============================================
+// 6️⃣ SWITCH HOMEWORK TAB
+// ============================================
+function switchHomeworkTab(tab) {
+  const textTab = document.getElementById('textInputTab');
+  const imageTab = document.getElementById('imageInputTab');
+  const textBtn = document.getElementById('textTabBtn');
+  const imageBtn = document.getElementById('imageTabBtn');
+  
+  if (tab === 'text') {
+    textTab.style.display = 'block';
+    imageTab.style.display = 'none';
+    textBtn.classList.add('active', 'linear-act-bc');
+    textBtn.classList.remove('bg-bc');
+    textBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    textBtn.style.color = 'white';
+    imageBtn.classList.remove('active', 'linear-act-bc');
+    imageBtn.classList.add('bg-bc');
+    imageBtn.style.background = '#f3f4f6';
+    imageBtn.style.color = '#6b7280';
+  } else {
+    textTab.style.display = 'none';
+    imageTab.style.display = 'block';
+    imageBtn.classList.add('active', 'linear-act-bc');
+    imageBtn.classList.remove('bg-bc');
+    imageBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    imageBtn.style.color = 'white';
+    textBtn.classList.remove('active', 'linear-act-bc');
+    textBtn.classList.add('bg-bc');
+    textBtn.style.background = '#f3f4f6';
+    textBtn.style.color = '#6b7280';
+  }
+}
+</script>
 
     <!-- Firebase Auth -->
 <script type="module">
@@ -1288,10 +1438,11 @@
   }
 }
 </style>
-<script src="../JS/dashboard-overview.js"></script>  
+<!-- <script src="../JS/dashboard-overview.js"></script>   -->
 <script src="../JS/dashboard.js"></script>           
-<script src="../JS/article.js"></script>  <!-- ✅ ENG OHIRIDA -->
+<!-- <script src="../JS/article.js"></script>  -->
 <script src="../JS/profile.js"></script>
+<script src="../JS/dashboard-lock-system.js"></script>
 
   </body>
 </html>

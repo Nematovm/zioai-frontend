@@ -10,6 +10,13 @@ let dashboardStats = {
   quizzesTaken: 0
 };
 
+// Time Tracking Variables
+let activeToolTimer = null;
+let currentToolStartTime = null;
+let currentToolName = null;
+let accumulatedSeconds = 0; // Real-time seconds tracker
+
+
 let toolUsageData = {};
 let recentActivitiesList = [];
 let userGoals = {
@@ -62,6 +69,7 @@ function initStats() {
   loadActivities();
   loadGoals();
   loadCustomGoals();
+  loadShownGoals(); // ← YANGI QO'SHILDI
   
   updateAllDashboard();
   
@@ -160,16 +168,20 @@ function saveCustomGoals() {
 // ============================================
 function incrementStat(statName, value = 1) {
   if (dashboardStats.hasOwnProperty(statName)) {
-    dashboardStats[statName] += value;
-    saveStats();
-    
+    // FAQAT totalStudyTime uchun value ishlatiladi (minutlarda)
+    // Boshqa statlar uchun faqat +1
     if (statName === 'totalStudyTime') {
+      dashboardStats[statName] += value; // value = minutlar
       todayData.hours += (value / 60);
       todayData.tasks += 1;
       saveTodayData();
       updateTodayWeeklyData(value);
+    } else {
+      // Quiz, homework va boshqalar uchun faqat 1 ta qo'shish
+      dashboardStats[statName] += 1;
     }
     
+    saveStats();
     updateAllDashboard();
     console.log(`✅ ${statName} updated: ${dashboardStats[statName]}`);
   }
@@ -205,50 +217,62 @@ function trackToolUsage(toolName) {
   console.log(`✅ Tool usage: ${toolName} = ${toolUsageData[toolName]}`);
 }
 
-// ============================================
-// CHECK GOAL ACHIEVEMENT ✅
-// ============================================
+// Yangi global variable - qaysi goallar allaqachon ko'rsatilganini track qilish uchun
+let shownGoals = new Set();
+
 function checkGoalAchievement(toolName) {
   let goalsMet = [];
   
   // Check default goals
   if (toolName === 'quiz' && dashboardStats.quizzesTaken === userGoals.quiz) {
-    goalsMet.push({
-      title: 'Quiz Goal',
-      message: `You completed ${userGoals.quiz} quizzes!`,
-      icon: '🎯'
-    });
+    const goalKey = `quiz_${userGoals.quiz}`;
+    if (!shownGoals.has(goalKey)) {
+      goalsMet.push({
+        title: 'Quiz Goal',
+        message: `You completed ${userGoals.quiz} quizzes!`,
+        icon: '🎯',
+        key: goalKey
+      });
+    }
   }
   
   const studyHours = Math.floor(todayData.hours);
   if (studyHours === userGoals.hours && todayData.tasks > 0) {
     const prevHours = Math.floor((todayData.hours - 0.1));
-    if (prevHours < userGoals.hours) {
+    const goalKey = `hours_${userGoals.hours}_${new Date().toDateString()}`;
+    if (prevHours < userGoals.hours && !shownGoals.has(goalKey)) {
       goalsMet.push({
         title: 'Study Hours Goal',
         message: `You studied ${userGoals.hours} hours today!`,
-        icon: '⏰'
+        icon: '⏰',
+        key: goalKey
       });
     }
   }
   
   if (toolName === 'vocabulary' && toolUsageData.vocabulary === userGoals.vocabulary) {
-    goalsMet.push({
-      title: 'Vocabulary Goal',
-      message: `You learned ${userGoals.vocabulary} words!`,
-      icon: '📚'
-    });
+    const goalKey = `vocabulary_${userGoals.vocabulary}`;
+    if (!shownGoals.has(goalKey)) {
+      goalsMet.push({
+        title: 'Vocabulary Goal',
+        message: `You learned ${userGoals.vocabulary} words!`,
+        icon: '📚',
+        key: goalKey
+      });
+    }
   }
   
   // Check custom goals
   customGoals.forEach(goal => {
     if (goal.toolName === toolName) {
       const currentCount = toolUsageData[toolName] || 0;
-      if (currentCount === goal.target) {
+      const goalKey = `custom_${goal.id}_${goal.target}`;
+      if (currentCount === goal.target && !shownGoals.has(goalKey)) {
         goalsMet.push({
           title: goal.title,
           message: `You completed: ${goal.title}!`,
-          icon: goal.icon
+          icon: goal.icon,
+          key: goalKey
         });
       }
     }
@@ -258,8 +282,18 @@ function checkGoalAchievement(toolName) {
   goalsMet.forEach((goal, index) => {
     setTimeout(() => {
       showGoalAchievementToast(goal);
+      shownGoals.add(goal.key); // Goal ko'rsatilganini belgilash
+      localStorage.setItem('ziyoai_shown_goals', JSON.stringify([...shownGoals]));
     }, index * 500);
   });
+}
+
+// Load shown goals on init
+function loadShownGoals() {
+  const saved = localStorage.getItem('ziyoai_shown_goals');
+  if (saved) {
+    shownGoals = new Set(JSON.parse(saved));
+  }
 }
 
 // ============================================
@@ -268,26 +302,69 @@ function checkGoalAchievement(toolName) {
 function showGoalAchievementToast(goal) {
   const toast = document.createElement('div');
   toast.className = 'goal-achievement-toast';
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    z-index: 100000;
+    min-width: 320px;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: auto;
+  `;
+  
   toast.innerHTML = `
-    <div class="goal-toast-icon">${goal.icon}</div>
-    <div class="goal-toast-content">
-      <div class="goal-toast-title">Goal Achieved!</div>
-      <div class="goal-toast-message">${goal.message}</div>
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">
+      ${goal.icon}
     </div>
-    <button class="goal-toast-close" onclick="this.parentElement.remove()">
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-weight: 700; color: #1f2937; font-size: 16px; margin-bottom: 4px;">Goal Achieved! 🎉</div>
+      <div style="color: #6b7280; font-size: 14px; line-height: 1.4;">${goal.message}</div>
+    </div>
+    <button onclick="this.closest('.goal-achievement-toast').remove()" style="
+      background: #f3f4f6;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    " onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
       <i class="bi bi-x"></i>
     </button>
   `;
   
   document.body.appendChild(toast);
   
-  setTimeout(() => toast.classList.add('show'), 100);
-  
+  // Animate in
   setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(400px)';
+    setTimeout(() => toast.remove(), 500);
   }, 5000);
   
+  // Confetti effect
   if (typeof createConfetti === 'function') {
     createConfetti();
   }
@@ -344,6 +421,7 @@ function calculateStreak() {
 // UPDATE HERO STATS ✅
 // ============================================
 function updateHeroStats() {
+  // Total Study Time
   const hours = Math.floor(dashboardStats.totalStudyTime / 60);
   const mins = dashboardStats.totalStudyTime % 60;
   const heroStudyTime = document.getElementById('heroStudyTime');
@@ -351,6 +429,27 @@ function updateHeroStats() {
     heroStudyTime.textContent = `${hours}h ${mins}m`;
   }
   
+  // Weekly Growth Calculation
+  const thisWeekTotal = weeklyData.reduce((sum, d) => sum + d.hours, 0);
+  const lastWeekTotal = lastWeekData.reduce((sum, d) => sum + d.hours, 0);
+  
+  let weeklyGrowth = 0;
+  if (lastWeekTotal > 0) {
+    weeklyGrowth = Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100);
+  } else if (thisWeekTotal > 0) {
+    weeklyGrowth = 100; // First week
+  }
+  
+  const weeklyGrowthEl = document.querySelector('.hero-purple .hero-badge');
+  if (weeklyGrowthEl) {
+    const isPositive = weeklyGrowth >= 0;
+    const icon = isPositive ? '📈' : '📉';
+    const sign = isPositive ? '+' : '';
+    weeklyGrowthEl.textContent = `${icon} ${sign}${weeklyGrowth}% this week`;
+    weeklyGrowthEl.style.background = isPositive ? 'rgba(255,255,255,0.2)' : 'rgba(239,68,68,0.2)';
+  }
+  
+  // Daily Goal Progress
   const dailyGoalHours = userGoals.hours;
   const currentHours = todayData.hours;
   const dailyGoalPercent = Math.min((currentHours / dailyGoalHours) * 100, 100);
@@ -370,6 +469,7 @@ function updateHeroStats() {
     goalLabel.textContent = 'Daily Goal (Today)';
   }
   
+  // Points and Level
   const points = (dashboardStats.homeworkCompleted * 100) + 
                  (dashboardStats.quizzesTaken * 50) + 
                  (dashboardStats.totalPomodoros * 25);
@@ -381,6 +481,7 @@ function updateHeroStats() {
   const heroLevel = document.getElementById('heroLevel');
   if (heroLevel) heroLevel.textContent = `Level ${level}`;
   
+  // Streak
   const streak = calculateStreak();
   const heroStreak = document.getElementById('heroStreak');
   if (heroStreak) heroStreak.textContent = streak;
@@ -698,7 +799,7 @@ function startNewActivity() {
       </div>
       <div class="activity-modal-body">
         <div class="quick-actions-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-          <button class="quick-action-btn" onclick="switchTool('grammar')" style="
+          <button class="quick-action-btn" onclick="switchTool('grammar'); this.closest('.activity-modal').remove();" style="
             padding: 20px;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
@@ -713,7 +814,7 @@ function startNewActivity() {
             <i class="bi bi-pencil" style="font-size: 32px; color: #ef4444;"></i>
             <span style="font-weight: 600; color: #1f2937;">Grammar Checker</span>
           </button>
-          <button class="quick-action-btn" onclick="switchTool('vocabulary')" style="
+          <button class="quick-action-btn" onclick="switchTool('vocabulary'); this.closest('.activity-modal').remove();" style="
             padding: 20px;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
@@ -728,7 +829,7 @@ function startNewActivity() {
             <i class="bi bi-book" style="font-size: 32px; color: #8b5cf6;"></i>
             <span style="font-weight: 600; color: #1f2937;">Vocabulary Builder</span>
           </button>
-          <button class="quick-action-btn" onclick="switchTool('quiz')" style="
+          <button class="quick-action-btn" onclick="switchTool('quiz'); this.closest('.activity-modal').remove();" style="
             padding: 20px;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
@@ -743,7 +844,7 @@ function startNewActivity() {
             <i class="bi bi-question-circle" style="font-size: 32px; color: #3b82f6;"></i>
             <span style="font-weight: 600; color: #1f2937;">Quiz Generator</span>
           </button>
-          <button class="quick-action-btn" onclick="switchTool('homework')" style="
+          <button class="quick-action-btn" onclick="switchTool('homework'); this.closest('.activity-modal').remove();" style="
             padding: 20px;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
@@ -758,7 +859,7 @@ function startNewActivity() {
             <i class="bi bi-clipboard-check" style="font-size: 32px; color: #10b981;"></i>
             <span style="font-weight: 600; color: #1f2937;">Homework Fixer</span>
           </button>
-          <button class="quick-action-btn" onclick="switchTool('study')" style="
+          <button class="quick-action-btn" onclick="switchTool('study'); this.closest('.activity-modal').remove();" style="
             padding: 20px;
             border: 2px solid #e5e7eb;
             border-radius: 12px;
@@ -809,11 +910,16 @@ function updateToolUsage() {
   const container = document.getElementById('toolUsageList');
   if (!container) return;
   
-  const tools = Object.entries(toolUsageData)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  // Barcha toollarni olish va sort qilish
+  const allTools = ['grammar', 'quiz', 'vocabulary', 'homework', 'study', 'speaking', 'article'];
   
-  if (tools.length === 0) {
+  // Har bir tool uchun ma'lumot yaratish
+  const toolsWithData = allTools.map(tool => ({
+    name: tool,
+    count: toolUsageData[tool] || 0
+  })).sort((a, b) => b.count - a.count);
+  
+  if (toolsWithData.every(t => t.count === 0)) {
     container.innerHTML = `
       <div style="text-align: center; padding: 40px; color: #9ca3af;">
         <i class="bi bi-bar-chart" style="font-size: 48px; opacity: 0.5;"></i>
@@ -824,21 +930,21 @@ function updateToolUsage() {
     return;
   }
   
-  const maxUsage = Math.max(...tools.map(t => t[1]));
+  const maxUsage = Math.max(...toolsWithData.map(t => t.count));
   
-  container.innerHTML = tools.map(([tool, count]) => {
-    const percentage = Math.min(Math.round((count / maxUsage) * 100), 100);
-    const icon = getToolIcon(tool);
-    const color = getToolColor(tool);
+  container.innerHTML = toolsWithData.slice(0, 5).map(tool => {
+    const percentage = tool.count > 0 ? Math.min(Math.round((tool.count / maxUsage) * 100), 100) : 0;
+    const icon = getToolIcon(tool.name);
+    const color = getToolColor(tool.name);
     
     return `
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 20px; opacity: ${tool.count === 0 ? '0.5' : '1'};">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="background: ${color}15; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">${icon}</span>
-            <span style="font-weight: 600; color: #1f2937; font-size: 15px;">${tool}</span>
+            <span style="font-weight: 600; color: #1f2937; font-size: 15px;">${tool.name}</span>
           </div>
-          <span style="background: ${color}; color: white; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap;">${count}x</span>
+          <span style="background: ${color}; color: white; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap;">${tool.count}x</span>
         </div>
         <div style="background: #e5e7eb; height: 10px; border-radius: 10px; overflow: hidden; position: relative;">
           <div style="position: absolute; top: 0; left: 0; height: 100%; width: ${percentage}%; background: ${color}; transition: width 0.5s ease; border-radius: 10px;"></div>
@@ -1232,7 +1338,10 @@ window.deleteCustomGoal = deleteCustomGoal;
 
 function updateAchievements() {
   const container = document.getElementById('achievementsList');
-  if (!container) return;
+  if (!container) {
+    console.error('❌ Achievements container not found');
+    return;
+  }
   
   const points = (dashboardStats.homeworkCompleted * 100) + 
                  (dashboardStats.quizzesTaken * 50) + 
@@ -1296,56 +1405,24 @@ function updateAchievements() {
   if (nextLevelDesc) nextLevelDesc.textContent = `${points} / ${pointsForNext} points to level ${nextLevel}`;
   if (nextLevelFill) nextLevelFill.style.width = `${progressToNext}%`;
   
-  // Generate achievements HTML - INLINE GRID
+  // Generate achievements HTML with proper structure
   const achievementsHTML = achievements.map(achievement => `
-    <div style="
-      padding: 24px 20px;
-      background: ${achievement.unlocked ? 'white' : '#f9fafb'};
-      border: 2px solid ${achievement.unlocked ? achievement.color : '#e5e7eb'};
-      border-radius: 16px;
-      text-align: center;
-      transition: all 0.3s;
-      opacity: ${achievement.unlocked ? '1' : '0.6'};
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 240px;
-    ">
-      <div style="
-        width: 75px;
-        height: 75px;
-        background: ${achievement.color}20;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 36px;
-        margin-bottom: 16px;
-      ">
+    <div class="achievement-card ${achievement.unlocked ? 'achievement-unlocked' : 'achievement-locked'}">
+      <div class="achievement-icon" style="background: ${achievement.color}20;">
         ${achievement.icon}
       </div>
-      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
-        <h4 style="margin: 0 0 10px 0; font-size: 17px; font-weight: 700; color: #1f2937;">${achievement.title}</h4>
-        <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 1.5;">${achievement.description}</p>
-      </div>
-      ${achievement.unlocked ? 
-        `<span style="background: ${achievement.color}; color: white; padding: 7px 18px; border-radius: 20px; font-size: 12px; font-weight: 600;">✓ Unlocked</span>` : 
-        '<span style="background: #e5e7eb; color: #9ca3af; padding: 7px 18px; border-radius: 20px; font-size: 12px; font-weight: 600;">🔒 Locked</span>'
-      }
+      <h4 class="achievement-title">${achievement.title}</h4>
+      <p class="achievement-description">${achievement.description}</p>
+      <span class="${achievement.unlocked ? 'achievement-badge' : 'achievement-locked-badge'}" 
+            ${achievement.unlocked ? `style="background: ${achievement.color};"` : ''}>
+        ${achievement.unlocked ? '✓ Unlocked' : '🔒 Locked'}
+      </span>
     </div>
   `).join('');
   
-  container.innerHTML = `
-    <div style="
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-      width: 100%;
-    ">
-      ${achievementsHTML}
-    </div>
-  `;
+  container.innerHTML = achievementsHTML;
+  
+  console.log('✅ Achievements updated successfully');
 }
 
 // ============================================
@@ -1443,6 +1520,148 @@ function updateAllDashboard() {
 }
 
 // ============================================
+// START TRACKING (Tool ichiga kirganda)
+// ============================================
+function startTimeTracking(toolName) {
+  // Agar boshqa tool active bo'lsa, avval uni to'xtatamiz
+  if (activeToolTimer) {
+    stopTimeTracking();
+  }
+  
+  currentToolName = toolName;
+  currentToolStartTime = Date.now();
+  accumulatedSeconds = 0;
+  
+  console.log(`⏱️ Time tracking started: ${toolName}`);
+  
+  // Har 1 SONIYADA increment qilish (real-time)
+  activeToolTimer = setInterval(() => {
+    accumulatedSeconds++;
+    
+    // Har 60 soniyada (1 minut) dashboard ga qo'shish
+    if (accumulatedSeconds % 60 === 0) {
+      const minutesToAdd = 1;
+      incrementStat('totalStudyTime', minutesToAdd);
+      console.log(`⏱️ ${currentToolName}: +${minutesToAdd} minute added (total: ${Math.floor(accumulatedSeconds / 60)} min)`);
+    }
+    
+    // Console da real-time ko'rsatish (har 10 soniyada)
+    if (accumulatedSeconds % 10 === 0) {
+      const mins = Math.floor(accumulatedSeconds / 60);
+      const secs = accumulatedSeconds % 60;
+      console.log(`⏱️ ${currentToolName} active: ${mins}m ${secs}s`);
+    }
+  }, 1000); // 1000ms = 1 soniya
+}
+
+// ============================================
+// STOP TRACKING (Tool dan chiqganda)
+// ============================================
+function stopTimeTracking() {
+  if (!currentToolStartTime || !currentToolName) {
+    return;
+  }
+  
+  // Timer ni to'xtatish
+  if (activeToolTimer) {
+    clearInterval(activeToolTimer);
+  }
+  
+  // Oxirgi qolgan soniyalarni hisoblash
+  const remainingSeconds = accumulatedSeconds % 60;
+  
+  // Agar 30+ soniya qolgan bo'lsa, 1 minut qo'shamiz
+  if (remainingSeconds >= 30) {
+    incrementStat('totalStudyTime', 1);
+    console.log(`✅ Time tracking stopped: ${currentToolName} - Added final minute (${remainingSeconds} seconds rounded up)`);
+  } else if (remainingSeconds > 0) {
+    console.log(`✅ Time tracking stopped: ${currentToolName} - ${remainingSeconds} seconds not counted (less than 30s)`);
+  }
+  
+  const totalMinutes = Math.floor(accumulatedSeconds / 60);
+  if (totalMinutes > 0) {
+    showTimeTrackingNotification(currentToolName, totalMinutes);
+  }
+  
+  // Reset
+  activeToolTimer = null;
+  currentToolStartTime = null;
+  currentToolName = null;
+  accumulatedSeconds = 0;
+}
+
+
+// ============================================
+// GET CURRENT SESSION TIME
+// ============================================
+function getCurrentSessionTime() {
+  return Math.floor(accumulatedSeconds / 60); // minutes
+}
+
+function getCurrentSessionTimeInSeconds() {
+  return accumulatedSeconds; // seconds
+}
+
+// ============================================
+// NOTIFICATION (Vaqt qo'shilganda)
+// ============================================
+function showTimeTrackingNotification(toolName, minutes) {
+  if (minutes === 0) return; // 0 minut bo'lsa notification ko'rsatmaslik
+  
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInUp 0.3s ease;
+    font-weight: 600;
+  `;
+  
+  notification.innerHTML = `
+    <i class="bi bi-clock-history" style="font-size: 24px;"></i>
+    <div>
+      <div style="font-size: 14px; opacity: 0.9;">Session Complete</div>
+      <div style="font-size: 16px;">${toolName}: ${minutes} min tracked</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutDown 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// ============================================
+// PAGE UNLOAD & VISIBILITY HANDLERS
+// ============================================
+window.addEventListener('beforeunload', () => {
+  if (activeToolTimer) {
+    stopTimeTracking();
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && activeToolTimer) {
+    console.log('⏸️ Tab hidden - tracking continues in background');
+  } else if (!document.hidden && activeToolTimer) {
+    console.log('▶️ Tab visible - tracking active');
+  }
+});
+
+console.log('✅ Real-Time Automatic Time Tracking System Loaded');
+
+// ============================================
 // GLOBAL EXPORTS ✅
 // ============================================
 window.updateAllDashboard = updateAllDashboard;
@@ -1454,6 +1673,9 @@ window.startNewActivity = startNewActivity;
 window.addNewGoal = addNewGoal;
 window.editGoals = editGoals;
 window.deleteCustomGoal = deleteCustomGoal;
+window.startTimeTracking = startTimeTracking;
+window.stopTimeTracking = stopTimeTracking;
+window.getCurrentSessionTime = getCurrentSessionTime;
 
 // ============================================
 // INITIALIZE ON LOAD ✅
