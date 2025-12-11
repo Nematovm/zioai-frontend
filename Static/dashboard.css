@@ -754,6 +754,34 @@ main {
 }
 
 /* Grammar va Vocabulary uchun */
+
+.task-type-btn {
+  transition: all 0.3s ease;
+}
+
+.task-type-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.task-type-btn.active {
+  border-color: #667eea !important;
+  background: linear-gradient(135deg, #667eea15, #764ba215) !important;
+}
+
+.task-type-btn.active div:nth-child(2) {
+  color: #667eea !important;
+}
+
+/* Word counter animation */
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+#wordCounter {
+  animation: bounce 0.3s ease;
+}
 .alert-info,
 .alert-warning {
   border-radius: 12px !important;
@@ -783,17 +811,18 @@ main {
 }
 
 /* Error alert */
-.alert-danger {
+/* .alert-danger {
   background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%) !important;
   border: 2px solid #dc3545 !important;
   border-radius: 12px !important;
   padding: 20px !important;
+  height: 200px !important;
 }
 
 .alert-danger i {
   font-size: 1.3em;
   margin-right: 8px;
-}
+} */
 
 /* Smooth transitions */
 .alert-success,

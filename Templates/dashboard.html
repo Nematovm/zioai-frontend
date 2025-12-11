@@ -18,6 +18,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- PDF Library - jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <!-- Logout Modal -->
@@ -89,7 +91,7 @@
           <li class="nav-item">
             <a class="nav-link" data-tool="grammar">
               <span class="nav-icon material-symbols-outlined">ink_pen</span>
-              <span class="nav-lebel">Grammar Checker</span>
+              <span class="nav-lebel">Writing Checker</span>
             </a>
           </li>
           <li class="nav-item">
@@ -514,11 +516,49 @@
 </div>
 
 <!-- GRAMMAR CHECKER TOOL -->
+<!-- ============================================ -->
+<!-- WRITING CHECKER TOOL - IMAGE UPLOAD FIXED ✅ -->
+<!-- REPLACE YOUR EXISTING WRITING CHECKER SECTION WITH THIS -->
+<!-- ============================================ -->
+
 <div class="tool-content" id="grammar-content">
   <div class="tool-interface">
-    <h4 style="margin-bottom: 15px; color: #1f2937">Your Text</h4>
+    <h4 style="margin-bottom: 15px; color: #1f2937">
+      <i class="bi bi-pen-fill"></i> IELTS Writing Checker
+    </h4>
+    <p style="color: #6b7280; margin-bottom: 20px;">
+      Write your IELTS Task 1 or Task 2 essay and get detailed feedback with band scores!
+    </p>
+
+    <!-- Task Type Selection -->
+    <div style="margin-bottom: 25px;">
+      <label style="display: block; margin-bottom: 10px; color: #374151; font-weight: 600;">
+        📝 Select Task Type:
+      </label>
+      <div style="display: flex; gap: 15px;">
+        <button 
+          class="task-type-btn" 
+          id="task1Btn"
+          onclick="selectTaskType('Task 1')"
+          style="flex: 1; padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.3s ease;">
+          <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
+          <div style="font-weight: 700; font-size: 18px; color: #1f2937;">Task 1</div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">Graph, Chart, Diagram</div>
+        </button>
+        
+        <button 
+          class="task-type-btn active" 
+          id="task2Btn"
+          onclick="selectTaskType('Task 2')"
+          style="flex: 1; padding: 20px; border: 2px solid #667eea; border-radius: 12px; background: linear-gradient(135deg, #667eea15, #764ba215); cursor: pointer; transition: all 0.3s ease;">
+          <div style="font-size: 32px; margin-bottom: 8px;">✍️</div>
+          <div style="font-weight: 700; font-size: 18px; color: #667eea;">Task 2</div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">Essay (Opinion, Discussion)</div>
+        </button>
+      </div>
+    </div>
     
-    <!-- ✅ TIL TANLASH -->
+    <!-- Language Selector -->
     <div class="language-selector" style="margin-bottom: 20px;">
       <label for="grammar-language">🌐 Til / Language / Язык:</label>
       <select id="grammar-language" class="language-dropdown">
@@ -527,18 +567,98 @@
         <option value="en">🇬🇧 English</option>
       </select>
     </div>
+
+    <!-- Essay Topic (REQUIRED) -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">
+        💭 Essay Topic <span style="color: #ef4444;">*</span> (Required):
+      </label>
+      <input 
+        type="text" 
+        id="essayTopic"
+        placeholder="Enter the essay question or topic here... (REQUIRED)"
+        style="width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px;"
+      />
+      <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
+        <i class="bi bi-info-circle"></i> AI needs the topic to check if your answer is relevant to the question.
+      </p>
+    </div>
+
+    <!-- ✅ IMAGE UPLOAD SECTION (Task 1 Only) - FIXED -->
+    <div id="writingImageSection" style="display: none; margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: #374151; font-weight: 600;">
+        📊 Upload Chart/Graph/Diagram (Optional but recommended for Task 1):
+      </label>
+      
+      <!-- ✅ UPLOAD AREA - CLICK, DRAG & DROP, PASTE ENABLED -->
+      <div 
+        id="writingImageUploadArea"
+        style="border: 3px dashed #d1d5db; border-radius: 12px; padding: 40px; text-align: center; background: #f9fafb; cursor: pointer; transition: all 0.3s;">
+        <i class="bi bi-cloud-upload" style="font-size: 48px; color: #9ca3af; margin-bottom: 15px;"></i>
+        <p style="color: #6b7280; font-size: 16px; margin: 10px 0;">Click to upload or drag and drop</p>
+        <p style="color: #9ca3af; font-size: 14px;">PNG, JPG, JPEG (MAX. 5MB)</p>
+        <p style="color: #8b5cf6; font-size: 14px; margin-top: 10px;">💡 <strong>Or press Ctrl+V to paste!</strong></p>
+        
+        <!-- ✅ HIDDEN FILE INPUT -->
+        <input 
+          type="file" 
+          id="writingImageInput" 
+          accept="image/*" 
+          style="display: none;">
+      </div>
+      
+      <!-- ✅ IMAGE PREVIEW -->
+      <div id="writingImagePreview" style="display: none; margin-top: 20px; text-align: center;">
+        <img id="writingPreviewImg" style="max-width: 100%; max-height: 400px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <p style="margin-top: 10px; color: #6b7280;" id="writingImageFileName"></p>
+        <button onclick="removeWritingImage()" style="margin-top: 10px; padding: 8px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          <i class="bi bi-trash"></i> Remove Image
+        </button>
+      </div>
+    </div>
     
-    <textarea
-      placeholder="Paste your text here to check grammar..."
-      id="grammarInput"
-    ></textarea>
-    <button onclick="checkGrammar()">
-      <i class="bi bi-check2-circle"></i> Check Grammar
+    <!-- Writing Area -->
+    <div style="position: relative; margin-bottom: 20px;">
+      <textarea
+        placeholder="Paste your IELTS essay here (minimum 150 words)..."
+        id="grammarInput"
+        style="min-height: 300px; font-family: 'Georgia', serif; line-height: 1.8; font-size: 16px;"
+      ></textarea>
+      
+      <!-- Word Counter -->
+      <div style="position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.95); padding: 8px 15px; border-radius: 20px; border: 2px solid #e5e7eb; font-weight: 600; color: #6b7280;">
+        <i class="bi bi-pencil-square" style="color: #667eea;"></i>
+        <span id="wordCounter">0</span> words
+        <span id="wordStatus" style="margin-left: 8px;"></span>
+      </div>
+    </div>
+
+    <!-- Check Button -->
+    <button onclick="checkWriting()" style="width: 100%; padding: 18px; font-size: 18px; font-weight: 700;">
+      <i class="bi bi-check2-circle"></i> Analyze Writing
     </button>
+
+    <!-- Tips Box -->
+    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px; border-left: 4px solid #667eea;">
+      <h6 style="margin: 0 0 10px 0; color: #667eea; font-weight: 700;">
+        <i class="bi bi-lightbulb-fill"></i> Pro Tips:
+      </h6>
+      <ul style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
+        <li><strong>Task 1:</strong> Upload the chart/graph for better analysis</li>
+        <li><strong>Task 2:</strong> Essays should be <strong>250+ words</strong></li>
+        <li>Use <strong>complex sentences</strong> and varied vocabulary</li>
+        <li>Include <strong>linking words</strong> (however, moreover, therefore)</li>
+        <li>Check your <strong>grammar and spelling</strong> before submitting</li>
+      </ul>
+    </div>
+    
+    <!-- Results -->
     <div class="result-box" id="grammarResult" style="display: none">
-      <h5 style="color: #1f2937; margin-bottom: 10px">
-        Grammar Check Results:
-      </h5>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h5 style="color: #1f2937; margin: 0;">
+          <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> Writing Analysis Results:
+        </h5>
+      </div>
       <div id="grammarOutput"></div>
     </div>
   </div>
@@ -1119,8 +1239,101 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ============================================ -->
+<!-- ✅ INITIALIZE IMAGE UPLOAD ON PAGE LOAD -->
+<!-- ADD THIS SCRIPT BEFORE CLOSING </body> TAG -->
+<!-- ============================================ -->
+<script>
+window.addEventListener('load', () => {
+  console.log('🔧 Initializing Writing Image Upload...');
+  
+  const uploadArea = document.getElementById('writingImageUploadArea');
+  const fileInput = document.getElementById('writingImageInput');
+  const imagePreview = document.getElementById('writingImagePreview');
+  const previewImg = document.getElementById('writingPreviewImg');
+  const imageFileName = document.getElementById('writingImageFileName');
+  
+  // ✅ CHECK IF ELEMENTS EXIST
+  if (!uploadArea || !fileInput) {
+    console.error('❌ Writing image upload elements not found!');
+    return;
+  }
+  
+  console.log('✅ Writing image upload elements found');
+  
+  // ✅ 1. CLICK TO UPLOAD
+  uploadArea.addEventListener('click', (e) => {
+    e.stopPropagation();
+    console.log('📂 Upload area clicked');
+    fileInput.click();
+  });
+  
+  // ✅ 2. FILE INPUT CHANGE
+  fileInput.addEventListener('change', (e) => {
+    console.log('📁 File selected:', e.target.files[0]?.name);
+    handleWritingImageUpload(e);
+  });
+  
+  // ✅ 3. DRAG OVER
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadArea.style.borderColor = '#667eea';
+    uploadArea.style.background = '#f0f2ff';
+    uploadArea.style.borderWidth = '4px';
+  });
+  
+  // ✅ 4. DRAG LEAVE
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+  });
+  
+  // ✅ 5. DROP
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📥 File dropped');
+    
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      processWritingImage(file);
+    } else {
+      alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+    }
+  });
+  
+  // ✅ 6. PASTE (Ctrl+V)
+  document.addEventListener('paste', (e) => {
+    const imageSection = document.getElementById('writingImageSection');
+    if (imageSection && imageSection.style.display !== 'none') {
+      console.log('📋 Paste detected in writing section');
+      
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          processWritingImage(file);
+          break;
+        }
+      }
+    }
+  });
+  
+  console.log('✅ Writing image upload initialized successfully!');
+});
+</script>
     
     <script>
+
 // ============================================
 // HOMEWORK IMAGE UPLOAD - DRAG & DROP + PASTE
 // ============================================
@@ -1438,9 +1651,9 @@ function switchHomeworkTab(tab) {
   }
 }
 </style>
-<!-- <script src="../JS/dashboard-overview.js"></script>   -->
+<script src="../JS/dashboard-overview.js"></script>  
 <script src="../JS/dashboard.js"></script>           
-<!-- <script src="../JS/article.js"></script>  -->
+<script src="../JS/article.js"></script> 
 <script src="../JS/profile.js"></script>
 <script src="../JS/dashboard-lock-system.js"></script>
 

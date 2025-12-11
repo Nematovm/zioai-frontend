@@ -74,7 +74,7 @@ const toolTitles = {
     subtitle: "Paste your homework and get instant corrections",
   },
   grammar: {
-    title: "Grammar Checker",
+    title: "Writing Checker",
     subtitle: "Check and improve your grammar",
   },
   vocabulary: {
@@ -548,66 +548,1824 @@ if (removeBtn) {
 // ============================================
 // GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
-async function checkGrammar() {
-  const input = document.getElementById("grammarInput").value;
-  const result = document.getElementById("grammarResult");
-  const output = document.getElementById("grammarOutput");
-  const languageDropdown = document.getElementById("grammar-language");
-  const language = languageDropdown ? languageDropdown.value : "uz";
+// async function checkGrammar() {
+//   const input = document.getElementById("grammarInput").value;
+//   const result = document.getElementById("grammarResult");
+//   const output = document.getElementById("grammarOutput");
+//   const languageDropdown = document.getElementById("grammar-language");
+//   const language = languageDropdown ? languageDropdown.value : "uz";
 
-  if (!input.trim()) {
-    alert("Please enter text!");
+//   if (!input.trim()) {
+//     alert("Please enter text!");
+//     return;
+//   }
+
+//   result.style.display = "block";
+//   showLoading(output);
+
+//   try {
+//     const response = await fetch(`${API_URL}/check-grammar`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         text: input,
+//         language: language,
+//       }),
+//     });
+
+//     const data = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(data.error || "Server error");
+//     }
+
+//     if (data.success && data.result) {
+//       output.innerHTML = `
+//         <div class="alert alert-info">
+//           <div style="white-space: pre-wrap; line-height: 1.8;">
+//             ${data.result}
+//           </div>
+//         </div>
+//       `;
+//       trackToolUsage('grammar');
+//       incrementStat('totalStudyTime', 2);
+//       addRecentActivity('Grammar Checker', 88, '✍️', '#ec4899');
+      
+//       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+//       console.log('📊 Grammar check completed, tracking...');
+
+      
+//       console.log('✅ Grammar tracking completed!');
+      
+//     } else {
+//       throw new Error("No response from AI");
+//     }
+//   } catch (error) {
+//     console.error("❌ Error:", error);
+//     showError(output, error.message);
+    
+//   }
+// }
+
+// ============================================
+// WRITING CHECKER - YANGILANGAN FRONTEND ✅
+// ============================================
+
+let uploadedWritingImage = null; // Global variable for image
+
+// ============================================
+// 1️⃣ SELECT TASK TYPE
+// ============================================
+let selectedTaskType = 'Task 2'; // Default
+
+function selectTaskType(taskType) {
+  selectedTaskType = taskType;
+  
+  const task1Btn = document.getElementById('task1Btn');
+  const task2Btn = document.getElementById('task2Btn');
+  const imageUploadSection = document.getElementById('writingImageSection');
+  const topicInput = document.getElementById('essayTopic');
+  
+  // Update button styles
+  if (taskType === 'Task 1') {
+    task1Btn.classList.add('active');
+    task2Btn.classList.remove('active');
+    task1Btn.style.borderColor = '#667eea';
+    task1Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
+    task1Btn.querySelector('div:nth-child(2)').style.color = '#667eea';
+    
+    task2Btn.style.borderColor = '#e5e7eb';
+    task2Btn.style.background = '#fff';
+    task2Btn.querySelector('div:nth-child(2)').style.color = '#1f2937';
+    
+    // ✅ Show image upload for Task 1
+    if (imageUploadSection) {
+      imageUploadSection.style.display = 'block';
+    }
+    
+    // Update topic placeholder
+    topicInput.placeholder = 'Describe the graph/chart/diagram... (REQUIRED)';
+    
+  } else {
+    task2Btn.classList.add('active');
+    task1Btn.classList.remove('active');
+    task2Btn.style.borderColor = '#667eea';
+    task2Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
+    task2Btn.querySelector('div:nth-child(2)').style.color = '#667eea';
+    
+    task1Btn.style.borderColor = '#e5e7eb';
+    task1Btn.style.background = '#fff';
+    task1Btn.querySelector('div:nth-child(2)').style.color = '#1f2937';
+    
+    // ✅ Hide image upload for Task 2
+    if (imageUploadSection) {
+      imageUploadSection.style.display = 'none';
+    }
+    
+    // Update topic placeholder
+    topicInput.placeholder = 'Enter the essay question... (REQUIRED)';
+  }
+  
+  console.log('✅ Selected task type:', taskType);
+}
+
+// ============================================
+// 2️⃣ IMAGE UPLOAD FUNCTIONS
+// ============================================
+
+// Handle image upload
+function handleWritingImageUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    processWritingImage(file);
+  }
+}
+
+// Process image file
+function processWritingImage(file) {
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  
+  if (file.size > maxSize) {
+    alert('❌ File too large! Maximum size is 5MB.');
+    return;
+  }
+  
+  if (!file.type.startsWith('image/')) {
+    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+    return;
+  }
+  
+  uploadedWritingImage = file;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('writingPreviewImg').src = e.target.result;
+    document.getElementById('writingImageFileName').textContent = file.name;
+    document.getElementById('writingImageUploadArea').style.display = 'none';
+    document.getElementById('writingImagePreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  
+  console.log('✅ Image uploaded:', file.name);
+}
+
+// Remove uploaded image
+function removeWritingImage() {
+  uploadedWritingImage = null;
+  
+  document.getElementById('writingPreviewImg').src = '';
+  document.getElementById('writingImageFileName').textContent = '';
+  
+  const fileInput = document.getElementById('writingImageInput');
+  if (fileInput) fileInput.value = '';
+  
+  document.getElementById('writingImageUploadArea').style.display = 'block';
+  document.getElementById('writingImagePreview').style.display = 'none';
+  
+  console.log('✅ Image removed');
+}
+
+// ============================================
+// 3️⃣ DRAG & DROP SUPPORT
+// ============================================
+function initializeWritingImageUpload() {
+  const uploadArea = document.getElementById('writingImageUploadArea');
+  
+  if (!uploadArea) return;
+  
+  // Click to upload
+  uploadArea.addEventListener('click', () => {
+    document.getElementById('writingImageInput').click();
+  });
+  
+  // Drag over
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#667eea';
+    uploadArea.style.background = '#f0f2ff';
+    uploadArea.style.borderWidth = '4px';
+  });
+
+  // Drag leave
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+  });
+
+  // Drop
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      processWritingImage(file);
+    }
+  });
+}
+
+// ============================================
+// 4️⃣ WORD COUNTER (Keep existing)
+// ============================================
+const grammarInput = document.getElementById('grammarInput');
+const wordCounter = document.getElementById('wordCounter');
+const wordStatus = document.getElementById('wordStatus');
+
+if (grammarInput && wordCounter) {
+  grammarInput.addEventListener('input', () => {
+    const text = grammarInput.value.trim();
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const count = words.length;
+    
+    wordCounter.textContent = count;
+    
+    if (count < 150) {
+      wordStatus.innerHTML = '<span style="color: #ef4444;">⚠️ Too short</span>';
+    } else if (count >= 150 && count < 250) {
+      wordStatus.innerHTML = '<span style="color: #f59e0b;">⚠️ Add more</span>';
+    } else if (count >= 250 && count <= 350) {
+      wordStatus.innerHTML = '<span style="color: #10b981;">✅ Perfect</span>';
+    } else {
+      wordStatus.innerHTML = '<span style="color: #6b7280;">📝 Good length</span>';
+    }
+  });
+}
+
+// ============================================
+// 5️⃣ CHECK WRITING FUNCTION - UPDATED ✅
+// ============================================
+async function checkWriting() {
+  const text = document.getElementById('grammarInput').value;
+  const language = document.getElementById('grammar-language').value;
+  const resultBox = document.getElementById('grammarResult');
+  const output = document.getElementById('grammarOutput');
+  const topic = document.getElementById('essayTopic').value.trim();
+
+  // ✅ VALIDATION 1: Topic majburiy
+  if (!topic) {
+    alert('⚠️ Topic is required! / Topicni kiriting!\n\nAI needs the topic to evaluate if your answer is relevant.');
+    document.getElementById('essayTopic').focus();
     return;
   }
 
-  result.style.display = "block";
-  showLoading(output);
+  // ✅ VALIDATION 2: Text majburiy
+  if (!text.trim()) {
+    alert('⚠️ Please enter your essay! / Essayingizni kiriting!');
+    return;
+  }
+
+  // ✅ VALIDATION 3: Word count
+  const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 150) {
+    alert(`❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`);
+    return;
+  }
+
+  // ✅ VALIDATION 4: Task 1 - Image optional but recommended
+  if (selectedTaskType === 'Task 1' && !uploadedWritingImage) {
+    const confirmed = confirm(
+      '⚠️ Task 1 usually requires a chart/graph/diagram.\n\n' +
+      'Do you want to continue without an image?\n\n' +
+      '(Recommended: Upload the image for better analysis)'
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  // Show loading
+  resultBox.style.display = 'block';
+  output.innerHTML = `
+    <div style="text-align: center; padding: 40px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-size: 16px;">
+        <i class="bi bi-hourglass-split"></i> Analyzing your writing...<br>
+        <small>This may take 30-60 seconds</small>
+      </p>
+    </div>
+  `;
 
   try {
-    const response = await fetch(`${API_URL}/check-grammar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    console.log('📤 Sending writing check request...');
+    console.log('Task Type:', selectedTaskType);
+    console.log('Word Count:', wordCount);
+    console.log('Language:', language);
+    console.log('Topic:', topic);
+    console.log('Has Image:', !!uploadedWritingImage);
+
+    const API_URL = window.location.hostname.includes("onrender.com")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+
+    // ✅ Prepare request data
+    let requestData = {
+      text,
+      taskType: selectedTaskType,
+      language,
+      topic
+    };
+
+    // ✅ Add image if uploaded (Task 1)
+    if (uploadedWritingImage) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageData = e.target.result;
+        requestData.image = imageData;
+        
+        // Send request with image
+        await sendWritingRequest(requestData, API_URL, output, resultBox, wordCount);
+      };
+      reader.readAsDataURL(uploadedWritingImage);
+    } else {
+      // Send request without image
+      await sendWritingRequest(requestData, API_URL, output, resultBox, wordCount);
+    }
+
+  } catch (error) {
+    console.error('❌ Writing check error:', error);
+    output.innerHTML = `
+      <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
+        <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
+        <h5 style="color: #dc2626; margin-top: 15px;">Analysis Failed</h5>
+        <p style="color: #6b7280;">${error.message}</p>
+        <button onclick="checkWriting()" style="margin-top: 15px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <i class="bi bi-arrow-clockwise"></i> Try Again
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ============================================
+// 6️⃣ SEND REQUEST HELPER
+// ============================================
+async function sendWritingRequest(requestData, API_URL, output, resultBox, wordCount) {
+  const response = await fetch(`${API_URL}/check-writing`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestData)
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    console.log('✅ Writing analysis received');
+    
+    // Display results
+    output.innerHTML = `
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
+              <i class="bi bi-file-text"></i> ${requestData.taskType} | 
+              <i class="bi bi-pencil-square"></i> ${wordCount} words
+              ${requestData.image ? ' | <i class="bi bi-image"></i> With Chart' : ''}
+            </div>
+            <div style="font-size: 32px; font-weight: 900;">
+              Writing Analysis Complete
+            </div>
+          </div>
+          
+          <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-download"></i> Export PDF
+          </button>
+        </div>
+      </div>
+      
+      ${data.result}
+      
+      <!-- Model Answer Section -->
+      <div id="modelAnswerSection" style="margin-top: 25px;">
+        <button onclick="showModelAnswer()" id="modelAnswerBtn" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+          <i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)
+        </button>
+        
+        <div id="modelAnswerContent" style="display: none; margin-top: 20px; padding: 25px; background: #f9fafb; border-radius: 12px; border-left: 4px solid #10b981;">
+          <!-- Model answer will be loaded here -->
+        </div>
+      </div>
+    `;
+    
+    // Smooth scroll to results
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Track usage
+    if (typeof trackToolUsage === 'function') {
+      trackToolUsage('grammar');
+    }
+    
+  } else {
+    throw new Error(data.error || 'Analysis failed');
+  }
+}
+
+// Export Result to Word/PDF (Optional)
+function exportResult() {
+  const output = document.getElementById('grammarOutput');
+  const text = output.innerText;
+  
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `IELTS_Writing_Analysis_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log('✅ Result exported');
+}
+
+// Save activity to localStorage (optional)
+function saveActivity(tool, details, wordCount) {
+  try {
+    const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
+    activities.unshift({
+      id: Date.now(),
+      tool: tool,
+      details: details,
+      wordCount: wordCount,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Keep only last 50 activities
+    if (activities.length > 50) {
+      activities.length = 50;
+    }
+    
+    localStorage.setItem('userActivities', JSON.stringify(activities));
+  } catch (error) {
+    console.error('❌ Failed to save activity:', error);
+  }
+}
+
+// Show Model Answer
+async function showModelAnswer() {
+  const btn = document.getElementById('modelAnswerBtn');
+  const content = document.getElementById('modelAnswerContent');
+  const topic = document.getElementById('essayTopic').value || 'The given topic';
+  
+  if (content.style.display === 'block') {
+    // Hide model answer
+    content.style.display = 'none';
+    btn.innerHTML = '<i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)';
+    btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    return;
+  }
+  
+  // Show loading
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading Model Answer...';
+  content.style.display = 'block';
+  content.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <div class="spinner-border text-success" role="status" style="width: 2rem; height: 2rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 15px; color: #6b7280;">Generating Band 8-9 model answer...</p>
+    </div>
+  `;
+  
+  try {
+    console.log('📤 Requesting model answer...');
+    
+    const API_URL = 'http://127.0.0.1:3000';
+    
+    const response = await fetch(`${API_URL}/api/generate-model-answer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: input,
-        language: language,
-      }),
+        topic: topic,
+        taskType: selectedTaskType
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('✅ Model answer received');
+      
+content.innerHTML = `
+  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
+      <div>
+        <h5 style="margin: 0; color: #1f2937; font-weight: 800;">
+          <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> Model Answer
+        </h5>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
+          📊 Band 8-9 Level | ✍️ ${data.wordCount} words
+        </p>
+      </div>
+      
+      <!-- ✅ COPY TUGMASI O'NG YUQORI BURCHAKDA -->
+      <button onclick="copyModelAnswer()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #8b5cf6 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+        <i class="bi bi-clipboard"></i> Copy
+      </button>
+    </div>
+    
+    <div id="modelAnswerText" style="font-family: 'Georgia', serif; line-height: 2; color: #1f2937; font-size: 16px; white-space: pre-wrap;">
+${data.modelAnswer}
+    </div>
+  </div>
+  
+  <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+    <p style="margin: 0; color: #92400e; font-size: 14px;">
+      <i class="bi bi-info-circle-fill"></i> <strong>Note:</strong> This is a Band 8-9 model answer. Compare your structure, vocabulary, and grammar.
+    </p>
+  </div>
+`;
+      
+      btn.innerHTML = '<i class="bi bi-eye-slash-fill"></i> Hide Model Answer';
+      btn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+      
+    } else {
+      throw new Error(data.error || 'Failed to generate model answer');
+    }
+    
+  } catch (error) {
+    console.error('❌ Model answer error:', error);
+    content.innerHTML = `
+      <div style="text-align: center; padding: 20px; background: #fee; border-radius: 12px;">
+        <i class="bi bi-exclamation-triangle" style="font-size: 36px; color: #dc2626;"></i>
+        <p style="color: #6b7280; margin-top: 10px;">${error.message}</p>
+        <button onclick="showModelAnswer()" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          Try Again
+        </button>
+      </div>
+    `;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ============================================
+// COPY MODEL ANSWER FUNCTION ✅
+// ============================================
+function copyModelAnswer() {
+  const modelAnswerText = document.getElementById('modelAnswerText');
+  
+  if (!modelAnswerText) {
+    alert('❌ Model answer topilmadi!');
+    return;
+  }
+
+  // Get clean text content
+  const textToCopy = modelAnswerText.innerText;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      // Show success feedback
+      const copyBtn = document.querySelector('button[onclick="copyModelAnswer()"]');
+      if (copyBtn) {
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Copied!';
+        copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        
+        setTimeout(() => {
+          copyBtn.innerHTML = originalHTML;
+          copyBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #8b5cf6 100%)';
+        }, 2000);
+      }
+      
+      console.log('✅ Model answer copied to clipboard');
+    })
+    .catch((err) => {
+      console.error('❌ Copy failed:', err);
+      alert('❌ Copy qilishda xatolik:\n' + err.message);
+    });
+}
+
+
+// ============================================
+// WRITING IMAGE UPLOAD - ALL FUNCTIONS ✅
+// ADD THESE BEFORE exportWritingToPDF() FUNCTION
+// ============================================
+
+
+// ============================================
+// 1️⃣ HANDLE FILE INPUT CHANGE
+// ============================================
+function handleWritingImageUpload(event) {
+  const file = event.target.files[0];
+  console.log('📁 File selected:', file?.name);
+  
+  if (file) {
+    processWritingImage(file);
+  }
+}
+
+// ============================================
+// 2️⃣ PROCESS IMAGE FILE (Validation + Preview)
+// ============================================
+function processWritingImage(file) {
+  console.log('🔍 Processing image:', file.name, file.size, 'bytes');
+  
+  // ✅ Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert('❌ File too large! Maximum size is 5MB.');
+    return;
+  }
+  
+  // ✅ Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+    return;
+  }
+  
+  // ✅ Store file globally
+  uploadedWritingImage = file;
+  console.log('✅ Image stored:', uploadedWritingImage.name);
+  
+  // ✅ Show preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const previewImg = document.getElementById('writingPreviewImg');
+    const imageFileName = document.getElementById('writingImageFileName');
+    const uploadArea = document.getElementById('writingImageUploadArea');
+    const imagePreview = document.getElementById('writingImagePreview');
+    
+    if (previewImg && imageFileName && uploadArea && imagePreview) {
+      previewImg.src = e.target.result;
+      imageFileName.textContent = file.name;
+      uploadArea.style.display = 'none';
+      imagePreview.style.display = 'block';
+      
+      console.log('✅ Preview displayed');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================
+// 3️⃣ REMOVE UPLOADED IMAGE
+// ============================================
+function removeWritingImage() {
+  console.log('🗑️ Removing image...');
+  
+  uploadedWritingImage = null;
+  
+  const previewImg = document.getElementById('writingPreviewImg');
+  const imageFileName = document.getElementById('writingImageFileName');
+  const fileInput = document.getElementById('writingImageInput');
+  const uploadArea = document.getElementById('writingImageUploadArea');
+  const imagePreview = document.getElementById('writingImagePreview');
+  
+  if (previewImg) previewImg.src = '';
+  if (imageFileName) imageFileName.textContent = '';
+  if (fileInput) fileInput.value = '';
+  if (uploadArea) uploadArea.style.display = 'block';
+  if (imagePreview) imagePreview.style.display = 'none';
+  
+  console.log('✅ Image removed successfully');
+}
+
+// ============================================
+// 4️⃣ SELECT TASK TYPE (Show/Hide Image Upload)
+// ============================================
+
+function selectTaskType(taskType) {
+  selectedTaskType = taskType;
+  console.log('📝 Task type selected:', taskType);
+  
+  const task1Btn = document.getElementById('task1Btn');
+  const task2Btn = document.getElementById('task2Btn');
+  const imageUploadSection = document.getElementById('writingImageSection');
+  const topicInput = document.getElementById('essayTopic');
+  
+  // ✅ Update button styles
+  if (taskType === 'Task 1') {
+    // Task 1 Active
+    if (task1Btn) {
+      task1Btn.classList.add('active');
+      task1Btn.style.borderColor = '#667eea';
+      task1Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
+      const title = task1Btn.querySelector('div:nth-child(2)');
+      if (title) title.style.color = '#667eea';
+    }
+    
+    // Task 2 Inactive
+    if (task2Btn) {
+      task2Btn.classList.remove('active');
+      task2Btn.style.borderColor = '#e5e7eb';
+      task2Btn.style.background = '#fff';
+      const title = task2Btn.querySelector('div:nth-child(2)');
+      if (title) title.style.color = '#1f2937';
+    }
+    
+    // ✅ Show image upload for Task 1
+    if (imageUploadSection) {
+      imageUploadSection.style.display = 'block';
+      console.log('✅ Image upload section shown (Task 1)');
+    }
+    
+    // Update topic placeholder
+    if (topicInput) {
+      topicInput.placeholder = 'Describe the graph/chart/diagram... (REQUIRED)';
+    }
+    
+  } else {
+    // Task 2 Active
+    if (task2Btn) {
+      task2Btn.classList.add('active');
+      task2Btn.style.borderColor = '#667eea';
+      task2Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
+      const title = task2Btn.querySelector('div:nth-child(2)');
+      if (title) title.style.color = '#667eea';
+    }
+    
+    // Task 1 Inactive
+    if (task1Btn) {
+      task1Btn.classList.remove('active');
+      task1Btn.style.borderColor = '#e5e7eb';
+      task1Btn.style.background = '#fff';
+      const title = task1Btn.querySelector('div:nth-child(2)');
+      if (title) title.style.color = '#1f2937';
+    }
+    
+    // ✅ Hide image upload for Task 2
+    if (imageUploadSection) {
+      imageUploadSection.style.display = 'none';
+      console.log('✅ Image upload section hidden (Task 2)');
+    }
+    
+    // Update topic placeholder
+    if (topicInput) {
+      topicInput.placeholder = 'Enter the essay question... (REQUIRED)';
+    }
+  }
+}
+
+// ============================================
+// TOPIC IMAGE UPLOAD - YANGI FUNKSIYALAR ✅
+// ============================================
+
+let uploadedTopicImage = null; // Global variable
+
+// ============================================
+// 1️⃣ INITIALIZE TOPIC IMAGE UPLOAD
+// ============================================
+window.addEventListener('load', () => {
+  console.log('🔧 Initializing Topic Image Upload...');
+  
+  const uploadArea = document.getElementById('topicImageUploadArea');
+  const fileInput = document.getElementById('topicImageInput');
+  
+  if (!uploadArea || !fileInput) {
+    console.error('❌ Topic image upload elements not found!');
+    return;
+  }
+  
+  console.log('✅ Topic image upload elements found');
+  
+  // ✅ 1. CLICK TO UPLOAD
+  uploadArea.addEventListener('click', (e) => {
+    e.stopPropagation();
+    console.log('📂 Topic upload area clicked');
+    fileInput.click();
+  });
+  
+  // ✅ 2. FILE INPUT CHANGE
+  fileInput.addEventListener('change', (e) => {
+    console.log('📁 Topic file selected:', e.target.files[0]?.name);
+    handleTopicImageUpload(e);
+  });
+  
+  // ✅ 3. DRAG OVER
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadArea.style.borderColor = '#667eea';
+    uploadArea.style.background = '#f0f2ff';
+    uploadArea.style.borderWidth = '4px';
+  });
+  
+  // ✅ 4. DRAG LEAVE
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+  });
+  
+  // ✅ 5. DROP
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📥 Topic file dropped');
+    
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#f9fafb';
+    uploadArea.style.borderWidth = '3px';
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      processTopicImage(file);
+    } else {
+      alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+    }
+  });
+  
+  // ✅ 6. PASTE (Ctrl+V)
+  document.addEventListener('paste', (e) => {
+    const grammarContent = document.getElementById('grammar-content');
+    if (grammarContent && grammarContent.classList.contains('active')) {
+      console.log('📋 Paste detected in writing section');
+      
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          processTopicImage(file);
+          break;
+        }
+      }
+    }
+  });
+  
+  console.log('✅ Topic image upload initialized successfully!');
+});
+
+// ============================================
+// 2️⃣ HANDLE FILE INPUT CHANGE
+// ============================================
+function handleTopicImageUpload(event) {
+  const file = event.target.files[0];
+  console.log('📁 File selected:', file?.name);
+  
+  if (file) {
+    processTopicImage(file);
+  }
+}
+
+// ============================================
+// 3️⃣ PROCESS IMAGE FILE
+// ============================================
+function processTopicImage(file) {
+  console.log('🔍 Processing topic image:', file.name, file.size, 'bytes');
+  
+  // ✅ Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert('❌ File too large! Maximum size is 5MB.');
+    return;
+  }
+  
+  // ✅ Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+    return;
+  }
+  
+  // ✅ Store file globally
+  uploadedTopicImage = file;
+  console.log('✅ Topic image stored:', uploadedTopicImage.name);
+  
+  // ✅ Show preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const previewImg = document.getElementById('topicPreviewImg');
+    const imageFileName = document.getElementById('topicImageFileName');
+    const uploadArea = document.getElementById('topicImageUploadArea');
+    const imagePreview = document.getElementById('topicImagePreview');
+    
+    if (previewImg && imageFileName && uploadArea && imagePreview) {
+      previewImg.src = e.target.result;
+      imageFileName.textContent = file.name;
+      uploadArea.style.display = 'none';
+      imagePreview.style.display = 'block';
+      
+      console.log('✅ Topic preview displayed');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================
+// 4️⃣ REMOVE UPLOADED TOPIC IMAGE
+// ============================================
+function removeTopicImage() {
+  console.log('🗑️ Removing topic image...');
+  
+  uploadedTopicImage = null;
+  
+  const previewImg = document.getElementById('topicPreviewImg');
+  const imageFileName = document.getElementById('topicImageFileName');
+  const fileInput = document.getElementById('topicImageInput');
+  const uploadArea = document.getElementById('topicImageUploadArea');
+  const imagePreview = document.getElementById('topicImagePreview');
+  
+  if (previewImg) previewImg.src = '';
+  if (imageFileName) imageFileName.textContent = '';
+  if (fileInput) fileInput.value = '';
+  if (uploadArea) uploadArea.style.display = 'block';
+  if (imagePreview) imagePreview.style.display = 'none';
+  
+  console.log('✅ Topic image removed successfully');
+}
+
+// ============================================
+// CHECK WRITING - UPDATED WITH TOPIC IMAGE ✅
+// ============================================
+async function checkWriting() {
+  const text = document.getElementById('grammarInput').value;
+  const language = document.getElementById('grammar-language').value;
+  const resultBox = document.getElementById('grammarResult');
+  const output = document.getElementById('grammarOutput');
+  const topicInput = document.getElementById('essayTopic');
+  
+  // ✅ GET TOPIC (from text input or image)
+  let topic = topicInput.value.trim();
+  let topicImageData = null;
+
+  // ✅ CHECK: If topic image is uploaded, convert to base64
+  if (uploadedTopicImage) {
+    console.log('🖼️ Topic image detected, converting to base64...');
+    
+    const reader = new FileReader();
+    topicImageData = await new Promise((resolve, reject) => {
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Topic image read failed'));
+      reader.readAsDataURL(uploadedTopicImage);
+    });
+    
+    // If topic text is empty, inform user
+    if (!topic) {
+      topic = "[Topic uploaded as image]";
+    }
+    
+    console.log('✅ Topic image converted to base64');
+  }
+
+  // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
+  if (!topic && !topicImageData) {
+    alert('⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image.');
+    topicInput.focus();
+    return;
+  }
+
+  // ✅ VALIDATION 2: Text check
+  if (!text.trim()) {
+    alert('⚠️ Please enter your essay! / Essayingizni kiriting!');
+    return;
+  }
+
+  // ✅ VALIDATION 3: Word count
+  const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 150) {
+    alert(`❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`);
+    return;
+  }
+
+  // Show loading
+  resultBox.style.display = 'block';
+  output.innerHTML = `
+    <div style="text-align: center; padding: 40px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-size: 16px;">
+        <i class="bi bi-hourglass-split"></i> Analyzing your writing...<br>
+        <small>This may take 30-60 seconds</small>
+      </p>
+    </div>
+  `;
+
+  try {
+    console.log('📤 Sending writing check request...');
+    console.log('Task Type:', selectedTaskType);
+    console.log('Word Count:', wordCount);
+    console.log('Language:', language);
+    console.log('Topic:', topic);
+    console.log('Has Writing Image:', !!uploadedWritingImage);
+    console.log('Has Topic Image:', !!topicImageData);
+
+    const API_URL = window.location.hostname.includes("onrender.com")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+
+    // ✅ Prepare request data
+    let requestData = {
+      text,
+      taskType: selectedTaskType,
+      language,
+      topic
+    };
+
+    // ✅ Add TOPIC image if uploaded
+    if (topicImageData) {
+      requestData.topicImage = topicImageData;
+      console.log('📊 Topic image added to request');
+    }
+
+    // ✅ Add CHART/DIAGRAM image if uploaded (Task 1)
+    if (uploadedWritingImage) {
+      console.log('🖼️ Converting chart image to base64...');
+      const reader = new FileReader();
+      
+      const chartImageData = await new Promise((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Chart image read failed'));
+        reader.readAsDataURL(uploadedWritingImage);
+      });
+      
+      requestData.chartImage = chartImageData;
+      console.log('✅ Chart image added to request');
+    }
+
+    // ✅ Send request
+    const response = await fetch(`${API_URL}/check-writing`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Server error");
-    }
-
-    if (data.success && data.result) {
+    if (data.success) {
+      console.log('✅ Writing analysis received');
+      
+      // Display results
       output.innerHTML = `
-        <div class="alert alert-info">
-          <div style="white-space: pre-wrap; line-height: 1.8;">
-            ${data.result}
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
+                <i class="bi bi-file-text"></i> ${requestData.taskType} | 
+                <i class="bi bi-pencil-square"></i> ${wordCount} words
+                ${requestData.topicImage ? ' | <i class="bi bi-card-image"></i> Topic (Image)' : ''}
+                ${requestData.chartImage ? ' | <i class="bi bi-image"></i> Chart (Image)' : ''}
+              </div>
+              <div style="font-size: 32px; font-weight: 900;">
+                Writing Analysis Complete
+              </div>
+            </div>
+            
+            <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+              <i class="bi bi-download"></i> Export PDF
+            </button>
+          </div>
+        </div>
+        
+        ${data.result}
+        
+        <!-- Model Answer Section -->
+        <div id="modelAnswerSection" style="margin-top: 25px;">
+          <button onclick="showModelAnswer()" id="modelAnswerBtn" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+            <i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)
+          </button>
+          
+          <div id="modelAnswerContent" style="display: none; margin-top: 20px; padding: 25px; background: #f9fafb; border-radius: 12px; border-left: 4px solid #10b981;">
+            <!-- Model answer will be loaded here -->
           </div>
         </div>
       `;
-      trackToolUsage('grammar');
-      incrementStat('totalStudyTime', 2);
-      addRecentActivity('Grammar Checker', 88, '✍️', '#ec4899');
       
-      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
-      console.log('📊 Grammar check completed, tracking...');
-
+      // Smooth scroll to results
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       
-      console.log('✅ Grammar tracking completed!');
+      // Track usage
+      if (typeof trackToolUsage === 'function') {
+        trackToolUsage('grammar');
+      }
       
     } else {
-      throw new Error("No response from AI");
+      throw new Error(data.error || 'Analysis failed');
     }
+
   } catch (error) {
-    console.error("❌ Error:", error);
-    showError(output, error.message);
-    // ❌ XATO BO'LSA TRACKING QILMAYDI
+    console.error('❌ Writing check error:', error);
+    output.innerHTML = `
+      <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
+        <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
+        <h5 style="color: #dc2626; margin-top: 15px;">Analysis Failed</h5>
+        <p style="color: #6b7280;">${error.message}</p>
+        <button onclick="checkWriting()" style="margin-top: 15px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <i class="bi bi-arrow-clockwise"></i> Try Again
+        </button>
+      </div>
+    `;
   }
 }
 
+// ============================================
+// EXPORT TO PDF - CLEAN & STRUCTURED VERSION ✅
+// ============================================
+async function exportWritingToPDF() {
+  const topic = document.getElementById('essayTopic').value || 'IELTS Writing Task';
+  const wordCount = document.getElementById('grammarInput').value.trim().split(/\s+/).filter(w => w).length;
+  const yourText = document.getElementById('grammarInput').value;
+  
+  const resultElement = document.getElementById('grammarOutput');
+  const modelAnswerElement = document.getElementById('modelAnswerText');
+  
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    let yPos = 20;
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    const cleanText = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#\d+;/g, '')
+        .replace(/&[a-z]+;/gi, '')
+        .replace(/[^\x20-\x7E\n]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+    
+    const checkPageBreak = (requiredSpace = 25) => {
+      if (yPos > pageHeight - requiredSpace) {
+        doc.addPage();
+        yPos = 20;
+        return true;
+      }
+      return false;
+    };
+    
+    const addText = (text, fontSize = 10, isBold = false, lineHeight = 1.3) => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+      
+      const lines = doc.splitTextToSize(text, maxWidth);
+      
+      lines.forEach(line => {
+        checkPageBreak();
+        doc.text(line, margin, yPos);
+        yPos += fontSize * lineHeight * 0.352778;
+      });
+    };
+    
+    const addSection = (title, bgColor, textColor) => {
+      checkPageBreak(40);
+      
+      doc.setFillColor(...bgColor);
+      doc.roundedRect(margin, yPos - 2, maxWidth, 12, 3, 3, 'F');
+      
+      doc.setTextColor(...textColor);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, margin + 5, yPos + 6);
+      
+      yPos += 17;
+      doc.setTextColor(0, 0, 0);
+    };
+    
+    const addSubSection = (title) => {
+      checkPageBreak(30);
+      
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(margin, yPos, maxWidth, 8, 2, 2, 'F');
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(55, 65, 81);
+      doc.text(title, margin + 3, yPos + 5.5);
+      
+      yPos += 12;
+      doc.setTextColor(0, 0, 0);
+    };
+    
+    const addBulletPoint = (text, fontSize = 9) => {
+      checkPageBreak();
+      
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', 'normal');
+      
+      const bulletX = margin + 3;
+      const textX = margin + 8;
+      
+      doc.text('•', bulletX, yPos);
+      
+      const lines = doc.splitTextToSize(text, maxWidth - 8);
+      lines.forEach((line, index) => {
+        checkPageBreak();
+        doc.text(line, textX, yPos);
+        yPos += fontSize * 1.3 * 0.352778;
+      });
+      
+      yPos += 1;
+    };
+    
+    // ============================================
+    // ADD IMAGE TO PDF (NEW FUNCTION) ✅
+    // ============================================
+    const addImageToPDF = async (imageElement, title) => {
+      if (!imageElement || !imageElement.src) return;
+      
+      checkPageBreak(120);
+      
+      try {
+        // Calculate image dimensions (maintain aspect ratio)
+        const maxImageWidth = maxWidth - 20; // Leave some margin
+        const maxImageHeight = 100;
+        
+        const img = new Image();
+        img.src = imageElement.src;
+        
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+        
+        let imgWidth = maxImageWidth;
+        let imgHeight = (img.height / img.width) * imgWidth;
+        
+        if (imgHeight > maxImageHeight) {
+          imgHeight = maxImageHeight;
+          imgWidth = (img.width / img.height) * imgHeight;
+        }
+        
+        // Center the image
+        const xCenter = (pageWidth - imgWidth) / 2;
+        
+        // Add border around image
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.rect(xCenter - 2, yPos - 2, imgWidth + 4, imgHeight + 4);
+        
+        // Add image to PDF (centered)
+        doc.addImage(
+          img.src,
+          'JPEG',
+          xCenter,
+          yPos,
+          imgWidth,
+          imgHeight
+        );
+        
+        yPos += imgHeight + 15;
+        
+        console.log(`✅ Image added to PDF: ${title}`);
+        
+      } catch (error) {
+        console.error(`❌ Failed to add image: ${title}`, error);
+        yPos += 5;
+      }
+    };
+    
+    const extractScores = (text) => {
+      const scores = {
+        overall: null,
+        task: null,
+        coherence: null,
+        lexical: null,
+        grammar: null
+      };
+      
+      const overallMatch = text.match(/(?:OVERALL|Band Score|Overall Band).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (overallMatch) scores.overall = overallMatch[1];
+      
+      const taskMatch = text.match(/Task Achievement.*?(\d+)\s*\/\s*9/is);
+      if (taskMatch) scores.task = taskMatch[1];
+      
+      const cohMatch = text.match(/(?:Coherence|Cohesion).*?(\d+)\s*\/\s*9/is);
+      if (cohMatch) scores.coherence = cohMatch[1];
+      
+      const lexMatch = text.match(/(?:Lexical|Vocabulary).*?(\d+)\s*\/\s*9/is);
+      if (lexMatch) scores.lexical = lexMatch[1];
+      
+      const gramMatch = text.match(/(?:Grammar|Grammatical Range).*?(\d+)\s*\/\s*9/is);
+      if (gramMatch) scores.grammar = gramMatch[1];
+      
+      return scores;
+    };
+    
+    const parseAnalysis = (text) => {
+      if (!text) return {
+        vocabulary: { level: null, strong: [], repetitive: [], synonyms: [] },
+        grammar: { total: null, errors: [] },
+        taskResponse: [],
+        patterns: [],
+        tips: []
+      };
+      
+      const analysis = {
+        vocabulary: { 
+          level: null, 
+          strong: [], 
+          repetitive: [], 
+          synonyms: [] 
+        },
+        grammar: { 
+          total: null, 
+          errors: [] 
+        },
+        taskResponse: [],
+        patterns: [],
+        tips: []
+      };
+      
+      // ============================================
+      // VOCABULARY ANALYSIS - CLEAN EXTRACTION
+      // ============================================
+      
+      // Level
+      const vocabMatch = text.match(/Level:\s*([A-C][1-2]|Beginner|Intermediate|Advanced)/is);
+      if (vocabMatch) analysis.vocabulary.level = vocabMatch[1];
+      
+      // Strong Words - extract properly
+      const strongMatch = text.match(/Strong Words?:?\s*([^\n]+?)(?=\n|$)/is);
+      if (strongMatch) {
+        const wordsText = strongMatch[1];
+        const cleanWords = wordsText.split(/(?=Repetitive|GRAMMAR|Total Errors|#\d+|ta#)/i)[0];
+        analysis.vocabulary.strong = cleanWords
+          .split(/[,;]/)
+          .map(w => w.trim())
+          .filter(w => w && w.length > 2 && w.length < 50 && !w.toLowerCase().includes('grammar') && !w.toLowerCase().includes('mistakes'));
+      }
+      
+      // Repetitive Words - separate from strong words and stop before Synonyms
+      const repMatch = text.match(/Repetitive(?:\s+Words?)?:?\s*([^\n]+?)(?=\n|$)/is);
+      if (repMatch) {
+        const repText = repMatch[1];
+        const cleanRep = repText.split(/(?=Synonym|GRAMMAR|Total Errors|#\d+|ta#|Strong)/i)[0];
+        analysis.vocabulary.repetitive = cleanRep
+          .split(/[,;]/)
+          .map(w => w.trim())
+          .filter(w => w && w.length > 2 && w.length < 50 && !w.toLowerCase().includes('grammar') && !w.toLowerCase().includes('synonym') && !w.toLowerCase().includes('mistakes'));
+      }
+      
+      // Synonyms - clean extraction
+      const synMatch = text.match(/(?:Synonyms?|Suggested Synonyms):?\s*([\s\S]+?)(?=\n*(?:#|GRAMMAR|Task|Coherence|$))/is);
+      if (synMatch) {
+        const synText = synMatch[1];
+        analysis.vocabulary.synonyms = synText
+          .split(/[;•\n]/)
+          .map(s => s.replace(/^[-•\s]+/, '').trim())
+          .filter(s => s && s.includes('-') && s.length > 3);
+      }
+      
+      // ============================================
+      // GRAMMAR MISTAKES - STRUCTURED
+      // ============================================
+      
+      const gramTotalMatch = text.match(/Total Errors:\s*(\d+)/is);
+      if (gramTotalMatch) analysis.grammar.total = gramTotalMatch[1];
+      
+      // Extract errors with better regex
+      const errorSection = text.match(/GRAMMAR MISTAKES:?([\s\S]+?)(?=TASK RESPONSE|COHERENCE|GRAMMAR PATTERNS|$)/is);
+      if (errorSection) {
+        const errorMatches = errorSection[1].matchAll(/#?(\d+)[:\s]*(?:Wrong|Xato)?:?\s*[""]([^""]+)[""][\s\S]*?(?:Correct|To'g'ri)?:?\s*[""]([^""]+)[""][\s\S]*?(?:Rule|Qoida)?:?\s*([^\n#]+)/gis);
+        
+        for (const match of errorMatches) {
+          analysis.grammar.errors.push({
+            number: match[1],
+            wrong: match[2].trim(),
+            correct: match[3].trim(),
+            rule: match[4].trim()
+          });
+        }
+      }
+      
+// ============================================
+      // TASK RESPONSE - TO'G'RILANGAN ✅
+      // ============================================
+      
+      const taskSection = text.match(/TASK RESPONSE:?\s*([\s\S]+?)(?=COHERENCE|GRAMMAR PATTERNS|IMPROVEMENT|MODEL ANSWER|YOUR ORIGINAL|$)/i);
+      if (taskSection) {
+        let taskText = taskSection[1].trim();
+        
+        // Raqamlarni olib tashlash (6 yoki boshqa raqamlar)
+        taskText = taskText.replace(/^\d+\s*/gm, '');
+        
+        const lines = [];
+        
+        // Har bir savolni alohida ajratish
+        const questionPattern = /([^?]+\?)\s*(Ha|Yo'q|Yes|No)\s*[✓✗]?/gi;
+        const matches = taskText.matchAll(questionPattern);
+        
+        for (const match of matches) {
+          const question = match[1].trim();
+          const answer = match[2].trim();
+          
+          if (question.length > 5) {
+            lines.push(`${question} ${answer}`);
+          }
+        }
 
+        if (lines.length > 0) {
+          analysis.taskResponse = lines;
+        }
+      }
+      
+      // COHERENCE & COHESION - O'CHIRILDI ❌
+      
+      // ============================================
+      // GRAMMAR PATTERNS
+      // ============================================
+      
+      const patternsSection = text.match(/GRAMMAR PATTERNS[^:]*:([\s\S]+?)(?=\d+IMPROVEMENT|IMPROVEMENT|MODEL|$)/is);
+      if (patternsSection) {
+        let patternsText = patternsSection[1].trim();
+        
+        patternsText = patternsText.replace(/^\d+\s*/, '');
+        
+        if (!patternsText.includes('\n')) {
+          patternsText = patternsText.replace(/(IF Conditionals|Passive Voice|Complex Sentences|Relative Clauses|Modal Verbs)/gi, '\n$1');
+        }
+        
+        const patterns = patternsText
+          .split(/\n/)
+          .map(p => p.replace(/^[-•\s]+/, '').trim())
+          .filter(p => p.length > 15 && !p.includes('IMPROVEMENT') && !p.includes('MODEL'));
+        
+        if (patterns.length === 0 && patternsText.length > 15) {
+          patterns.push(patternsText);
+        }
+        
+        analysis.patterns = patterns;
+      }
+      
+      // ============================================
+      // IMPROVEMENT TIPS - TO'G'RILANGAN ✅
+      // ============================================
+      
+      const tipsMatch = text.match(/(?:\d+\s*)?IMPROVEMENT\s*TIPS?:?\s*([\s\S]+?)(?=MODEL ANSWER|YOUR ORIGINAL|Generated|$)/i);
+      
+      if (tipsMatch) {
+        let tipsText = tipsMatch[1].trim();
+        
+        // Keraksiz qismlarni olib tashlash
+        tipsText = tipsText
+          .replace(/\s*(Hide|Show|Quick Tips|MODEL ANSWER|YOUR ORIGINAL|Generated).*$/is, '')
+          .trim();
+        
+        // Bullet point bilan ajratish
+        const lines = [];
+        
+        if (tipsText.includes('•')) {
+          // Agar • belgisi bo'lsa
+          lines.push(...tipsText
+            .split(/•/)
+            .map(t => t.trim())
+            .filter(t => t.length > 5)
+          );
+        } else {
+          // Agar yo'q bo'lsa, katta harf bilan boshlanuvchi gaplarni ajratish
+          const sentences = tipsText.match(/[A-ZА-ЯЁЎҒҲҚ][^.!?]*[.!?]*/g) || [];
+          lines.push(...sentences.map(s => s.trim()).filter(s => s.length > 5));
+        }
+
+        if (lines.length > 0) {
+          analysis.tips = lines.filter(t => 
+            !t.match(/^(?:Hide|Show|Quick|MODEL|YOUR|Generated|Band Score)/i)
+          );
+        }
+      }
+      
+      return analysis;
+    };
+    
+    // ============================================
+    // DOCUMENT HEADER
+    // ============================================
+    doc.setFillColor(44, 170, 154);
+    doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ZiyoAI', pageWidth / 2, 22, { align: 'center' });
+    
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'normal');
+    doc.text('IELTS Writing Analysis Report', pageWidth / 2, 34, { align: 'center' });
+    
+    yPos = 60;
+    
+    // ============================================
+    // INFO BOX
+    // ============================================
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, maxWidth, 42, 3, 3, 'F');
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    
+    const infoY = yPos + 8;
+    doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, margin + 5, infoY);
+    doc.text(`Task: ${selectedTaskType || 'Task 2'}`, margin + 5, infoY + 7);
+    doc.text(`Words: ${wordCount}`, margin + 5, infoY + 14);
+    
+    const topicText = cleanText(topic);
+    const topicLines = doc.splitTextToSize(`Topic: ${topicText}`, maxWidth - 10);
+    doc.text(topicLines, margin + 5, infoY + 21);
+    
+    yPos += 48;
+    
+    // ============================================
+    // ADD UPLOADED IMAGES ✅
+    // ============================================
+    
+    // 1️⃣ Topic Image
+    const topicImageElement = document.getElementById('topicPreviewImg');
+    if (topicImageElement && topicImageElement.src) {
+      await addImageToPDF(topicImageElement, '📋 Essay Topic/Question (Uploaded Image)');
+    }
+    
+    // 2️⃣ Chart/Diagram Image (Task 1)
+    const chartImageElement = document.getElementById('writingPreviewImg');
+    if (chartImageElement && chartImageElement.src) {
+      await addImageToPDF(chartImageElement, '📊 Chart/Diagram (Task 1 - Uploaded Image)');
+    }
+    
+    // ============================================
+    // SCORES SECTION
+    // ============================================
+    let fullText = '';
+    let analysis = null;
+    
+    if (resultElement) {
+      fullText = cleanText(resultElement.textContent);
+      const scores = extractScores(fullText);
+      
+      if (scores.overall) {
+        addSection('YOUR SCORES', [232, 248, 245], [44, 170, 154]);
+        
+        // Overall score
+        doc.setFillColor(232, 248, 245);
+        doc.roundedRect(margin, yPos, maxWidth, 15, 2, 2, 'F');
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Overall Band Score:', margin + 5, yPos + 10);
+        
+        doc.setFontSize(14);
+        doc.setTextColor(44, 170, 154);
+        doc.text(`${scores.overall}/9.0`, margin + maxWidth - 5, yPos + 10, { align: 'right' });
+        doc.setTextColor(0, 0, 0);
+        
+        yPos += 20;
+        
+        // Individual scores
+        if (scores.task || scores.coherence || scores.lexical || scores.grammar) {
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          
+          const scoreLabels = [
+            { label: 'Task Achievement', value: scores.task },
+            { label: 'Coherence & Cohesion', value: scores.coherence },
+            { label: 'Lexical Resource', value: scores.lexical },
+            { label: 'Grammatical Range & Accuracy', value: scores.grammar }
+          ];
+          
+          scoreLabels.forEach(({ label, value }) => {
+            if (value) {
+              checkPageBreak();
+              doc.text(`${label}:`, margin + 5, yPos);
+              doc.setFont('helvetica', 'bold');
+              doc.text(`${value}/9`, margin + maxWidth - 5, yPos, { align: 'right' });
+              doc.setFont('helvetica', 'normal');
+              yPos += 7;
+            }
+          });
+          
+          yPos += 5;
+        }
+      }
+      
+      // ============================================
+      // DETAILED ANALYSIS - CLEAN & STRUCTURED
+      // ============================================
+      addSection('DETAILED ANALYSIS', [232, 248, 245], [44, 170, 154]);
+      
+      analysis = parseAnalysis(fullText);
+      
+      // ============================================
+      // 1. VOCABULARY ANALYSIS
+      // ============================================
+      if (analysis.vocabulary.level || analysis.vocabulary.strong.length > 0) {
+        addSubSection('1. VOCABULARY ANALYSIS');
+        
+        if (analysis.vocabulary.level) {
+          doc.setFont('helvetica', 'bold');
+          addText(`Level: ${analysis.vocabulary.level}`, 9, true);
+          yPos += 3;
+        }
+        
+        if (analysis.vocabulary.strong.length > 0) {
+          doc.setFont('helvetica', 'bold');
+          addText('Strong Words:', 9, true);
+          doc.setFont('helvetica', 'normal');
+          addText(analysis.vocabulary.strong.join(', '), 9);
+          yPos += 3;
+        }
+        
+        if (analysis.vocabulary.repetitive.length > 0) {
+          doc.setFont('helvetica', 'bold');
+          addText('Repetitive Words:', 9, true);
+          doc.setFont('helvetica', 'normal');
+          addText(analysis.vocabulary.repetitive.join(', '), 9);
+          yPos += 3;
+        }
+        
+        if (analysis.vocabulary.synonyms.length > 0) {
+          doc.setFont('helvetica', 'bold');
+          addText('Suggested Synonyms:', 9, true);
+          yPos += 2;
+          doc.setFont('helvetica', 'normal');
+          analysis.vocabulary.synonyms.forEach(syn => {
+            addBulletPoint(syn, 9);
+          });
+        }
+        
+        yPos += 5;
+      }
+      
+      // ============================================
+      // 2. GRAMMAR MISTAKES
+      // ============================================
+      if (analysis.grammar.total || analysis.grammar.errors.length > 0) {
+        addSubSection('2. GRAMMAR MISTAKES');
+        
+        if (analysis.grammar.total) {
+          doc.setFont('helvetica', 'bold');
+          addText(`Total Errors: ${analysis.grammar.total}`, 9, true);
+          yPos += 5;
+        }
+        
+        analysis.grammar.errors.forEach(error => {
+          checkPageBreak(25);
+          
+          doc.setFont('helvetica', 'bold');
+          addText(`Error #${error.number}:`, 9, true);
+          yPos += 2;
+          
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          
+          doc.setTextColor(220, 38, 38);
+          addText(`Wrong: "${error.wrong}"`, 9);
+          yPos += 1;
+          
+          doc.setTextColor(22, 163, 74);
+          addText(`Correct: "${error.correct}"`, 9);
+          yPos += 1;
+          
+          doc.setTextColor(107, 114, 128);
+          addText(`Rule: ${error.rule}`, 9);
+          
+          doc.setTextColor(0, 0, 0);
+          yPos += 5;
+        });
+        
+        yPos += 3;
+      }
+      
+      // ============================================
+      // 3. TASK RESPONSE
+      // ============================================
+      if (analysis.taskResponse.length > 0) {
+        addSubSection('3. TASK RESPONSE');
+        
+        analysis.taskResponse.forEach(feedback => {
+          addBulletPoint(feedback, 9);
+        });
+        
+        yPos += 5;
+      }
+      
+      // ============================================
+      // 4. COHERENCE & COHESION - O'CHIRILDI ❌
+      // ============================================
+      
+      // ============================================
+      // 4. GRAMMAR PATTERNS TO IMPROVE
+      // ============================================
+      if (analysis.patterns.length > 0) {
+        addSubSection('4. GRAMMAR PATTERNS TO IMPROVE');
+        
+        analysis.patterns.forEach(pattern => {
+          addBulletPoint(pattern, 9);
+        });
+        
+        yPos += 5;
+      }
+      
+      // ============================================
+      // 5. IMPROVEMENT TIPS
+      // ============================================
+      if (analysis.tips.length > 0) {
+        addSubSection('5. IMPROVEMENT TIPS');
+        
+        analysis.tips.forEach(tip => {
+          addBulletPoint(tip, 9);
+        });
+        
+        yPos += 5;
+      }
+    }
+    
+    // ============================================
+    // MODEL ANSWER
+    // ============================================
+    if (modelAnswerElement) {
+      addSection('MODEL ANSWER (Band 8-9)', [220, 252, 231], [44, 170, 154]);
+      
+      const modelText = cleanText(modelAnswerElement.textContent);
+      const paragraphs = modelText.split(/\n\n+/).filter(p => p.trim().length > 30);
+      
+      paragraphs.forEach(para => {
+        addText(para.trim(), 9, false, 1.5);
+        yPos += 5;
+      });
+      
+      yPos += 3;
+      
+      doc.setFillColor(254, 243, 199);
+      doc.roundedRect(margin, yPos, maxWidth, 12, 2, 2, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(146, 64, 14);
+      doc.text('Note: This is a Band 8-9 model. Compare your structure, vocabulary, and grammar.', margin + 3, yPos + 7);
+      doc.setTextColor(0, 0, 0);
+      
+      yPos += 17;
+    }
+    
+    // ============================================
+    // YOUR ORIGINAL TEXT
+    // ============================================
+    if (yourText && yourText.trim()) {
+      addSection('YOUR ORIGINAL TEXT', [254, 243, 199], [245, 158, 11]);
+      
+      const cleanOriginal = cleanText(yourText);
+      const paragraphs = cleanOriginal.split(/\n+/).filter(p => p.trim().length > 10);
+      
+      paragraphs.forEach(para => {
+        addText(para.trim(), 9, false, 1.5);
+        yPos += 5;
+      });
+    }
+    
+    // ============================================
+    // FOOTER
+    // ============================================
+    const totalPages = doc.internal.getNumberOfPages();
+    
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Generated by ZiyoAI - Page ${i} of ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // ============================================
+    // SAVE
+    // ============================================
+    const filename = `ZiyoAI_Writing_Report_${Date.now()}.pdf`;
+    doc.save(filename);
+    
+    console.log('✅ PDF exported:', filename);
+    
+    const exportBtn = document.querySelector('button[onclick="exportWritingToPDF()"]');
+    if (exportBtn) {
+      const originalHTML = exportBtn.innerHTML;
+      exportBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded!';
+      exportBtn.style.background = '#10b981';
+      
+      setTimeout(() => {
+        exportBtn.innerHTML = originalHTML;
+        exportBtn.style.background = '';
+      }, 2500);
+    }
+    
+  } catch (error) {
+    console.error('❌ PDF export error:', error);
+    alert('PDF export failed: ' + error.message);
+  }
+}
 
 
 
@@ -2154,19 +3912,93 @@ function showLoading(element) {
 
 function showError(element, message) {
   element.innerHTML = `
-    <div class="alert alert-danger" style="border-left: 4px solid #ef4444; white-space: pre-wrap;">
-      <div style="display: flex; align-items: start; gap: 10px;">
-        <i class="bi bi-exclamation-triangle-fill" style="font-size: 24px; margin-top: 3px;"></i>
-        <div>
-          <strong style="display: block; margin-bottom: 8px;">Xatolik yuz berdi:</strong>
-          <p style="margin: 0; line-height: 1.6;">${message}</p>
+    <div style="
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border: 1px solid #fca5a5;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1);
+      animation: slideDown 0.3s ease-out;
+    ">
+      <!-- Header with Icon -->
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div style="
+          width: 40px;
+          height: 40px;
+          background: #ef4444;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        ">
+          <i class="bi bi-exclamation-triangle-fill" style="color: white; font-size: 20px;"></i>
+        </div>
+        <div style="flex: 1;">
+          <h4 style="
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #991b1b;
+          ">Xatolik yuz berdi</h4>
         </div>
       </div>
-      <hr style="margin: 15px 0;">
-      <button onclick="clearSpeaking()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
-        <i class="bi bi-arrow-clockwise"></i> Qaytadan Urinish
+
+      <!-- Error Message -->
+      <div style="
+        background: rgba(255, 255, 255, 0.7);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      ">
+        <p style="
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #7f1d1d;
+          white-space: pre-wrap;
+        ">${message}</p>
+      </div>
+
+      <!-- Retry Button -->
+      <button onclick="clearSpeaking()" style="
+        width: 100%;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+      " 
+      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(239, 68, 68, 0.3)'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.2)'">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Qaytadan Urinish</span>
       </button>
     </div>
+
+    <!-- CSS Animation -->
+    <style>
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
   `;
 }
 
