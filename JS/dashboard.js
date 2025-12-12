@@ -149,7 +149,28 @@ function initializeDefaultTool() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('📄 DOM loaded, initializing...');
   initializeDefaultTool();
+
+  const navLinks = document.querySelectorAll('.nav-link[data-tool]');
+  const toolCards = document.querySelectorAll('.tool-card[data-tool]');
+
+  // Nav links
+  navLinks.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const toolName = link.getAttribute('data-tool');
+      if (toolName) switchTool(toolName);
+    });
+  });
+
+  // Tool cards
+  toolCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const toolName = card.getAttribute('data-tool');
+      if (toolName) switchTool(toolName);
+    });
+  });
 });
+
 
 // ============================================
 // BACKUP CHECK - Only if needed ✅
@@ -187,34 +208,7 @@ async function checkBackendStatus() {
   }
 }
 
-// ============================================
-// NAV LINK CLICK HANDLERS ✅
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  const navLinks = document.querySelectorAll('.nav-link[data-tool]');
-  const toolCards = document.querySelectorAll('.tool-card[data-tool]');
-  
-  // ✅ Nav links
-  navLinks.forEach((link) => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const toolName = link.getAttribute('data-tool');
-      if (toolName) {
-        switchTool(toolName);
-      }
-    });
-  });
 
-  // ✅ Tool cards
-  toolCards.forEach((card) => {
-    card.addEventListener('click', () => {
-      const toolName = card.getAttribute('data-tool');
-      if (toolName) {
-        switchTool(toolName);
-      }
-    });
-  });
-});
 
 // Sidebar Toggle
 const sidebar = document.querySelector(".sidebar");
