@@ -1,11 +1,169 @@
 // ============================================
-// API CONFIGURATION - TUZATILGAN ✅
+// 1️⃣ API CONFIGURATION
 // ============================================
 const API_URL = window.location.hostname.includes("onrender.com")
     ? "https://zioai-backend.onrender.com/api"
     : "http://localhost:3000/api";
 
-console.log("🌐 API URL:", API_URL);
+// ============================================
+// 2️⃣ YANGI GLOBAL FLAGS ✅
+// ============================================
+window.currentActiveTool = 'homework';
+window.hasInitialized = false;
+window.isToolSwitching = false;
+
+// ============================================
+// SWITCH TOOL FUNCTION - COMPLETELY FIXED ✅
+// ============================================
+function switchTool(toolName) {
+  // ✅ Prevent rapid switching
+  if (window.isToolSwitching) {
+    console.log('⏳ Tool switch in progress, please wait...');
+    return;
+  }
+  
+  window.isToolSwitching = true;
+  console.log('🔀 Switching to:', toolName);
+  
+  // ✅ Update global state FIRST
+  window.currentActiveTool = toolName;
+  
+  // ✅ 1. HIDE ALL TOOLS IMMEDIATELY
+  document.querySelectorAll('.tool-content').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  
+  // ✅ 2. Remove all nav active states
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // ✅ 3. Activate selected nav link
+  const activeLink = document.querySelector(`.nav-link[data-tool="${toolName}"]`);
+  if (activeLink) {
+    activeLink.classList.add('active');
+  }
+
+  // ✅ 4. SHOW SELECTED TOOL
+  const activeContent = document.getElementById(`${toolName}-content`);
+  if (activeContent) {
+    activeContent.classList.add('active');
+    activeContent.style.display = 'block';
+    
+    // ✅ Initialize special tools
+    if (toolName === "article" && typeof showArticlesTool === "function") {
+      showArticlesTool();
+    }
+    
+    if (toolName === "profile" && typeof showProfileTool === "function") {
+      showProfileTool();
+    }
+  }
+
+  // ✅ 5. Update header
+  if (toolTitles[toolName]) {
+    const headerTitle = document.getElementById('headerTitle');
+    const headerSubtitle = document.getElementById('headerSubtitle');
+    
+    if (headerTitle) headerTitle.textContent = toolTitles[toolName].title;
+    if (headerSubtitle) headerSubtitle.textContent = toolTitles[toolName].subtitle;
+
+    // Update username for dashboard
+    if (toolName === "dashboard") {
+      const auth = window.firebaseAuth;
+      if (auth && auth.currentUser) {
+        const username = getUsernameFromDisplayName(
+          auth.currentUser.displayName,
+          auth.currentUser.email
+        );
+        if (headerTitle) {
+          headerTitle.textContent = `Welcome back, ${username}!`;
+        }
+      }
+    }
+  }
+
+  // ✅ 6. Close mobile sidebar
+  if (window.innerWidth < 1024) {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      sidebar.classList.remove('menu-active');
+    }
+  }
+  
+  // ✅ Unlock after 500ms
+  setTimeout(() => {
+    window.isToolSwitching = false;
+    console.log('✅ Tool switched successfully to:', toolName);
+  }, 500);
+}
+
+
+// ============================================
+// FORCE DEFAULT TOOL - ONE TIME ONLY ✅
+// ============================================
+function initializeDefaultTool() {
+  if (window.hasInitialized) {
+    console.log('⏭️ Already initialized, skipping...');
+    return;
+  }
+  
+  console.log('🚀 Initializing default tool...');
+  
+  // ✅ Set flag FIRST
+  window.hasInitialized = true;
+  window.currentActiveTool = 'homework';
+  
+  // ✅ Hide all tools
+  document.querySelectorAll('.tool-content').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  
+  // ✅ Remove all nav active
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // ✅ Show Homework Fixer
+  const homework = document.getElementById('homework-content');
+  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
+  
+  if (homework) {
+    homework.classList.add('active');
+    homework.style.display = 'block';
+    console.log('✅ Homework Fixer shown');
+  }
+  
+  if (homeworkLink) {
+    homeworkLink.classList.add('active');
+  }
+  
+  console.log('✅ Default tool initialized!');
+}
+
+// ============================================
+// PAGE LOAD - INITIALIZE ONCE ✅
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('📄 DOM loaded, initializing...');
+  initializeDefaultTool();
+});
+
+// ============================================
+// BACKUP CHECK - Only if needed ✅
+// ============================================
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (!window.hasInitialized) {
+      console.warn('⚠️ Backup initialization triggered');
+      initializeDefaultTool();
+    } else {
+      console.log('✅ Already initialized, current tool:', window.currentActiveTool);
+    }
+  }, 200);
+});
 
 // ============================================
 // BACKEND AVAILABILITY CHECKER
@@ -28,6 +186,35 @@ async function checkBackendStatus() {
     return false;
   }
 }
+
+// ============================================
+// NAV LINK CLICK HANDLERS ✅
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.nav-link[data-tool]');
+  const toolCards = document.querySelectorAll('.tool-card[data-tool]');
+  
+  // ✅ Nav links
+  navLinks.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const toolName = link.getAttribute('data-tool');
+      if (toolName) {
+        switchTool(toolName);
+      }
+    });
+  });
+
+  // ✅ Tool cards
+  toolCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const toolName = card.getAttribute('data-tool');
+      if (toolName) {
+        switchTool(toolName);
+      }
+    });
+  });
+});
 
 // Sidebar Toggle
 const sidebar = document.querySelector(".sidebar");
@@ -64,6 +251,9 @@ const toolContents = document.querySelectorAll(".tool-content");
 const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
+// ============================================
+// TOOL TITLES ✅
+// ============================================
 const toolTitles = {
   dashboard: {
     title: "Welcome back!",
@@ -93,7 +283,7 @@ const toolTitles = {
     title: "IELTS Feedback",
     subtitle: "Get feedback on your speaking",
   },
-  article: {  // ✅ YANGI
+  article: {
     title: "Reading Articles",
     subtitle: "Improve your English with curated articles"
   },
@@ -103,82 +293,44 @@ const toolTitles = {
   },
 };
 
+console.log('✅ Dashboard.js loaded successfully!');
+
+// ============================================
+// HELPER FUNCTIONS ✅
+// ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
-    return email ? email.split("@")[0] : "User";
+    return email ? email.split('@')[0] : 'User';
   }
 
   let username = displayName
-    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
-    .replace(/[\u{2600}-\u{26FF}]/gu, "")
-    .replace(/[\u{2700}-\u{27BF}]/gu, "")
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, "")
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, "")
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
-    .replace(/[\u{1F900}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
     .trim();
 
   if (!username || username.length === 0 || /^\s*$/.test(username)) {
-    username = email ? email.split("@")[0] : "User";
+    username = email ? email.split('@')[0] : 'User';
   }
 
   return username;
 }
 
 function updateWelcomeMessage(username) {
-  const headerTitle = document.getElementById("headerTitle");
-  if (headerTitle && headerTitle.textContent.includes("Welcome back")) {
+  const headerTitle = document.getElementById('headerTitle');
+  if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
     headerTitle.textContent = `Welcome back, ${username}!`;
   }
 }
 
-// ============================================
-// FORCE DEFAULT TOOL ON PAGE LOAD ✅
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    console.log('🚀 Initializing default tool...');
-    
-    // ✅ 1. FORCE HIDE ALL TOOLS with inline style
-    document.querySelectorAll('.tool-content').forEach(el => {
-      el.classList.remove('active');
-      el.style.display = 'none';
-    });
-    
-    // ✅ 2. Remove all nav active
-    document.querySelectorAll('.nav-link').forEach(el => {
-      el.classList.remove('active');
-    });
-    
-    // ✅ 3. Set homework as default FORCED
-    const homework = document.getElementById('homework-content');
-    const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
-    
-    if (homework) {
-      homework.classList.add('active');
-      homework.style.display = 'block'; // ✅ Force show
-    }
-    
-    if (homeworkLink) {
-      homeworkLink.classList.add('active');
-    }
-    
-    console.log('✅ Default tool set: Homework Fixer');
-  }, 100);
-});
 
-navLinks.forEach((link) => {
-  link.addEventListener("click", (e) => {
-    e.preventDefault();
-    switchTool(link.getAttribute("data-tool"));
-  });
-});
 
-toolCards.forEach((card) => {
-  card.addEventListener("click", () => {
-    switchTool(card.getAttribute("data-tool"));
-  });
-});
+
+
 
 // Helper Functions
 function showLoading(outputElement) {
@@ -2628,28 +2780,27 @@ function fallbackSpeech(word, audioBtn) {
 let motivationInterval;
 let isMotivationVisible = false;
 
+// ============================================
+// PREVENT TOOL CHANGE ON MOTIVATION ✅
+// ============================================
 async function showMotivation() {
-  // Agar modal hali ko'rinishda bo'lsa, yangi motivatsiya ko'rsatmang
+  // ✅ DON'T change tool when showing motivation
   if (isMotivationVisible) {
-    console.log("⏳ Motivatsiya hali ko'rinishda, yangi so'rovni kutish...");
+    console.log('⏳ Motivation already visible');
     return;
   }
 
   try {
-    console.log("📤 Motivatsiya so'ralyapti...");
-
-    // ✅ TUZATILGAN API URL
+    console.log('📤 Fetching motivation...');
     const response = await fetch(`${API_URL}/motivation`);
     const data = await response.json();
-
-    console.log("📥 Motivatsiya olindi:", data);
 
     if (data.success) {
       const toast = document.getElementById("motivationToast");
       const text = document.querySelector(".motivation-text");
 
       if (!toast || !text) {
-        console.error("❌ Motivatsiya elementlari topilmadi!");
+        console.error('❌ Motivation elements not found!');
         return;
       }
 
@@ -2660,41 +2811,35 @@ async function showMotivation() {
         </span>
       `;
 
-      // ✅ Modal animatsiyani to'g'ri ko'rsatish
       isMotivationVisible = true;
-      toast.style.display = "flex"; // Avval display:flex qilish
+      toast.style.display = 'flex';
 
-      // 50ms kechikish - brauzer DOM ni yangilashi uchun
       setTimeout(() => {
-        toast.classList.add("show");
+        toast.classList.add('show');
       }, 50);
 
-      console.log("✅ Motivatsiya ko'rsatildi!");
+      console.log('✅ Motivation shown');
 
-      // ✅ 10 soniyadan keyin avtomatik yopish
       setTimeout(() => {
         closeMotivation();
       }, 10000);
     }
   } catch (error) {
-    console.error("❌ Motivatsiya xatosi:", error);
+    console.error('❌ Motivation error:', error);
   }
 }
 
 function closeMotivation() {
-  const toast = document.getElementById("motivationToast");
-
+  const toast = document.getElementById('motivationToast');
   if (!toast) return;
 
-  // ✅ Animatsiya bilan yopish
-  toast.classList.remove("show");
+  toast.classList.remove('show');
 
-  // Animatsiya tugagandan keyin display:none qilish
   setTimeout(() => {
-    toast.style.display = "none";
+    toast.style.display = 'none';
     isMotivationVisible = false;
-    console.log("✅ Motivatsiya yopildi");
-  }, 800); // ✅ CSS animation (0.8s) bilan mos kelishi kerak
+    console.log('✅ Motivation closed');
+  }, 800);
 }
 
 function startMotivationSystem() {
@@ -4006,158 +4151,8 @@ function showError(element, message) {
 // console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
 
 
-// ============================================
-// SWITCH TOOL FUNCTION - OPTIMIZED ✅
-// ============================================
-function switchTool(toolName) {
-  console.log('🔀 Switching to:', toolName);
-  
-  // ✅ Store active tool globally
-  window.currentActiveTool = toolName;
-  
-  // ✅ 1. IMMEDIATELY hide all tools
-  document.querySelectorAll('.tool-content').forEach(el => {
-    el.classList.remove('active');
-    el.style.display = 'none';
-  });
-  
-  // ✅ 2. Remove all nav active states
-  navLinks.forEach((link) => link.classList.remove("active"));
-  
-  // ✅ 3. Activate selected nav link
-  const activeLink = document.querySelector(`.nav-link[data-tool="${toolName}"]`);
-  if (activeLink) {
-    activeLink.classList.add("active");
-  }
 
-  // ✅ 4. IMMEDIATELY show selected tool
-  const activeContent = document.getElementById(`${toolName}-content`);
-  if (activeContent) {
-    activeContent.classList.add("active");
-    activeContent.style.display = 'block';
-    
-    // ✅ Initialize special tools
-    if (toolName === "article" && typeof showArticlesTool === "function") {
-      showArticlesTool();
-    }
-    
-    if (toolName === "profile" && typeof showProfileTool === "function") {
-      showProfileTool();
-    }
-  }
 
-  // ✅ 5. Update header
-  if (toolTitles[toolName]) {
-    headerTitle.textContent = toolTitles[toolName].title;
-    headerSubtitle.textContent = toolTitles[toolName].subtitle;
 
-    if (toolName === "dashboard") {
-      const auth = window.firebaseAuth;
-      if (auth && auth.currentUser) {
-        const username = getUsernameFromDisplayName(
-          auth.currentUser.displayName,
-          auth.currentUser.email
-        );
-        headerTitle.textContent = `Welcome back, ${username}!`;
-      }
-    }
-  }
 
-  // ✅ 6. Close mobile sidebar
-  if (window.innerWidth < 1024) {
-    sidebar.classList.remove("menu-active");
-    toggleMenu(false);
-  }
-  
-  console.log('✅ Tool switched successfully');
-}
 
-// ============================================
-// GLOBAL FLAG - Prevent force showing default tool
-// ============================================
-window.currentActiveTool = null;
-window.hasInitialized = false;
-
-// ============================================
-// FORCE DEFAULT TOOL ON PAGE LOAD - ONE TIME ONLY ✅
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  // ✅ Only run if not initialized yet
-  if (window.hasInitialized) {
-    console.log('⏭️ Already initialized, skipping...');
-    return;
-  }
-  
-  console.log('🚀 Setting default tool...');
-  
-  // ✅ IMMEDIATELY hide all tools
-  document.querySelectorAll('.tool-content').forEach(el => {
-    el.classList.remove('active');
-    el.style.display = 'none';
-  });
-  
-  // ✅ Remove all nav active
-  document.querySelectorAll('.nav-link').forEach(el => {
-    el.classList.remove('active');
-  });
-  
-  // ✅ SHOW Homework Fixer IMMEDIATELY
-  const homework = document.getElementById('homework-content');
-  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
-  
-  if (homework) {
-    homework.classList.add('active');
-    homework.style.display = 'block';
-    window.currentActiveTool = 'homework';
-    console.log('✅ Homework Fixer shown');
-  }
-  
-  if (homeworkLink) {
-    homeworkLink.classList.add('active');
-  }
-  
-  window.hasInitialized = true;
-  console.log('✅ Default tool set successfully!');
-});
-
-// ============================================
-// BACKUP CHECK - Only if no tool is active ✅
-// ============================================
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    // ✅ Only check if already initialized
-    if (!window.hasInitialized) {
-      console.warn('⚠️ Not initialized, forcing default tool...');
-      
-      document.querySelectorAll('.tool-content').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      const homework = document.getElementById('homework-content');
-      if (homework) {
-        homework.classList.add('active');
-        homework.style.display = 'block';
-        window.currentActiveTool = 'homework';
-      }
-      
-      window.hasInitialized = true;
-    } else {
-      // ✅ If initialized, respect current active tool
-      console.log('✅ Already initialized, current tool:', window.currentActiveTool);
-      
-      // ✅ Only check if NO tool is visible
-      const anyToolVisible = Array.from(document.querySelectorAll('.tool-content')).some(el => 
-        el.style.display === 'block' || el.classList.contains('active')
-      );
-      
-      if (!anyToolVisible && window.currentActiveTool) {
-        console.warn('⚠️ No tool visible, restoring:', window.currentActiveTool);
-        const activeTool = document.getElementById(`${window.currentActiveTool}-content`);
-        if (activeTool) {
-          activeTool.classList.add('active');
-          activeTool.style.display = 'block';
-        }
-      }
-    }
-  }, 100);
-});
