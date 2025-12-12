@@ -133,6 +133,8 @@ function updateWelcomeMessage(username) {
 }
 
 function switchTool(toolName) {
+  console.log('🔀 Switching to:', toolName); // ✅ Debug uchun
+  
   navLinks.forEach((link) => link.classList.remove("active"));
   const activeLink = document.querySelector(
     `.nav-link[data-tool="${toolName}"]`
@@ -169,12 +171,12 @@ function switchTool(toolName) {
     }
   }
 
-
-
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");
     toggleMenu(false);
   }
+  
+  console.log('✅ Switched to:', toolName); // ✅ Debug uchun
 }
 
 navLinks.forEach((link) => {
@@ -2729,14 +2731,28 @@ window.addEventListener("beforeunload", () => {
 });
 
 // ============================================
-// PAGE LOAD
+// PAGE LOAD - DEFAULT TOOL ✅
 // ============================================
 window.addEventListener("load", () => {
   updateMiniTimerDisplay();
-  startMotivationSystem(); // ✅ Motivatsiya tizimini ishga tushirish
+  startMotivationSystem();
   initStats();
 
-  // ✅ Firebase auth tekshirish va username ni yangilash
+  // ✅ DEFAULT TOOL: HOMEWORK FIXER
+  // Remove all active classes first
+  document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  
+  // Set homework as default active
+  const homeworkContent = document.getElementById('homework-content');
+  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
+  
+  if (homeworkContent) homeworkContent.classList.add('active');
+  if (homeworkLink) homeworkLink.classList.add('active');
+  
+  console.log('✅ Default tool set: Homework Fixer');
+
+  // Firebase auth check
   const auth = window.firebaseAuth;
   if (auth) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -2746,17 +2762,14 @@ window.addEventListener("load", () => {
           user.email
         );
         console.log("✅ Username extracted:", username);
-
-        // Header title ni yangilash (agar dashboard bo'lsa)
         updateWelcomeMessage(username);
 
-        // Sidebar username ni yangilash
         const userNameElement = document.getElementById("userName");
         if (userNameElement) {
           userNameElement.textContent = username;
         }
       }
-      unsubscribe(); // Bir marta ishlasin
+      unsubscribe();
     });
   }
 
@@ -4058,3 +4071,23 @@ function switchTool(toolName) {
     toggleMenu(false);
   }
 }
+
+// ============================================
+// FORCE DEFAULT TOOL ON PAGE LOAD ✅
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    // Remove all active
+    document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+    
+    // Set homework as default
+    const homework = document.getElementById('homework-content');
+    const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
+    
+    if (homework) homework.classList.add('active');
+    if (homeworkLink) homeworkLink.classList.add('active');
+    
+    console.log('✅ Forced default: Homework Fixer');
+  }, 100);
+});
