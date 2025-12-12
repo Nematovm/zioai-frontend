@@ -534,11 +534,16 @@ main {
 /* Tool Content */
 .tool-content {
   display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: none; /* ❌ Remove transition to prevent delay */
 }
 
 .tool-content.active {
   display: block;
-  animation: fadeIn 0.5s ease;
+  opacity: 1;
+  visibility: visible;
+  animation: none; /* ❌ Remove animation */
 }
 
 .tool-interface {

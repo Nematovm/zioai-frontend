@@ -4007,21 +4007,18 @@ function showError(element, message) {
 
 
 // ============================================
-// SWITCH TOOL FUNCTION - TRACKING YO'Q ✅
+// SWITCH TOOL FUNCTION - OPTIMIZED ✅
 // ============================================
 function switchTool(toolName) {
   console.log('🔀 Switching to:', toolName);
   
-  // ✅ 1. FORCE HIDE ALL TOOLS (both class and inline style)
+  // ✅ 1. IMMEDIATELY hide all tools (no animation delay)
   document.querySelectorAll('.tool-content').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
-    el.style.opacity = '0';
-    el.style.visibility = 'hidden';
-    el.style.zIndex = '1';
   });
   
-  // ✅ 2. Remove all nav active
+  // ✅ 2. Remove all nav active states
   navLinks.forEach((link) => link.classList.remove("active"));
   
   // ✅ 3. Activate selected nav link
@@ -4030,15 +4027,11 @@ function switchTool(toolName) {
     activeLink.classList.add("active");
   }
 
-  // ✅ 4. FORCE SHOW selected tool
+  // ✅ 4. IMMEDIATELY show selected tool (no delay)
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
-    // Force show with all properties
     activeContent.classList.add("active");
     activeContent.style.display = 'block';
-    activeContent.style.opacity = '1';
-    activeContent.style.visibility = 'visible';
-    activeContent.style.zIndex = '10';
     
     // ✅ Initialize special tools
     if (toolName === "article" && typeof showArticlesTool === "function") {
@@ -4073,47 +4066,56 @@ function switchTool(toolName) {
     toggleMenu(false);
   }
   
-  console.log('✅ Switched to:', toolName);
+  console.log('✅ Tool switched successfully');
 }
 
 // ============================================
-// FORCE DEFAULT TOOL ON PAGE LOAD - UPDATED ✅
+// FORCE DEFAULT TOOL ON PAGE LOAD - IMMEDIATE ✅
 // ============================================
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Setting default tool...');
+  
+  // ✅ IMMEDIATELY hide all tools
+  document.querySelectorAll('.tool-content').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  
+  // ✅ Remove all nav active
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // ✅ SHOW Homework Fixer IMMEDIATELY
+  const homework = document.getElementById('homework-content');
+  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
+  
+  if (homework) {
+    homework.classList.add('active');
+    homework.style.display = 'block';
+    console.log('✅ Homework Fixer shown');
+  }
+  
+  if (homeworkLink) {
+    homeworkLink.classList.add('active');
+  }
+  
+  console.log('✅ Default tool set successfully!');
+});
+
+// ============================================
+// BACKUP: Force show homework after page fully loads
+// ============================================
+window.addEventListener('load', () => {
   setTimeout(() => {
-    console.log('🚀 Setting default tool...');
-    
-    // ✅ 1. FORCE HIDE ALL with inline styles
-    document.querySelectorAll('.tool-content').forEach(el => {
-      el.classList.remove('active');
-      el.style.display = 'none';
-      el.style.opacity = '0';
-      el.style.visibility = 'hidden';
-      el.style.zIndex = '1';
-    });
-    
-    // ✅ 2. Remove all nav active
-    document.querySelectorAll('.nav-link').forEach(el => {
-      el.classList.remove('active');
-    });
-    
-    // ✅ 3. FORCE SHOW Homework Fixer
     const homework = document.getElementById('homework-content');
-    const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
-    
-    if (homework) {
+    if (homework && !homework.classList.contains('active')) {
+      console.warn('⚠️ Homework not shown, forcing...');
+      document.querySelectorAll('.tool-content').forEach(el => {
+        el.style.display = 'none';
+      });
       homework.classList.add('active');
       homework.style.display = 'block';
-      homework.style.opacity = '1';
-      homework.style.visibility = 'visible';
-      homework.style.zIndex = '10';
-      console.log('✅ Homework Fixer shown');
     }
-    
-    if (homeworkLink) {
-      homeworkLink.classList.add('active');
-    }
-    
-    console.log('✅ Default tool set successfully!');
-  }, 150);
+  }, 100);
 });
