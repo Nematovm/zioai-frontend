@@ -132,52 +132,40 @@ function updateWelcomeMessage(username) {
   }
 }
 
-function switchTool(toolName) {
-  console.log('🔀 Switching to:', toolName); // ✅ Debug uchun
-  
-  navLinks.forEach((link) => link.classList.remove("active"));
-  const activeLink = document.querySelector(
-    `.nav-link[data-tool="${toolName}"]`
-  );
-  if (activeLink) activeLink.classList.add("active");
-
-  toolContents.forEach((content) => content.classList.remove("active"));
-  const activeContent = document.getElementById(`${toolName}-content`);
-  if (activeContent) {
-    activeContent.classList.add("active");
-
-    if (toolName === "article" && typeof showArticlesTool === "function") {
-      showArticlesTool();
+// ============================================
+// FORCE DEFAULT TOOL ON PAGE LOAD ✅
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    console.log('🚀 Initializing default tool...');
+    
+    // ✅ 1. FORCE HIDE ALL TOOLS with inline style
+    document.querySelectorAll('.tool-content').forEach(el => {
+      el.classList.remove('active');
+      el.style.display = 'none';
+    });
+    
+    // ✅ 2. Remove all nav active
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.classList.remove('active');
+    });
+    
+    // ✅ 3. Set homework as default FORCED
+    const homework = document.getElementById('homework-content');
+    const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
+    
+    if (homework) {
+      homework.classList.add('active');
+      homework.style.display = 'block'; // ✅ Force show
     }
     
-    if (toolName === "profile" && typeof showProfileTool === "function") {
-      showProfileTool();
+    if (homeworkLink) {
+      homeworkLink.classList.add('active');
     }
-  }
-
-  if (toolTitles[toolName]) {
-    headerTitle.textContent = toolTitles[toolName].title;
-    headerSubtitle.textContent = toolTitles[toolName].subtitle;
-
-    if (toolName === "dashboard") {
-      const auth = window.firebaseAuth;
-      if (auth && auth.currentUser) {
-        const username = getUsernameFromDisplayName(
-          auth.currentUser.displayName,
-          auth.currentUser.email
-        );
-        headerTitle.textContent = `Welcome back, ${username}!`;
-      }
-    }
-  }
-
-  if (window.innerWidth < 1024) {
-    sidebar.classList.remove("menu-active");
-    toggleMenu(false);
-  }
-  
-  console.log('✅ Switched to:', toolName); // ✅ Debug uchun
-}
+    
+    console.log('✅ Default tool set: Homework Fixer');
+  }, 100);
+});
 
 navLinks.forEach((link) => {
   link.addEventListener("click", (e) => {
@@ -4022,18 +4010,37 @@ function showError(element, message) {
 // SWITCH TOOL FUNCTION - TRACKING YO'Q ✅
 // ============================================
 function switchTool(toolName) {
+  console.log('🔀 Switching to:', toolName);
+  
+  // ✅ 1. FORCE HIDE ALL TOOLS (both class and inline style)
+  document.querySelectorAll('.tool-content').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+    el.style.opacity = '0';
+    el.style.visibility = 'hidden';
+    el.style.zIndex = '1';
+  });
+  
+  // ✅ 2. Remove all nav active
   navLinks.forEach((link) => link.classList.remove("active"));
-  const activeLink = document.querySelector(
-    `.nav-link[data-tool="${toolName}"]`
-  );
-  if (activeLink) activeLink.classList.add("active");
+  
+  // ✅ 3. Activate selected nav link
+  const activeLink = document.querySelector(`.nav-link[data-tool="${toolName}"]`);
+  if (activeLink) {
+    activeLink.classList.add("active");
+  }
 
-  toolContents.forEach((content) => content.classList.remove("active"));
+  // ✅ 4. FORCE SHOW selected tool
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
+    // Force show with all properties
     activeContent.classList.add("active");
-
-    // ✅ ARTICLES TOOL INITIALIZE
+    activeContent.style.display = 'block';
+    activeContent.style.opacity = '1';
+    activeContent.style.visibility = 'visible';
+    activeContent.style.zIndex = '10';
+    
+    // ✅ Initialize special tools
     if (toolName === "article" && typeof showArticlesTool === "function") {
       showArticlesTool();
     }
@@ -4043,6 +4050,7 @@ function switchTool(toolName) {
     }
   }
 
+  // ✅ 5. Update header
   if (toolTitles[toolName]) {
     headerTitle.textContent = toolTitles[toolName].title;
     headerSubtitle.textContent = toolTitles[toolName].subtitle;
@@ -4059,35 +4067,53 @@ function switchTool(toolName) {
     }
   }
 
-  // ❌ BU BUTUN BLOKNI OLIB TASHLADIK:
-  // if (toolName !== "dashboard" && toolName !== "profile") {
-  //   if (typeof trackToolUsage === "function") {
-  //     trackToolUsage(toolName);
-  //   }
-  // }
-
+  // ✅ 6. Close mobile sidebar
   if (window.innerWidth < 1024) {
     sidebar.classList.remove("menu-active");
     toggleMenu(false);
   }
+  
+  console.log('✅ Switched to:', toolName);
 }
 
 // ============================================
-// FORCE DEFAULT TOOL ON PAGE LOAD ✅
+// FORCE DEFAULT TOOL ON PAGE LOAD - UPDATED ✅
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
-    // Remove all active
-    document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+    console.log('🚀 Setting default tool...');
     
-    // Set homework as default
+    // ✅ 1. FORCE HIDE ALL with inline styles
+    document.querySelectorAll('.tool-content').forEach(el => {
+      el.classList.remove('active');
+      el.style.display = 'none';
+      el.style.opacity = '0';
+      el.style.visibility = 'hidden';
+      el.style.zIndex = '1';
+    });
+    
+    // ✅ 2. Remove all nav active
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.classList.remove('active');
+    });
+    
+    // ✅ 3. FORCE SHOW Homework Fixer
     const homework = document.getElementById('homework-content');
     const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
     
-    if (homework) homework.classList.add('active');
-    if (homeworkLink) homeworkLink.classList.add('active');
+    if (homework) {
+      homework.classList.add('active');
+      homework.style.display = 'block';
+      homework.style.opacity = '1';
+      homework.style.visibility = 'visible';
+      homework.style.zIndex = '10';
+      console.log('✅ Homework Fixer shown');
+    }
     
-    console.log('✅ Forced default: Homework Fixer');
-  }, 100);
+    if (homeworkLink) {
+      homeworkLink.classList.add('active');
+    }
+    
+    console.log('✅ Default tool set successfully!');
+  }, 150);
 });
