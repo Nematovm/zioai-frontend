@@ -4012,7 +4012,10 @@ function showError(element, message) {
 function switchTool(toolName) {
   console.log('🔀 Switching to:', toolName);
   
-  // ✅ 1. IMMEDIATELY hide all tools (no animation delay)
+  // ✅ Store active tool globally
+  window.currentActiveTool = toolName;
+  
+  // ✅ 1. IMMEDIATELY hide all tools
   document.querySelectorAll('.tool-content').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
@@ -4027,7 +4030,7 @@ function switchTool(toolName) {
     activeLink.classList.add("active");
   }
 
-  // ✅ 4. IMMEDIATELY show selected tool (no delay)
+  // ✅ 4. IMMEDIATELY show selected tool
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
     activeContent.classList.add("active");
@@ -4070,9 +4073,21 @@ function switchTool(toolName) {
 }
 
 // ============================================
-// FORCE DEFAULT TOOL ON PAGE LOAD - IMMEDIATE ✅
+// GLOBAL FLAG - Prevent force showing default tool
+// ============================================
+window.currentActiveTool = null;
+window.hasInitialized = false;
+
+// ============================================
+// FORCE DEFAULT TOOL ON PAGE LOAD - ONE TIME ONLY ✅
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+  // ✅ Only run if not initialized yet
+  if (window.hasInitialized) {
+    console.log('⏭️ Already initialized, skipping...');
+    return;
+  }
+  
   console.log('🚀 Setting default tool...');
   
   // ✅ IMMEDIATELY hide all tools
@@ -4093,6 +4108,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (homework) {
     homework.classList.add('active');
     homework.style.display = 'block';
+    window.currentActiveTool = 'homework';
     console.log('✅ Homework Fixer shown');
   }
   
@@ -4100,22 +4116,48 @@ document.addEventListener('DOMContentLoaded', () => {
     homeworkLink.classList.add('active');
   }
   
+  window.hasInitialized = true;
   console.log('✅ Default tool set successfully!');
 });
 
 // ============================================
-// BACKUP: Force show homework after page fully loads
+// BACKUP CHECK - Only if no tool is active ✅
 // ============================================
 window.addEventListener('load', () => {
   setTimeout(() => {
-    const homework = document.getElementById('homework-content');
-    if (homework && !homework.classList.contains('active')) {
-      console.warn('⚠️ Homework not shown, forcing...');
+    // ✅ Only check if already initialized
+    if (!window.hasInitialized) {
+      console.warn('⚠️ Not initialized, forcing default tool...');
+      
       document.querySelectorAll('.tool-content').forEach(el => {
         el.style.display = 'none';
       });
-      homework.classList.add('active');
-      homework.style.display = 'block';
+      
+      const homework = document.getElementById('homework-content');
+      if (homework) {
+        homework.classList.add('active');
+        homework.style.display = 'block';
+        window.currentActiveTool = 'homework';
+      }
+      
+      window.hasInitialized = true;
+    } else {
+      // ✅ If initialized, respect current active tool
+      console.log('✅ Already initialized, current tool:', window.currentActiveTool);
+      
+      // ✅ Only check if NO tool is visible
+      const anyToolVisible = Array.from(document.querySelectorAll('.tool-content')).some(el => 
+        el.style.display === 'block' || el.classList.contains('active')
+      );
+      
+      if (!anyToolVisible && window.currentActiveTool) {
+        console.warn('⚠️ No tool visible, restoring:', window.currentActiveTool);
+        const activeTool = document.getElementById(`${window.currentActiveTool}-content`);
+        if (activeTool) {
+          activeTool.classList.add('active');
+          activeTool.style.display = 'block';
+        }
+      }
     }
   }, 100);
 });
