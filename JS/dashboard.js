@@ -2,7 +2,7 @@
 // 1️⃣ API CONFIGURATION
 // ============================================
 const API_URL = window.location.hostname.includes("onrender.com")
-    ? "https://zioai-backend.onrender.com"
+    ? "https://zioai-backend.onrender.com/api"
     : "http://localhost:3000/api";
 
 // ============================================
