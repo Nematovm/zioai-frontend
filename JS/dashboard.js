@@ -1,9 +1,4 @@
 // ============================================
-// DASHBOARD.JS - FINAL CLEAN VERSION ✅
-// NO DUPLICATES, NO CONFLICTS
-// ============================================
-
-// ============================================
 // 1️⃣ API CONFIGURATION
 // ============================================
 const API_URL = window.location.hostname.includes("onrender.com")
@@ -18,23 +13,65 @@ window.hasInitialized = false;
 window.isToolSwitching = false;
 window.preventToolSwitch = false;
 
+// ============================================
+// 3️⃣ TOOL TITLES
+// ============================================
+const toolTitles = {
+  dashboard: {
+    title: "Welcome back!",
+    subtitle: "Select a tool below to get started",
+  },
+  homework: {
+    title: "Homework Fixer",
+    subtitle: "Paste your homework and get instant corrections",
+  },
+  grammar: {
+    title: "Writing Checker",
+    subtitle: "Check and improve your grammar",
+  },
+  vocabulary: {
+    title: "Vocabulary Builder",
+    subtitle: "Learn new words with examples",
+  },
+  quiz: {
+    title: "Quiz Generator",
+    subtitle: "Generate quizzes from any text",
+  },
+  study: {
+    title: "Study Assistant",
+    subtitle: "AI-powered study helper",
+  },
+  speaking: {
+    title: "IELTS Feedback",
+    subtitle: "Get feedback on your speaking",
+  },
+  article: {
+    title: "Reading Articles",
+    subtitle: "Improve your English with curated articles"
+  },
+  profile: {
+    title: "Profile Settings",
+    subtitle: "Manage your account and preferences",
+  },
+};
 
 
 // ============================================
-// 4️⃣ SWITCH TOOL FUNCTION ✅
+// 4️⃣ SWITCH TOOL FUNCTION - FIXED ✅
 // ============================================
 function switchTool(toolName) {
-  // ✅ Check if prevented
-  if (window.preventToolSwitch) {
-    console.log('🚫 Tool switch prevented (background operation in progress)');
-    return;
-  }
+  // ✅ CHECK: Prevent switching during background operations
+  // if (window.preventToolSwitch) {
+  //   console.log('🚫 Tool switch prevented (motivation/background operation)');
+  //   return;
+  // }
   
   if (window.isToolSwitching) {
     console.log('⏳ Tool switch in progress, please wait...');
     return;
   }
   
+  // ✅ SET LOCK
   window.isToolSwitching = true;
   console.log('🔀 Switching to:', toolName);
   
@@ -102,7 +139,7 @@ function switchTool(toolName) {
     }
   }
   
-  // Unlock
+  // ✅ UNLOCK after delay
   setTimeout(() => {
     window.isToolSwitching = false;
     console.log('✅ Tool switched successfully to:', toolName);
@@ -151,7 +188,36 @@ function initializeDefaultTool() {
   console.log('✅ Default tool initialized!');
 }
 
-// ✅ 1. DOM Content Loaded - Initialize UI
+// ============================================
+// 6️⃣ initStats FUNCTION - SAFE VERSION ✅
+// ============================================
+function initStats() {
+  try {
+    // ✅ Check if stats.js is loaded
+    if (typeof window.loadUserStats === 'function') {
+      window.loadUserStats();
+      console.log('✅ Stats initialized successfully');
+    } else {
+      console.warn('⚠️ Stats system not loaded yet - will initialize later');
+      
+      // ✅ Retry after 1 second (stats.js might load late)
+      setTimeout(() => {
+        if (typeof window.loadUserStats === 'function') {
+          window.loadUserStats();
+          console.log('✅ Stats initialized (delayed)');
+        } else {
+          console.error('❌ Stats system not available');
+        }
+      }, 1000);
+    }
+  } catch (error) {
+    console.error('❌ Stats initialization error:', error);
+  }
+}
+
+// ============================================
+// 7️⃣ DOM CONTENT LOADED - INITIALIZE UI
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
   console.log('📄 DOM loaded, initializing...');
   
@@ -178,7 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ✅ 2. Window Load - Initialize Systems (ONCE!)
+// ============================================
+// 8️⃣ WINDOW LOAD - INITIALIZE SYSTEMS (ONCE!)
+// ============================================
 window.addEventListener('load', () => {
   console.log('🪟 Window loaded');
   
@@ -189,19 +257,18 @@ window.addEventListener('load', () => {
       initializeDefaultTool();
     }
     
-    // ✅ Initialize systems (with safety checks)
+    // ✅ Initialize mini timer
     if (typeof updateMiniTimerDisplay === 'function') {
       updateMiniTimerDisplay();
     }
     
-    if (typeof initStats === 'function') {
-      initStats();
-    } else {
-      console.warn('⚠️ initStats not defined - skipping');
-    }
+    // ✅ Initialize stats (SAFE VERSION)
+    initStats();
     
     // ✅ Start motivation system ONCE
-    startMotivationSystem();
+    if (typeof startMotivationSystem === 'function') {
+      startMotivationSystem();
+    }
     
     console.log('✅ All systems ready, current tool:', window.currentActiveTool);
   }, 200);
@@ -292,53 +359,11 @@ const toolContents = document.querySelectorAll(".tool-content");
 const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
-// ============================================
-// 3️⃣ TOOL TITLES
-// ============================================
-const toolTitles = {
-  dashboard: {
-    title: "Welcome back!",
-    subtitle: "Select a tool below to get started",
-  },
-  homework: {
-    title: "Homework Fixer",
-    subtitle: "Paste your homework and get instant corrections",
-  },
-  grammar: {
-    title: "Writing Checker",
-    subtitle: "Check and improve your grammar",
-  },
-  vocabulary: {
-    title: "Vocabulary Builder",
-    subtitle: "Learn new words with examples",
-  },
-  quiz: {
-    title: "Quiz Generator",
-    subtitle: "Generate quizzes from any text",
-  },
-  study: {
-    title: "Study Assistant",
-    subtitle: "AI-powered study helper",
-  },
-  speaking: {
-    title: "IELTS Feedback",
-    subtitle: "Get feedback on your speaking",
-  },
-  article: {
-    title: "Reading Articles",
-    subtitle: "Improve your English with curated articles"
-  },
-  profile: {
-    title: "Profile Settings",
-    subtitle: "Manage your account and preferences",
-  },
-};
-
 
 console.log('✅ Dashboard.js loaded successfully!');
 
 // ============================================
-// 7️⃣ HELPER FUNCTIONS ✅
+// 🔟 HELPER FUNCTIONS ✅
 // ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
@@ -2735,7 +2760,7 @@ function fallbackSpeech(word, audioBtn) {
 }
 
 // ============================================
-// 6️⃣ MOTIVATION SYSTEM - SINGLE VERSION ✅
+// 9️⃣ MOTIVATION SYSTEM - FIXED VERSION ✅
 // ============================================
 let motivationInterval;
 let isMotivationVisible = false;
@@ -2746,7 +2771,8 @@ async function showMotivation() {
     return;
   }
 
-  // ✅ LOCK tool switching
+  // ✅ LOCK tool switching ONLY while motivation is visible
+  const originalPreventSwitch = window.preventToolSwitch;
   window.preventToolSwitch = true;
   console.log('🔒 Tool switching locked for motivation');
 
@@ -2760,7 +2786,7 @@ async function showMotivation() {
 
       if (!toast || !text) {
         console.error('❌ Motivation elements not found!');
-        window.preventToolSwitch = false;
+        window.preventToolSwitch = originalPreventSwitch;
         return;
       }
 
@@ -2780,14 +2806,14 @@ async function showMotivation() {
 
       console.log('✅ Motivation shown');
 
-      // Auto-close after 10 seconds
+      // Auto-close after 8 seconds (reduced from 10)
       setTimeout(() => {
         closeMotivation();
-      }, 10000);
+      }, 8000);
     }
   } catch (error) {
     console.error('❌ Motivation error:', error);
-    window.preventToolSwitch = false;
+    window.preventToolSwitch = originalPreventSwitch;
   }
 }
 
@@ -2813,17 +2839,19 @@ function closeMotivation() {
 function startMotivationSystem() {
   console.log("🚀 Motivation system started");
 
+  // First motivation after 10 seconds (increased from 5)
   setTimeout(() => {
     showMotivation();
-  }, 5000);
+  }, 10000);
 
+  // Repeat every 5 minutes
   motivationInterval = setInterval(() => {
     showMotivation();
   }, 300000);
 }
 
 // ============================================
-// 9️⃣ CLEANUP ✅
+// CLEANUP ✅
 // ============================================
 window.addEventListener("beforeunload", () => {
   if (motivationInterval) {
@@ -2832,7 +2860,7 @@ window.addEventListener("beforeunload", () => {
   window.preventToolSwitch = false;
 });
 
-console.log('✅ Dashboard.js (clean version) loaded successfully!');
+console.log('✅ Dashboard.js (fixed version) loaded successfully!');
 
 // ============================================
 // PAGE LOAD - DEFAULT TOOL ✅
