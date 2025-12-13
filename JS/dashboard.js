@@ -1,4 +1,9 @@
 // ============================================
+// DASHBOARD.JS - FINAL CLEAN VERSION ✅
+// NO DUPLICATES, NO CONFLICTS
+// ============================================
+
+// ============================================
 // 1️⃣ API CONFIGURATION
 // ============================================
 const API_URL = window.location.hostname.includes("onrender.com")
@@ -6,7 +11,7 @@ const API_URL = window.location.hostname.includes("onrender.com")
     : "http://localhost:3000/api";
 
 // ============================================
-// 2️⃣ YANGI GLOBAL FLAGS ✅
+// 2️⃣ GLOBAL FLAGS ✅
 // ============================================
 window.currentActiveTool = 'homework';
 window.hasInitialized = false;
@@ -14,17 +19,17 @@ window.isToolSwitching = false;
 window.preventToolSwitch = false;
 
 
+
 // ============================================
-// SWITCH TOOL FUNCTION - FIXED ✅
+// 4️⃣ SWITCH TOOL FUNCTION ✅
 // ============================================
 function switchTool(toolName) {
-  // ✅ Check if tool switching is prevented (e.g., during motivation display)
+  // ✅ Check if prevented
   if (window.preventToolSwitch) {
     console.log('🚫 Tool switch prevented (background operation in progress)');
     return;
   }
   
-  // ✅ Prevent rapid switching
   if (window.isToolSwitching) {
     console.log('⏳ Tool switch in progress, please wait...');
     return;
@@ -33,33 +38,31 @@ function switchTool(toolName) {
   window.isToolSwitching = true;
   console.log('🔀 Switching to:', toolName);
   
-  // ✅ Update global state FIRST
   window.currentActiveTool = toolName;
   
-  // ✅ 1. HIDE ALL TOOLS IMMEDIATELY
+  // Hide all tools
   document.querySelectorAll('.tool-content').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
   });
   
-  // ✅ 2. Remove all nav active states
+  // Remove all nav active
   document.querySelectorAll('.nav-link').forEach(el => {
     el.classList.remove('active');
   });
   
-  // ✅ 3. Activate selected nav link
+  // Activate selected nav
   const activeLink = document.querySelector(`.nav-link[data-tool="${toolName}"]`);
   if (activeLink) {
     activeLink.classList.add('active');
   }
 
-  // ✅ 4. SHOW SELECTED TOOL
+  // Show selected tool
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
     activeContent.classList.add('active');
     activeContent.style.display = 'block';
     
-    // ✅ Initialize special tools
     if (toolName === "article" && typeof showArticlesTool === "function") {
       showArticlesTool();
     }
@@ -69,7 +72,7 @@ function switchTool(toolName) {
     }
   }
 
-  // ✅ 5. Update header
+  // Update header
   if (toolTitles[toolName]) {
     const headerTitle = document.getElementById('headerTitle');
     const headerSubtitle = document.getElementById('headerSubtitle');
@@ -77,7 +80,6 @@ function switchTool(toolName) {
     if (headerTitle) headerTitle.textContent = toolTitles[toolName].title;
     if (headerSubtitle) headerSubtitle.textContent = toolTitles[toolName].subtitle;
 
-    // Update username for dashboard
     if (toolName === "dashboard") {
       const auth = window.firebaseAuth;
       if (auth && auth.currentUser) {
@@ -92,7 +94,7 @@ function switchTool(toolName) {
     }
   }
 
-  // ✅ 6. Close mobile sidebar
+  // Close mobile sidebar
   if (window.innerWidth < 1024) {
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
@@ -100,7 +102,7 @@ function switchTool(toolName) {
     }
   }
   
-  // ✅ Unlock after 500ms
+  // Unlock
   setTimeout(() => {
     window.isToolSwitching = false;
     console.log('✅ Tool switched successfully to:', toolName);
@@ -111,7 +113,7 @@ function switchTool(toolName) {
 
 
 // ============================================
-// INITIALIZE DEFAULT TOOL - ONLY ONCE ✅
+// 5️⃣ INITIALIZE DEFAULT TOOL ✅
 // ============================================
 function initializeDefaultTool() {
   if (window.hasInitialized) {
@@ -121,32 +123,25 @@ function initializeDefaultTool() {
   
   console.log('🚀 Initializing default tool...');
   
-  // ✅ Allow this initial tool switch
   window.preventToolSwitch = false;
-  
-  // ✅ Set flag FIRST
   window.hasInitialized = true;
   window.currentActiveTool = 'homework';
   
-  // ✅ Hide all tools
   document.querySelectorAll('.tool-content').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
   });
   
-  // ✅ Remove all nav active
   document.querySelectorAll('.nav-link').forEach(el => {
     el.classList.remove('active');
   });
   
-  // ✅ Show Homework Fixer
   const homework = document.getElementById('homework-content');
   const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
   
   if (homework) {
     homework.classList.add('active');
     homework.style.display = 'block';
-    console.log('✅ Homework Fixer shown');
   }
   
   if (homeworkLink) {
@@ -157,19 +152,16 @@ function initializeDefaultTool() {
 }
 
 // ============================================
-// PAGE LOAD EVENTS - CORRECT ORDER ✅
+// 8️⃣ PAGE LOAD EVENTS ✅
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
   console.log('📄 DOM loaded, initializing...');
   
-  // ✅ 1. Initialize default tool FIRST
   initializeDefaultTool();
 
-  // ✅ 2. Setup event listeners
   const navLinks = document.querySelectorAll('.nav-link[data-tool]');
   const toolCards = document.querySelectorAll('.tool-card[data-tool]');
 
-  // Nav links
   navLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -178,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Tool cards
   toolCards.forEach((card) => {
     card.addEventListener('click', () => {
       const toolName = card.getAttribute('data-tool');
@@ -188,24 +179,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
-  // ✅ Initialize systems after tool is ready
   setTimeout(() => {
     if (!window.hasInitialized) {
       console.warn('⚠️ Backup initialization triggered');
       initializeDefaultTool();
     }
     
-    // ✅ Start background systems
     if (typeof updateMiniTimerDisplay === 'function') updateMiniTimerDisplay();
     if (typeof initStats === 'function') initStats();
     
-    // Start motivation system
     startMotivationSystem();
     
     console.log('✅ All systems ready, current tool:', window.currentActiveTool);
   }, 200);
 
-  // ✅ Firebase auth check
   const auth = window.firebaseAuth;
   if (auth) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -214,7 +201,6 @@ window.addEventListener('load', () => {
           user.displayName,
           user.email
         );
-        console.log("✅ Username extracted:", username);
         updateWelcomeMessage(username);
 
         const userNameElement = document.getElementById("userName");
@@ -292,7 +278,7 @@ const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
 // ============================================
-// TOOL TITLES ✅
+// 3️⃣ TOOL TITLES
 // ============================================
 const toolTitles = {
   dashboard: {
@@ -333,10 +319,11 @@ const toolTitles = {
   },
 };
 
+
 console.log('✅ Dashboard.js loaded successfully!');
 
 // ============================================
-// HELPER FUNCTIONS
+// 7️⃣ HELPER FUNCTIONS ✅
 // ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
@@ -2817,28 +2804,22 @@ function fallbackSpeech(word, audioBtn) {
 }
 
 // ============================================
-// MOTIVATION SYSTEM - FIXED ✅
+// 6️⃣ MOTIVATION SYSTEM - SINGLE VERSION ✅
 // ============================================
 let motivationInterval;
 let isMotivationVisible = false;
 
 async function showMotivation() {
-  // ✅ Don't show if already visible
   if (isMotivationVisible) {
     console.log('⏳ Motivation already visible');
     return;
   }
 
-  // ✅ LOCK tool switching temporarily
+  // ✅ LOCK tool switching
   window.preventToolSwitch = true;
+  console.log('🔒 Tool switching locked for motivation');
 
   try {
-    console.log('📤 Fetching motivation...');
-    
-    const API_URL = window.location.hostname.includes("onrender.com")
-      ? "https://zioai-backend.onrender.com/api"
-      : "http://localhost:3000/api";
-    
     const response = await fetch(`${API_URL}/motivation`);
     const data = await response.json();
 
@@ -2892,27 +2873,27 @@ function closeMotivation() {
     toast.style.display = 'none';
     isMotivationVisible = false;
     
-    // ✅ UNLOCK tool switching after motivation is fully closed
+    // ✅ UNLOCK tool switching
     window.preventToolSwitch = false;
-    console.log('✅ Motivation closed, tool switching unlocked');
+    console.log('🔓 Tool switching unlocked after motivation');
   }, 800);
 }
 
 function startMotivationSystem() {
   console.log("🚀 Motivation system started");
 
-  // First motivation after 5 seconds
   setTimeout(() => {
     showMotivation();
   }, 5000);
 
-  // Show motivation every 5 minutes
   motivationInterval = setInterval(() => {
     showMotivation();
-  }, 300000); // 5 minutes
+  }, 300000);
 }
 
-// ✅ Cleanup on unload
+// ============================================
+// 9️⃣ CLEANUP ✅
+// ============================================
 window.addEventListener("beforeunload", () => {
   if (motivationInterval) {
     clearInterval(motivationInterval);
@@ -2920,7 +2901,7 @@ window.addEventListener("beforeunload", () => {
   window.preventToolSwitch = false;
 });
 
-console.log('✅ Dashboard.js fixed version loaded successfully!');
+console.log('✅ Dashboard.js (clean version) loaded successfully!');
 
 // ============================================
 // PAGE LOAD - DEFAULT TOOL ✅
