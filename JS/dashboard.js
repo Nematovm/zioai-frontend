@@ -151,14 +151,14 @@ function initializeDefaultTool() {
   console.log('✅ Default tool initialized!');
 }
 
-// ============================================
-// 8️⃣ PAGE LOAD EVENTS ✅
-// ============================================
+// ✅ 1. DOM Content Loaded - Initialize UI
 document.addEventListener('DOMContentLoaded', () => {
   console.log('📄 DOM loaded, initializing...');
   
+  // Initialize default tool
   initializeDefaultTool();
 
+  // Setup event listeners
   const navLinks = document.querySelectorAll('.nav-link[data-tool]');
   const toolCards = document.querySelectorAll('.tool-card[data-tool]');
 
@@ -178,21 +178,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ✅ 2. Window Load - Initialize Systems (ONCE!)
 window.addEventListener('load', () => {
+  console.log('🪟 Window loaded');
+  
+  // Backup initialization
   setTimeout(() => {
     if (!window.hasInitialized) {
       console.warn('⚠️ Backup initialization triggered');
       initializeDefaultTool();
     }
     
-    if (typeof updateMiniTimerDisplay === 'function') updateMiniTimerDisplay();
-    if (typeof initStats === 'function') initStats();
+    // ✅ Initialize systems (with safety checks)
+    if (typeof updateMiniTimerDisplay === 'function') {
+      updateMiniTimerDisplay();
+    }
     
+    if (typeof initStats === 'function') {
+      initStats();
+    } else {
+      console.warn('⚠️ initStats not defined - skipping');
+    }
+    
+    // ✅ Start motivation system ONCE
     startMotivationSystem();
     
     console.log('✅ All systems ready, current tool:', window.currentActiveTool);
   }, 200);
 
+  // Firebase auth
   const auth = window.firebaseAuth;
   if (auth) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -212,6 +226,7 @@ window.addEventListener('load', () => {
     });
   }
 
+  // Hide spinner
   setTimeout(() => {
     const spinner = document.querySelector(".spinner-wrapper");
     if (spinner) spinner.style.display = "none";
@@ -1479,90 +1494,6 @@ function selectTaskType(taskType) {
 
 let uploadedTopicImage = null; // Global variable
 
-// ============================================
-// 1️⃣ INITIALIZE TOPIC IMAGE UPLOAD
-// ============================================
-window.addEventListener('load', () => {
-  console.log('🔧 Initializing Topic Image Upload...');
-  
-  const uploadArea = document.getElementById('topicImageUploadArea');
-  const fileInput = document.getElementById('topicImageInput');
-  
-  if (!uploadArea || !fileInput) {
-    console.error('❌ Topic image upload elements not found!');
-    return;
-  }
-  
-  console.log('✅ Topic image upload elements found');
-  
-  // ✅ 1. CLICK TO UPLOAD
-  uploadArea.addEventListener('click', (e) => {
-    e.stopPropagation();
-    console.log('📂 Topic upload area clicked');
-    fileInput.click();
-  });
-  
-  // ✅ 2. FILE INPUT CHANGE
-  fileInput.addEventListener('change', (e) => {
-    console.log('📁 Topic file selected:', e.target.files[0]?.name);
-    handleTopicImageUpload(e);
-  });
-  
-  // ✅ 3. DRAG OVER
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.style.borderColor = '#667eea';
-    uploadArea.style.background = '#f0f2ff';
-    uploadArea.style.borderWidth = '4px';
-  });
-  
-  // ✅ 4. DRAG LEAVE
-  uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.style.borderColor = '#d1d5db';
-    uploadArea.style.background = '#f9fafb';
-    uploadArea.style.borderWidth = '3px';
-  });
-  
-  // ✅ 5. DROP
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('📥 Topic file dropped');
-    
-    uploadArea.style.borderColor = '#d1d5db';
-    uploadArea.style.background = '#f9fafb';
-    uploadArea.style.borderWidth = '3px';
-    
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      processTopicImage(file);
-    } else {
-      alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
-    }
-  });
-  
-  // ✅ 6. PASTE (Ctrl+V)
-  document.addEventListener('paste', (e) => {
-    const grammarContent = document.getElementById('grammar-content');
-    if (grammarContent && grammarContent.classList.contains('active')) {
-      console.log('📋 Paste detected in writing section');
-      
-      const items = e.clipboardData.items;
-      for (let item of items) {
-        if (item.type.indexOf('image') !== -1) {
-          const file = item.getAsFile();
-          processTopicImage(file);
-          break;
-        }
-      }
-    }
-  });
-  
-  console.log('✅ Topic image upload initialized successfully!');
-});
 
 // ============================================
 // 2️⃣ HANDLE FILE INPUT CHANGE
@@ -2906,50 +2837,7 @@ console.log('✅ Dashboard.js (clean version) loaded successfully!');
 // ============================================
 // PAGE LOAD - DEFAULT TOOL ✅
 // ============================================
-window.addEventListener("load", () => {
-  updateMiniTimerDisplay();
-  startMotivationSystem();
-  initStats();
 
-  // ✅ DEFAULT TOOL: HOMEWORK FIXER
-  // Remove all active classes first
-  document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-  
-  // Set homework as default active
-  const homeworkContent = document.getElementById('homework-content');
-  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
-  
-  if (homeworkContent) homeworkContent.classList.add('active');
-  if (homeworkLink) homeworkLink.classList.add('active');
-  
-  console.log('✅ Default tool set: Homework Fixer');
-
-  // Firebase auth check
-  const auth = window.firebaseAuth;
-  if (auth) {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        const username = getUsernameFromDisplayName(
-          user.displayName,
-          user.email
-        );
-        console.log("✅ Username extracted:", username);
-        updateWelcomeMessage(username);
-
-        const userNameElement = document.getElementById("userName");
-        if (userNameElement) {
-          userNameElement.textContent = username;
-        }
-      }
-      unsubscribe();
-    });
-  }
-
-  setTimeout(() => {
-    document.querySelector(".spinner-wrapper").style.display = "none";
-  }, 500);
-});
 
 let miniTimerInterval;
 let miniTimeLeft = 25 * 60;
@@ -3185,7 +3073,6 @@ document.addEventListener("click", function (event) {
 // ============================================
 window.addEventListener("load", () => {
   updateMiniTimerDisplay();
-  startMotivationSystem();
   initStats();
 
   // ✅ Firebase auth tekshirish va username ni yangilash
