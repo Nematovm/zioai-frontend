@@ -1,5 +1,6 @@
 // ============================================
-// DASHBOARD LOCK SYSTEM - FIXED VERSION ✅
+// DASHBOARD LOCK SYSTEM - SILENT VERSION ✅
+// NO CONSOLE SPAM, NO TOOL SWITCHING INTERFERENCE
 // ============================================
 
 // ADMIN PASSWORD
@@ -12,6 +13,10 @@ const DASHBOARD_LOCK = {
   requiredPoints: 1000,
   unlockMessage: 'Reach Level 5 or earn 1000 points to unlock Dashboard'
 };
+
+// ✅ PREVENT CONSOLE SPAM
+let lastLockState = null;
+let hasLoggedInitialState = false;
 
 // ============================================
 // GET USER STATS (LOCAL COPY)
@@ -68,106 +73,130 @@ function unlockDashboardWithPassword() {
 window.unlockDashboardWithPassword = unlockDashboardWithPassword;
 
 // ============================================
-// APPLY DASHBOARD LOCK
+// APPLY DASHBOARD LOCK - SILENT VERSION ✅
 // ============================================
 function applyDashboardLock() {
   const dashboardNavItem = document.querySelector('.nav-link[data-tool="dashboard"]');
   
   if (!dashboardNavItem) {
-    console.warn('⚠️ Dashboard nav item not found, retrying...');
+    if (!hasLoggedInitialState) {
+      console.warn('⚠️ Dashboard nav item not found, retrying...');
+    }
     return false;
   }
   
   const isUnlocked = isDashboardUnlocked();
-  console.log('🔐 Dashboard lock status:', { isUnlocked, lock: DASHBOARD_LOCK });
+  
+  // ✅ ONLY LOG IF STATE CHANGED
+  if (lastLockState !== isUnlocked) {
+    console.log('🔐 Dashboard lock status changed:', { 
+      isUnlocked, 
+      previousState: lastLockState,
+      stats: getUserStatsForLock() 
+    });
+    lastLockState = isUnlocked;
+  }
   
   if (!isUnlocked) {
-    // Add locked styling
-    dashboardNavItem.classList.add('dashboard-locked');
-    dashboardNavItem.classList.remove('active');
-    
-    // ✅ YANGI: Parent li elementiga ham style qo'shish
-    const parentLi = dashboardNavItem.closest('.nav-item');
-    if (parentLi) {
-      parentLi.style.opacity = '0.5';
-      parentLi.style.cursor = 'not-allowed';
+    // ✅ ONLY APPLY STYLES IF NOT ALREADY APPLIED
+    if (!dashboardNavItem.classList.contains('dashboard-locked')) {
+      dashboardNavItem.classList.add('dashboard-locked');
+      dashboardNavItem.classList.remove('active');
+      
+      const parentLi = dashboardNavItem.closest('.nav-item');
+      if (parentLi) {
+        parentLi.style.opacity = '0.5';
+        parentLi.style.cursor = 'not-allowed';
+      }
+      
+      if (!dashboardNavItem.querySelector('.lock-icon')) {
+        const lockIcon = document.createElement('i');
+        lockIcon.className = 'bi bi-lock-fill lock-icon';
+        lockIcon.style.cssText = `
+          margin-left: auto;
+          color: #9ca3af;
+          font-size: 16px;
+          flex-shrink: 0;
+        `;
+        dashboardNavItem.appendChild(lockIcon);
+      }
+      
+      dashboardNavItem.style.opacity = '0.6';
+      dashboardNavItem.style.cursor = 'not-allowed';
+      dashboardNavItem.style.pointerEvents = 'none';
+      dashboardNavItem.style.background = 'transparent';
+      
+      // ✅ ONLY LOG ONCE
+      if (!hasLoggedInitialState) {
+        console.log('🔒 Dashboard locked successfully');
+        hasLoggedInitialState = true;
+      }
     }
     
-    // Add padlock icon if not already present
-    if (!dashboardNavItem.querySelector('.lock-icon')) {
-      const lockIcon = document.createElement('i');
-      lockIcon.className = 'bi bi-lock-fill lock-icon';
-      lockIcon.style.cssText = `
-        margin-left: auto;
-        color: #9ca3af;
-        font-size: 16px;
-        flex-shrink: 0;
-      `;
-      dashboardNavItem.appendChild(lockIcon);
-    }
-    
-    // ✅ nav-link ni disabled qilish
-    dashboardNavItem.style.opacity = '0.6';
-    dashboardNavItem.style.cursor = 'not-allowed';
-    dashboardNavItem.style.pointerEvents = 'none';
-    dashboardNavItem.style.background = 'transparent';
-    
-    console.log('🔒 Dashboard locked successfully');
-    
-    // ✅ YANGI: Dashboard content ni yashirish va Homework ni ko'rsatish
+    // ✅ CHECK IF DASHBOARD IS VISIBLE - ONLY SWITCH ONCE
     const dashboardContent = document.getElementById('dashboard-content');
-    const homeworkContent = document.getElementById('homework-content');
-    const homeworkNav = document.querySelector('.nav-link[data-tool="homework"]');
-    
-    if (dashboardContent) {
-      dashboardContent.classList.remove('active');
-      dashboardContent.style.display = 'none';
-    }
-    
-    if (homeworkContent) {
-      homeworkContent.classList.add('active');
-      homeworkContent.style.display = 'block';
-    }
-    
-    if (homeworkNav) {
-      homeworkNav.classList.add('active');
-    }
-    
-    // Update header
-    const headerTitle = document.getElementById('headerTitle');
-    if (headerTitle) {
-      headerTitle.innerHTML = 'Homework Fixer';
-    }
-    const headerSubtitle = document.getElementById('headerSubtitle');
-    if (headerSubtitle) {
-      headerSubtitle.textContent = 'Paste your homework and get instant corrections';
+    if (dashboardContent && dashboardContent.classList.contains('active')) {
+      console.log('⚠️ Dashboard is visible but should be locked - switching to homework');
+      
+      // Switch to homework WITHOUT triggering tool switch logs
+      const homeworkContent = document.getElementById('homework-content');
+      const homeworkNav = document.querySelector('.nav-link[data-tool="homework"]');
+      
+      if (dashboardContent) {
+        dashboardContent.classList.remove('active');
+        dashboardContent.style.display = 'none';
+      }
+      
+      if (homeworkContent) {
+        homeworkContent.classList.add('active');
+        homeworkContent.style.display = 'block';
+      }
+      
+      if (homeworkNav) {
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        homeworkNav.classList.add('active');
+      }
+      
+      // Update current tool silently
+      window.currentActiveTool = 'homework';
+      
+      // Update header
+      const headerTitle = document.getElementById('headerTitle');
+      if (headerTitle) {
+        headerTitle.textContent = 'Homework Fixer';
+      }
+      const headerSubtitle = document.getElementById('headerSubtitle');
+      if (headerSubtitle) {
+        headerSubtitle.textContent = 'Paste your homework and get instant corrections';
+      }
     }
     
   } else {
-    // Remove lock
-    dashboardNavItem.classList.remove('dashboard-locked');
-    const lockIcon = dashboardNavItem.querySelector('.lock-icon');
-    if (lockIcon) lockIcon.remove();
-    
-    // ✅ Parent li elementidan ham style olib tashlash
-    const parentLi = dashboardNavItem.closest('.nav-item');
-    if (parentLi) {
-      parentLi.style.opacity = '1';
-      parentLi.style.cursor = 'pointer';
-    }
-    
-    dashboardNavItem.style.opacity = '1';
-    dashboardNavItem.style.cursor = 'pointer';
-    dashboardNavItem.style.pointerEvents = 'auto';
-    dashboardNavItem.style.background = '';
-    
-    console.log('✅ Dashboard unlocked');
-    
-    // Show unlock notification (only once)
-    const hasShownUnlock = localStorage.getItem('ziyoai_dashboard_unlocked');
-    if (!hasShownUnlock) {
-      showDashboardUnlockNotification();
-      localStorage.setItem('ziyoai_dashboard_unlocked', 'true');
+    // ✅ UNLOCK ONLY IF CURRENTLY LOCKED
+    if (dashboardNavItem.classList.contains('dashboard-locked')) {
+      dashboardNavItem.classList.remove('dashboard-locked');
+      const lockIcon = dashboardNavItem.querySelector('.lock-icon');
+      if (lockIcon) lockIcon.remove();
+      
+      const parentLi = dashboardNavItem.closest('.nav-item');
+      if (parentLi) {
+        parentLi.style.opacity = '1';
+        parentLi.style.cursor = 'pointer';
+      }
+      
+      dashboardNavItem.style.opacity = '1';
+      dashboardNavItem.style.cursor = 'pointer';
+      dashboardNavItem.style.pointerEvents = 'auto';
+      dashboardNavItem.style.background = '';
+      
+      console.log('✅ Dashboard unlocked');
+      
+      // Show unlock notification (only once)
+      const hasShownUnlock = localStorage.getItem('ziyoai_dashboard_unlocked');
+      if (!hasShownUnlock) {
+        showDashboardUnlockNotification();
+        localStorage.setItem('ziyoai_dashboard_unlocked', 'true');
+      }
     }
   }
   
@@ -196,8 +225,6 @@ function interceptDashboardClick() {
       e.stopImmediatePropagation();
       showLockedDashboardModal();
       console.log('🚫 Dashboard click blocked - showing modal');
-    } else {
-      console.log('✅ Dashboard click allowed');
     }
   }, true);
   
@@ -452,10 +479,15 @@ lockSystemStyle.textContent = `
 document.head.appendChild(lockSystemStyle);
 
 // ============================================
-// CHECK FOR UNLOCK
+// CHECK FOR UNLOCK - SMART VERSION ✅
 // ============================================
 function checkDashboardUnlock() {
-  applyDashboardLock();
+  const currentUnlockState = isDashboardUnlocked();
+  
+  // ✅ ONLY APPLY IF STATE CHANGED
+  if (lastLockState !== currentUnlockState) {
+    applyDashboardLock();
+  }
 }
 
 // ============================================
@@ -463,30 +495,27 @@ function checkDashboardUnlock() {
 // ============================================
 function initDashboardLock() {
   console.log('🔒 Initializing Dashboard Lock System...');
-  console.log('📊 Current stats:', getUserStatsForLock());
-  console.log('🎯 Lock config:', DASHBOARD_LOCK);
   
   const success = applyDashboardLock();
   
   if (success) {
     interceptDashboardClick();
     
-    // Monitor stats changes
+    // Monitor stats changes - SILENT VERSION
     const originalIncrementStat = window.incrementStat;
     if (originalIncrementStat) {
       window.incrementStat = function(...args) {
         originalIncrementStat(...args);
-        setTimeout(checkDashboardUnlock, 100);
+        // Check silently after 200ms
+        setTimeout(checkDashboardUnlock, 200);
       };
-      console.log('✅ Hooked into incrementStat');
     }
     
-    // Check every 5 seconds
-    setInterval(checkDashboardUnlock, 5000);
+    // ✅ CHECK EVERY 10 SECONDS (not 5) - LESS FREQUENT
+    setInterval(checkDashboardUnlock, 10000);
     
     console.log('✅ Dashboard Lock System Initialized');
   } else {
-    console.warn('⚠️ Dashboard lock initialization incomplete, retrying...');
     setTimeout(initDashboardLock, 500);
   }
 }
@@ -498,7 +527,6 @@ function startDashboardLockSystem() {
   if (document.querySelector('.nav-link[data-tool="dashboard"]')) {
     initDashboardLock();
   } else {
-    console.log('⏳ Waiting for DOM...');
     setTimeout(startDashboardLockSystem, 200);
   }
 }
@@ -519,4 +547,4 @@ window.applyDashboardLock = applyDashboardLock;
 window.isDashboardUnlocked = isDashboardUnlocked;
 window.DASHBOARD_LOCK = DASHBOARD_LOCK;
 
-console.log('📦 Dashboard Lock System Script Loaded');
+console.log('📦 Dashboard Lock System Loaded (Silent Mode)');
