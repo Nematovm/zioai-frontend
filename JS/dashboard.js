@@ -60,11 +60,11 @@ const toolTitles = {
 // ============================================
 function switchTool(toolName) {
   // ✅ STRICT CHECK: Never switch if prevented
-  if (window.preventToolSwitch) {
-    console.warn('🚫 Tool switch BLOCKED - preventToolSwitch is TRUE');
-    console.warn('   Current tool remains:', window.currentActiveTool);
-    return;
-  }
+  // if (window.preventToolSwitch) {
+  //   console.warn('🚫 Tool switch BLOCKED - preventToolSwitch is TRUE');
+  //   console.warn('   Current tool remains:', window.currentActiveTool);
+  //   return;
+  // }
   
   if (window.isToolSwitching) {
     console.warn('⏳ Tool switch already in progress');
