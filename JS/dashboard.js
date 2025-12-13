@@ -55,25 +55,25 @@ const toolTitles = {
   },
 };
 
-
 // ============================================
-// 4️⃣ SWITCH TOOL FUNCTION - FIXED ✅
+// 4️⃣ SWITCH TOOL FUNCTION - STRICT LOCKING ✅
 // ============================================
 function switchTool(toolName) {
-  // ✅ CHECK: Prevent switching during background operations
-  // if (window.preventToolSwitch) {
-  //   console.log('🚫 Tool switch prevented (motivation/background operation)');
-  //   return;
-  // }
+  // ✅ STRICT CHECK: Never switch if prevented
+  if (window.preventToolSwitch) {
+    console.warn('🚫 Tool switch BLOCKED - preventToolSwitch is TRUE');
+    console.warn('   Current tool remains:', window.currentActiveTool);
+    return;
+  }
   
   if (window.isToolSwitching) {
-    console.log('⏳ Tool switch in progress, please wait...');
+    console.warn('⏳ Tool switch already in progress');
     return;
   }
   
   // ✅ SET LOCK
   window.isToolSwitching = true;
-  console.log('🔀 Switching to:', toolName);
+  console.log('🔀 Switching tool:', window.currentActiveTool, '→', toolName);
   
   window.currentActiveTool = toolName;
   
@@ -139,26 +139,23 @@ function switchTool(toolName) {
     }
   }
   
-  // ✅ UNLOCK after delay
+  // ✅ UNLOCK after animation
   setTimeout(() => {
     window.isToolSwitching = false;
-    console.log('✅ Tool switched successfully to:', toolName);
+    console.log('✅ Tool switch complete:', toolName);
   }, 500);
 }
-
-
-
 
 // ============================================
 // 5️⃣ INITIALIZE DEFAULT TOOL ✅
 // ============================================
 function initializeDefaultTool() {
   if (window.hasInitialized) {
-    console.log('⏭️ Already initialized, skipping...');
+    console.log('⏭️ Already initialized');
     return;
   }
   
-  console.log('🚀 Initializing default tool...');
+  console.log('🚀 Initializing default tool: homework');
   
   window.preventToolSwitch = false;
   window.hasInitialized = true;
@@ -185,7 +182,7 @@ function initializeDefaultTool() {
     homeworkLink.classList.add('active');
   }
   
-  console.log('✅ Default tool initialized!');
+  console.log('✅ Default tool initialized');
 }
 
 // ============================================
@@ -216,10 +213,10 @@ function initStats() {
 }
 
 // ============================================
-// 7️⃣ DOM CONTENT LOADED - INITIALIZE UI
+// 6️⃣ DOM CONTENT LOADED - INITIALIZE UI
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('📄 DOM loaded, initializing...');
+  console.log('📄 DOM loaded');
   
   // Initialize default tool
   initializeDefaultTool();
@@ -245,32 +242,42 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// 8️⃣ WINDOW LOAD - INITIALIZE SYSTEMS (ONCE!)
+// 7️⃣ WINDOW LOAD - INITIALIZE SYSTEMS
 // ============================================
 window.addEventListener('load', () => {
   console.log('🪟 Window loaded');
   
-  // Backup initialization
   setTimeout(() => {
     if (!window.hasInitialized) {
-      console.warn('⚠️ Backup initialization triggered');
+      console.warn('⚠️ Backup initialization');
       initializeDefaultTool();
     }
     
-    // ✅ Initialize mini timer
+    // Mini timer
     if (typeof updateMiniTimerDisplay === 'function') {
       updateMiniTimerDisplay();
     }
     
-    // ✅ Initialize stats (SAFE VERSION)
-    initStats();
-    
-    // ✅ Start motivation system ONCE
-    if (typeof startMotivationSystem === 'function') {
-      startMotivationSystem();
+    // Stats system - OPTIONAL (no error if missing)
+    try {
+      if (typeof window.loadUserStats === 'function') {
+        window.loadUserStats();
+        console.log('✅ Stats loaded');
+      } else {
+        console.log('ℹ️ Stats system not available (optional)');
+      }
+    } catch (error) {
+      console.warn('⚠️ Stats error (non-critical):', error.message);
     }
     
-    console.log('✅ All systems ready, current tool:', window.currentActiveTool);
+    // Motivation system
+    if (typeof startMotivationSystem === 'function') {
+      startMotivationSystem();
+      console.log('✅ Motivation system started');
+    }
+    
+    console.log('✅ All systems ready');
+    console.log('   Current tool:', window.currentActiveTool);
   }, 200);
 
   // Firebase auth
@@ -363,7 +370,7 @@ const headerSubtitle = document.getElementById("headerSubtitle");
 console.log('✅ Dashboard.js loaded successfully!');
 
 // ============================================
-// 🔟 HELPER FUNCTIONS ✅
+// 9️⃣ HELPER FUNCTIONS ✅
 // ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
@@ -386,6 +393,7 @@ function getUsernameFromDisplayName(displayName, email) {
 
   return username;
 }
+
 
 function updateWelcomeMessage(username) {
   const headerTitle = document.getElementById('headerTitle');
@@ -2760,21 +2768,22 @@ function fallbackSpeech(word, audioBtn) {
 }
 
 // ============================================
-// 9️⃣ MOTIVATION SYSTEM - FIXED VERSION ✅
+// 8️⃣ MOTIVATION SYSTEM - STRICT LOCKING ✅
 // ============================================
 let motivationInterval;
 let isMotivationVisible = false;
 
 async function showMotivation() {
+  // Don't show if already visible
   if (isMotivationVisible) {
-    console.log('⏳ Motivation already visible');
+    console.log('⏳ Motivation already showing');
     return;
   }
 
-  // ✅ LOCK tool switching ONLY while motivation is visible
-  const originalPreventSwitch = window.preventToolSwitch;
+  // ✅ SET STRICT LOCK
+  console.log('🔒 LOCKING tool switching for motivation');
   window.preventToolSwitch = true;
-  console.log('🔒 Tool switching locked for motivation');
+  isMotivationVisible = true;
 
   try {
     const response = await fetch(`${API_URL}/motivation`);
@@ -2785,8 +2794,9 @@ async function showMotivation() {
       const text = document.querySelector(".motivation-text");
 
       if (!toast || !text) {
-        console.error('❌ Motivation elements not found!');
-        window.preventToolSwitch = originalPreventSwitch;
+        console.error('❌ Motivation elements missing');
+        window.preventToolSwitch = false;
+        isMotivationVisible = false;
         return;
       }
 
@@ -2797,70 +2807,88 @@ async function showMotivation() {
         </span>
       `;
 
-      isMotivationVisible = true;
       toast.style.display = 'flex';
+      setTimeout(() => toast.classList.add('show'), 50);
 
-      setTimeout(() => {
-        toast.classList.add('show');
-      }, 50);
+      console.log('✨ Motivation displayed');
 
-      console.log('✅ Motivation shown');
-
-      // Auto-close after 8 seconds (reduced from 10)
+      // Auto-close after 7 seconds
       setTimeout(() => {
         closeMotivation();
-      }, 8000);
+      }, 7000);
     }
   } catch (error) {
-    console.error('❌ Motivation error:', error);
-    window.preventToolSwitch = originalPreventSwitch;
+    console.error('❌ Motivation fetch error:', error);
+    window.preventToolSwitch = false;
+    isMotivationVisible = false;
   }
 }
 
 function closeMotivation() {
   const toast = document.getElementById('motivationToast');
-  if (!toast) {
-    window.preventToolSwitch = false;
-    return;
-  }
-
-  toast.classList.remove('show');
-
-  setTimeout(() => {
-    toast.style.display = 'none';
-    isMotivationVisible = false;
+  
+  if (toast) {
+    toast.classList.remove('show');
     
-    // ✅ UNLOCK tool switching
+    setTimeout(() => {
+      toast.style.display = 'none';
+      isMotivationVisible = false;
+      
+      // ✅ UNLOCK tool switching
+      window.preventToolSwitch = false;
+      console.log('🔓 Tool switching UNLOCKED after motivation');
+    }, 800);
+  } else {
     window.preventToolSwitch = false;
-    console.log('🔓 Tool switching unlocked after motivation');
-  }, 800);
+    isMotivationVisible = false;
+  }
 }
 
 function startMotivationSystem() {
-  console.log("🚀 Motivation system started");
+  console.log("🚀 Starting motivation system");
 
-  // First motivation after 10 seconds (increased from 5)
+  // First show after 15 seconds
   setTimeout(() => {
     showMotivation();
-  }, 10000);
+  }, 15000);
 
   // Repeat every 5 minutes
   motivationInterval = setInterval(() => {
-    showMotivation();
+    // Only show if not currently visible
+    if (!isMotivationVisible) {
+      showMotivation();
+    }
   }, 300000);
 }
 
 // ============================================
-// CLEANUP ✅
+// 🔟 CLEANUP ✅
 // ============================================
 window.addEventListener("beforeunload", () => {
   if (motivationInterval) {
     clearInterval(motivationInterval);
   }
   window.preventToolSwitch = false;
+  isMotivationVisible = false;
 });
 
 console.log('✅ Dashboard.js (fixed version) loaded successfully!');
+
+// ============================================
+// DEBUG HELPERS (can be removed in production)
+// ============================================
+window.debugDashboard = () => {
+  console.log('=== DASHBOARD DEBUG ===');
+  console.log('Current tool:', window.currentActiveTool);
+  console.log('Initialized:', window.hasInitialized);
+  console.log('Is switching:', window.isToolSwitching);
+  console.log('Prevent switch:', window.preventToolSwitch);
+  console.log('Motivation visible:', isMotivationVisible);
+  console.log('======================');
+};
+
+console.log('✅ Dashboard.js loaded successfully');
+console.log('   Type window.debugDashboard() to see current state');
 
 // ============================================
 // PAGE LOAD - DEFAULT TOOL ✅
