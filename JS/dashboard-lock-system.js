@@ -521,32 +521,6 @@ function initDashboardLock() {
   }
 }
 
-function initDashboardLock() {
-  console.log('🔒 Initializing Dashboard Lock System...');
-  
-  const success = applyVocabularyLock();
-  
-  if (success) {
-    interceptDashboardClick();
-    
-    // Monitor stats changes - SILENT VERSION
-    const originalIncrementStat = window.incrementStat;
-    if (originalIncrementStat) {
-      window.incrementStat = function(...args) {
-        originalIncrementStat(...args);
-        // Check silently after 200ms
-        setTimeout(checkDashboardUnlock, 200);
-      };
-    }
-    
-    // ✅ CHECK EVERY 10 SECONDS (not 5) - LESS FREQUENT
-    setInterval(checkDashboardUnlock, 10000);
-    
-    console.log('✅ Dashboard Lock System Initialized');
-  } else {
-    setTimeout(initDashboardLock, 500);
-  }
-}
 
 // ============================================
 // START WITH DELAY
