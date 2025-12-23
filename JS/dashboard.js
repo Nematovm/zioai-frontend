@@ -2,16 +2,23 @@
 // 1️⃣ API CONFIGURATION
 // ============================================
 const API_URL = window.location.hostname.includes("onrender.com")
-    ? "https://zioai-backend.onrender.com/api"
-    : "http://localhost:3000/api";
+  ? "https://zioai-backend.onrender.com/api"
+  : "http://localhost:3000/api";
 
 // ============================================
 // 2️⃣ GLOBAL FLAGS ✅
 // ============================================
-window.currentActiveTool = 'homework';
+window.currentActiveTool = "homework";
 window.hasInitialized = false;
 window.isToolSwitching = false;
 window.preventToolSwitch = false;
+
+// ============================================
+// 2️⃣B GLOBAL IMAGE VARIABLES ✅
+// ============================================
+let uploadedImage = null; // Homework image
+let uploadedWritingImage = null; // Writing checker image
+let uploadedTopicImage = null; // Topic image
 
 // ============================================
 // 3️⃣ TOOL TITLES
@@ -47,7 +54,7 @@ const toolTitles = {
   },
   article: {
     title: "Reading Articles",
-    subtitle: "Improve your English with curated articles"
+    subtitle: "Improve your English with curated articles",
   },
   profile: {
     title: "Profile Settings",
@@ -65,45 +72,47 @@ function switchTool(toolName) {
   //   console.warn('   Current tool remains:', window.currentActiveTool);
   //   return;
   // }
-  
+
   if (window.isToolSwitching) {
-    console.warn('⏳ Tool switch already in progress');
+    console.warn("⏳ Tool switch already in progress");
     return;
   }
-  
+
   // ✅ SET LOCK
   window.isToolSwitching = true;
-  console.log('🔀 Switching tool:', window.currentActiveTool, '→', toolName);
-  
+  console.log("🔀 Switching tool:", window.currentActiveTool, "→", toolName);
+
   window.currentActiveTool = toolName;
-  
+
   // Hide all tools
-  document.querySelectorAll('.tool-content').forEach(el => {
-    el.classList.remove('active');
-    el.style.display = 'none';
+  document.querySelectorAll(".tool-content").forEach((el) => {
+    el.classList.remove("active");
+    el.style.display = "none";
   });
-  
+
   // Remove all nav active
-  document.querySelectorAll('.nav-link').forEach(el => {
-    el.classList.remove('active');
+  document.querySelectorAll(".nav-link").forEach((el) => {
+    el.classList.remove("active");
   });
-  
+
   // Activate selected nav
-  const activeLink = document.querySelector(`.nav-link[data-tool="${toolName}"]`);
+  const activeLink = document.querySelector(
+    `.nav-link[data-tool="${toolName}"]`
+  );
   if (activeLink) {
-    activeLink.classList.add('active');
+    activeLink.classList.add("active");
   }
 
   // Show selected tool
   const activeContent = document.getElementById(`${toolName}-content`);
   if (activeContent) {
-    activeContent.classList.add('active');
-    activeContent.style.display = 'block';
-    
+    activeContent.classList.add("active");
+    activeContent.style.display = "block";
+
     if (toolName === "article" && typeof showArticlesTool === "function") {
       showArticlesTool();
     }
-    
+
     if (toolName === "profile" && typeof showProfileTool === "function") {
       showProfileTool();
     }
@@ -111,11 +120,12 @@ function switchTool(toolName) {
 
   // Update header
   if (toolTitles[toolName]) {
-    const headerTitle = document.getElementById('headerTitle');
-    const headerSubtitle = document.getElementById('headerSubtitle');
-    
+    const headerTitle = document.getElementById("headerTitle");
+    const headerSubtitle = document.getElementById("headerSubtitle");
+
     if (headerTitle) headerTitle.textContent = toolTitles[toolName].title;
-    if (headerSubtitle) headerSubtitle.textContent = toolTitles[toolName].subtitle;
+    if (headerSubtitle)
+      headerSubtitle.textContent = toolTitles[toolName].subtitle;
 
     if (toolName === "dashboard") {
       const auth = window.firebaseAuth;
@@ -133,16 +143,16 @@ function switchTool(toolName) {
 
   // Close mobile sidebar
   if (window.innerWidth < 1024) {
-    const sidebar = document.querySelector('.sidebar');
+    const sidebar = document.querySelector(".sidebar");
     if (sidebar) {
-      sidebar.classList.remove('menu-active');
+      sidebar.classList.remove("menu-active");
     }
   }
-  
+
   // ✅ UNLOCK after animation
   setTimeout(() => {
     window.isToolSwitching = false;
-    console.log('✅ Tool switch complete:', toolName);
+    console.log("✅ Tool switch complete:", toolName);
   }, 500);
 }
 
@@ -151,38 +161,40 @@ function switchTool(toolName) {
 // ============================================
 function initializeDefaultTool() {
   if (window.hasInitialized) {
-    console.log('⏭️ Already initialized');
+    console.log("⏭️ Already initialized");
     return;
   }
-  
-  console.log('🚀 Initializing default tool: homework');
-  
+
+  console.log("🚀 Initializing default tool: homework");
+
   window.preventToolSwitch = false;
   window.hasInitialized = true;
-  window.currentActiveTool = 'homework';
-  
-  document.querySelectorAll('.tool-content').forEach(el => {
-    el.classList.remove('active');
-    el.style.display = 'none';
+  window.currentActiveTool = "homework";
+
+  document.querySelectorAll(".tool-content").forEach((el) => {
+    el.classList.remove("active");
+    el.style.display = "none";
   });
-  
-  document.querySelectorAll('.nav-link').forEach(el => {
-    el.classList.remove('active');
+
+  document.querySelectorAll(".nav-link").forEach((el) => {
+    el.classList.remove("active");
   });
-  
-  const homework = document.getElementById('homework-content');
-  const homeworkLink = document.querySelector('.nav-link[data-tool="homework"]');
-  
+
+  const homework = document.getElementById("homework-content");
+  const homeworkLink = document.querySelector(
+    '.nav-link[data-tool="homework"]'
+  );
+
   if (homework) {
-    homework.classList.add('active');
-    homework.style.display = 'block';
+    homework.classList.add("active");
+    homework.style.display = "block";
   }
-  
+
   if (homeworkLink) {
-    homeworkLink.classList.add('active');
+    homeworkLink.classList.add("active");
   }
-  
-  console.log('✅ Default tool initialized');
+
+  console.log("✅ Default tool initialized");
 }
 
 // ============================================
@@ -191,51 +203,51 @@ function initializeDefaultTool() {
 function initStats() {
   try {
     // ✅ Check if stats.js is loaded
-    if (typeof window.loadUserStats === 'function') {
+    if (typeof window.loadUserStats === "function") {
       window.loadUserStats();
-      console.log('✅ Stats initialized successfully');
+      console.log("✅ Stats initialized successfully");
     } else {
-      console.warn('⚠️ Stats system not loaded yet - will initialize later');
-      
+      console.warn("⚠️ Stats system not loaded yet - will initialize later");
+
       // ✅ Retry after 1 second (stats.js might load late)
       setTimeout(() => {
-        if (typeof window.loadUserStats === 'function') {
+        if (typeof window.loadUserStats === "function") {
           window.loadUserStats();
-          console.log('✅ Stats initialized (delayed)');
+          console.log("✅ Stats initialized (delayed)");
         } else {
-          console.error('❌ Stats system not available');
+          console.error("❌ Stats system not available");
         }
       }, 1000);
     }
   } catch (error) {
-    console.error('❌ Stats initialization error:', error);
+    console.error("❌ Stats initialization error:", error);
   }
 }
 
 // ============================================
 // 6️⃣ DOM CONTENT LOADED - INITIALIZE UI
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('📄 DOM loaded');
-  
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("📄 DOM loaded");
+
   // Initialize default tool
   initializeDefaultTool();
 
   // Setup event listeners
-  const navLinks = document.querySelectorAll('.nav-link[data-tool]');
-  const toolCards = document.querySelectorAll('.tool-card[data-tool]');
+  const navLinks = document.querySelectorAll(".nav-link[data-tool]");
+  const toolCards = document.querySelectorAll(".tool-card[data-tool]");
 
   navLinks.forEach((link) => {
-    link.addEventListener('click', (e) => {
+    link.addEventListener("click", (e) => {
       e.preventDefault();
-      const toolName = link.getAttribute('data-tool');
+      const toolName = link.getAttribute("data-tool");
       if (toolName) switchTool(toolName);
     });
   });
 
   toolCards.forEach((card) => {
-    card.addEventListener('click', () => {
-      const toolName = card.getAttribute('data-tool');
+    card.addEventListener("click", () => {
+      const toolName = card.getAttribute("data-tool");
       if (toolName) switchTool(toolName);
     });
   });
@@ -244,43 +256,166 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 // 7️⃣ WINDOW LOAD - INITIALIZE SYSTEMS
 // ============================================
-window.addEventListener('load', () => {
-  console.log('🪟 Window loaded');
-  
+// PAGE LOAD - BITTA JOYDA HAMMASI
+window.addEventListener("load", () => {
+  console.log("🪟 Window fully loaded");
+
+  // ============================================
+  // 1️⃣ INITIALIZE DEFAULT TOOL
+  // ============================================
   setTimeout(() => {
     if (!window.hasInitialized) {
-      console.warn('⚠️ Backup initialization');
+      console.warn("⚠️ Backup initialization");
       initializeDefaultTool();
     }
-    
+
     // Mini timer
-    if (typeof updateMiniTimerDisplay === 'function') {
+    if (typeof updateMiniTimerDisplay === "function") {
       updateMiniTimerDisplay();
     }
-    
-    // Stats system - OPTIONAL (no error if missing)
+
+    // Stats system
     try {
-      if (typeof window.loadUserStats === 'function') {
+      if (typeof window.loadUserStats === "function") {
         window.loadUserStats();
-        console.log('✅ Stats loaded');
-      } else {
-        console.log('ℹ️ Stats system not available (optional)');
+        console.log("✅ Stats loaded");
       }
     } catch (error) {
-      console.warn('⚠️ Stats error (non-critical):', error.message);
+      console.warn("⚠️ Stats error (non-critical):", error.message);
     }
-    
+
     // Motivation system
-    if (typeof startMotivationSystem === 'function') {
+    if (typeof startMotivationSystem === "function") {
       startMotivationSystem();
-      console.log('✅ Motivation system started');
+      console.log("✅ Motivation system started");
     }
-    
-    console.log('✅ All systems ready');
-    console.log('   Current tool:', window.currentActiveTool);
+
+    console.log("✅ All systems ready");
   }, 200);
 
-  // Firebase auth
+  // ============================================
+  // 2️⃣ HOMEWORK IMAGE UPLOAD
+  // ============================================
+  const homeworkFileInput = document.getElementById("homeworkImageInput");
+  const homeworkUploadArea = document.getElementById("imageUploadArea");
+
+  if (homeworkFileInput && homeworkUploadArea) {
+    let isHomeworkClickHandled = false;
+
+    homeworkFileInput.addEventListener("change", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleImageUpload(e);
+    });
+
+    homeworkUploadArea.addEventListener("click", (e) => {
+      if (isHomeworkClickHandled || e.target === homeworkFileInput) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      isHomeworkClickHandled = true;
+      homeworkFileInput.click();
+
+      setTimeout(() => {
+        isHomeworkClickHandled = false;
+      }, 500);
+    });
+
+    homeworkUploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      homeworkUploadArea.style.borderColor = "#667eea";
+      homeworkUploadArea.style.background = "#f0f2ff";
+      homeworkUploadArea.style.borderWidth = "4px";
+    });
+
+    homeworkUploadArea.addEventListener("dragleave", (e) => {
+      e.stopPropagation();
+      homeworkUploadArea.style.borderColor = "#d1d5db";
+      homeworkUploadArea.style.background = "#f9fafb";
+      homeworkUploadArea.style.borderWidth = "3px";
+    });
+
+    homeworkUploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      homeworkUploadArea.style.borderColor = "#d1d5db";
+      homeworkUploadArea.style.background = "#f9fafb";
+      homeworkUploadArea.style.borderWidth = "3px";
+
+      const file = e.dataTransfer.files[0];
+      if (file) processImageFile(file);
+    });
+
+    console.log("✅ Homework image upload initialized");
+  }
+
+  // ============================================
+  // 3️⃣ WRITING IMAGE UPLOAD
+  // ============================================
+  const writingFileInput = document.getElementById("writingImageInput");
+  const writingUploadArea = document.getElementById("writingImageUploadArea");
+
+  if (writingFileInput && writingUploadArea) {
+    let isWritingClickHandled = false;
+
+    writingFileInput.addEventListener("change", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleWritingImageUpload(e);
+    });
+
+    writingUploadArea.addEventListener("click", (e) => {
+      if (isWritingClickHandled || e.target === writingFileInput) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      isWritingClickHandled = true;
+      writingFileInput.click();
+
+      setTimeout(() => {
+        isWritingClickHandled = false;
+      }, 500);
+    });
+
+    writingUploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      writingUploadArea.style.borderColor = "#667eea";
+      writingUploadArea.style.background = "#f0f2ff";
+      writingUploadArea.style.borderWidth = "4px";
+    });
+
+    writingUploadArea.addEventListener("dragleave", (e) => {
+      e.stopPropagation();
+      writingUploadArea.style.borderColor = "#d1d5db";
+      writingUploadArea.style.background = "#f9fafb";
+      writingUploadArea.style.borderWidth = "3px";
+    });
+
+    writingUploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      writingUploadArea.style.borderColor = "#d1d5db";
+      writingUploadArea.style.background = "#f9fafb";
+      writingUploadArea.style.borderWidth = "3px";
+
+      const file = e.dataTransfer.files[0];
+      if (file) processWritingImage(file);
+    });
+
+    console.log("✅ Writing image upload initialized");
+  }
+
+  // ============================================
+  // 4️⃣ FIREBASE AUTH
+  // ============================================
   const auth = window.firebaseAuth;
   if (auth) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -300,11 +435,15 @@ window.addEventListener('load', () => {
     });
   }
 
-  // Hide spinner
+  // ============================================
+  // 5️⃣ HIDE SPINNER
+  // ============================================
   setTimeout(() => {
     const spinner = document.querySelector(".spinner-wrapper");
     if (spinner) spinner.style.display = "none";
   }, 500);
+
+  console.log("✅ Page load initialization complete!");
 });
 
 // ============================================
@@ -328,8 +467,6 @@ async function checkBackendStatus() {
     return false;
   }
 }
-
-
 
 // Sidebar Toggle
 const sidebar = document.querySelector(".sidebar");
@@ -366,48 +503,41 @@ const toolContents = document.querySelectorAll(".tool-content");
 const headerTitle = document.getElementById("headerTitle");
 const headerSubtitle = document.getElementById("headerSubtitle");
 
-
-console.log('✅ Dashboard.js loaded successfully!');
+console.log("✅ Dashboard.js loaded successfully!");
 
 // ============================================
 // 9️⃣ HELPER FUNCTIONS ✅
 // ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
-    return email ? email.split('@')[0] : 'User';
+    return email ? email.split("@")[0] : "User";
   }
 
   let username = displayName
-    .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{2600}-\u{26FF}]/gu, "")
+    .replace(/[\u{2700}-\u{27BF}]/gu, "")
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, "")
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, "")
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, "")
     .trim();
 
   if (!username || username.length === 0 || /^\s*$/.test(username)) {
-    username = email ? email.split('@')[0] : 'User';
+    username = email ? email.split("@")[0] : "User";
   }
 
   return username;
 }
 
-
 function updateWelcomeMessage(username) {
-  const headerTitle = document.getElementById('headerTitle');
-  if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
+  const headerTitle = document.getElementById("headerTitle");
+  if (headerTitle && headerTitle.textContent.includes("Welcome back")) {
     headerTitle.textContent = `Welcome back, ${username}!`;
   }
 }
 
 // console.log('✅ Dashboard.js loaded successfully!');
-
-
-
-
-
 
 // Helper Functions
 function showLoading(outputElement) {
@@ -430,38 +560,39 @@ function showError(outputElement, message) {
   `;
 }
 
-
 // ============================================
 // SWITCH HOMEWORK TAB
 // ============================================
 function switchHomeworkTab(tab) {
-  const textTab = document.getElementById('textInputTab');
-  const imageTab = document.getElementById('imageInputTab');
-  const textBtn = document.getElementById('textTabBtn');
-  const imageBtn = document.getElementById('imageTabBtn');
-  
-  if (tab === 'text') {
-    textTab.style.display = 'block';
-    imageTab.style.display = 'none';
-    textBtn.classList.add('active', 'linear-act-bc');
-    textBtn.classList.remove('bg-bc');
-    textBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    textBtn.style.color = 'white';
-    imageBtn.classList.remove('active', 'linear-act-bc');
-    imageBtn.classList.add('bg-bc');
-    imageBtn.style.background = '#f3f4f6';
-    imageBtn.style.color = '#6b7280';
+  const textTab = document.getElementById("textInputTab");
+  const imageTab = document.getElementById("imageInputTab");
+  const textBtn = document.getElementById("textTabBtn");
+  const imageBtn = document.getElementById("imageTabBtn");
+
+  if (tab === "text") {
+    textTab.style.display = "block";
+    imageTab.style.display = "none";
+    textBtn.classList.add("active", "linear-act-bc");
+    textBtn.classList.remove("bg-bc");
+    textBtn.style.background =
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    textBtn.style.color = "white";
+    imageBtn.classList.remove("active", "linear-act-bc");
+    imageBtn.classList.add("bg-bc");
+    imageBtn.style.background = "#f3f4f6";
+    imageBtn.style.color = "#6b7280";
   } else {
-    textTab.style.display = 'none';
-    imageTab.style.display = 'block';
-    imageBtn.classList.add('active', 'linear-act-bc');
-    imageBtn.classList.remove('bg-bc');
-    imageBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    imageBtn.style.color = 'white';
-    textBtn.classList.remove('active', 'linear-act-bc');
-    textBtn.classList.add('bg-bc');
-    textBtn.style.background = '#f3f4f6';
-    textBtn.style.color = '#6b7280';
+    textTab.style.display = "none";
+    imageTab.style.display = "block";
+    imageBtn.classList.add("active", "linear-act-bc");
+    imageBtn.classList.remove("bg-bc");
+    imageBtn.style.background =
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    imageBtn.style.color = "white";
+    textBtn.classList.remove("active", "linear-act-bc");
+    textBtn.classList.add("bg-bc");
+    textBtn.style.background = "#f3f4f6";
+    textBtn.style.color = "#6b7280";
   }
 }
 
@@ -471,66 +602,71 @@ function switchHomeworkTab(tab) {
 function processImageFile(file) {
   const maxSize = 5 * 1024 * 1024; // 5MB
   if (file.size > maxSize) {
-    alert('❌ File too large! Maximum size is 5MB.');
+    alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
-  
-  if (!file.type.startsWith('image/')) {
-    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+
+  if (!file.type.startsWith("image/")) {
+    alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
-  
+
   uploadedImage = file;
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
-    document.getElementById('previewImg').src = e.target.result;
-    document.getElementById('imageFileName').textContent = file.name;
-    document.getElementById('imageUploadArea').style.display = 'none';
-    document.getElementById('imagePreview').style.display = 'block';
+    document.getElementById("previewImg").src = e.target.result;
+    document.getElementById("imageFileName").textContent = file.name;
+    document.getElementById("imageUploadArea").style.display = "none";
+    document.getElementById("imagePreview").style.display = "block";
   };
   reader.readAsDataURL(file);
 }
 
 // ============================================
-// HANDLE FILE INPUT CHANGE
+// HANDLE FILE INPUT CHANGE - FIXED ✅
 // ============================================
 function handleImageUpload(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
   const file = event.target.files[0];
   if (file) {
     processImageFile(file);
   }
-}
 
+  // ✅ IMPORTANT: Reset file input to allow re-selection
+  event.target.value = "";
+}
 // ============================================
 // REMOVE IMAGE
 // ============================================
 function removeImage() {
   uploadedImage = null;
-  
-  document.getElementById('previewImg').src = '';
-  document.getElementById('imageFileName').textContent = '';
-  
-  const fileInput = document.getElementById('homeworkImageInput');
-  fileInput.value = '';
-  
+
+  document.getElementById("previewImg").src = "";
+  document.getElementById("imageFileName").textContent = "";
+
+  const fileInput = document.getElementById("homeworkImageInput");
+  fileInput.value = "";
+
   // ✅ SHOW UPLOAD AREA AGAIN
-  document.getElementById('imageUploadArea').style.display = 'block';
-  document.getElementById('imagePreview').style.display = 'none';
-  
-  console.log('✅ Image removed, upload area restored');
+  document.getElementById("imageUploadArea").style.display = "block";
+  document.getElementById("imagePreview").style.display = "none";
+
+  console.log("✅ Image removed, upload area restored");
 }
 
 // ============================================
 // PASTE FROM CLIPBOARD
 // ============================================
-document.addEventListener('paste', (e) => {
-  const imageTab = document.getElementById('imageInputTab');
-  if (imageTab?.style.display === 'none') return;
-  
+document.addEventListener("paste", (e) => {
+  const imageTab = document.getElementById("imageInputTab");
+  if (imageTab?.style.display === "none") return;
+
   const items = e.clipboardData.items;
   for (let item of items) {
-    if (item.type.indexOf('image') !== -1) {
+    if (item.type.indexOf("image") !== -1) {
       const file = item.getAsFile();
       processImageFile(file);
       break;
@@ -554,10 +690,10 @@ async function fixHomework() {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imageData = e.target.result;
-      
+
       result.style.display = "block";
       showLoading(output);
-      
+
       try {
         const response = await fetch(`${API_URL}/fix-homework`, {
           method: "POST",
@@ -565,7 +701,7 @@ async function fixHomework() {
           body: JSON.stringify({
             homework: null,
             image: imageData,
-            type: 'image',
+            type: "image",
             language: language,
           }),
         });
@@ -577,12 +713,14 @@ async function fixHomework() {
         }
 
         if (data.success && data.correctedHomework) {
-          const subjectBadge = data.detectedSubject ? `
+          const subjectBadge = data.detectedSubject
+            ? `
             <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-              ${data.subjectEmoji || '📚'} ${data.detectedSubject.toUpperCase()}
+              ${data.subjectEmoji || "📚"} ${data.detectedSubject.toUpperCase()}
             </div>
-          ` : '';
-          
+          `
+            : "";
+
           output.innerHTML = `
             ${subjectBadge}
             <div class="alert alert-success">
@@ -595,18 +733,17 @@ async function fixHomework() {
               </div>
             </div>
           `;
-          
-          if (typeof trackToolUsage === 'function') trackToolUsage('homework');
-          if (typeof incrementStat === 'function') {
-            incrementStat('homeworkCompleted', 1);
-            incrementStat('totalStudyTime', 3);
+
+          if (typeof trackToolUsage === "function") trackToolUsage("homework");
+          if (typeof incrementStat === "function") {
+            incrementStat("homeworkCompleted", 1);
+            incrementStat("totalStudyTime", 3);
           }
-          if (typeof addRecentActivity === 'function') {
-            addRecentActivity('Homework Fixer', 87, '✏️', '#10b981');
+          if (typeof addRecentActivity === "function") {
+            addRecentActivity("Homework Fixer", 87, "✏️", "#10b981");
           }
-          
-          console.log('📊 Homework completed successfully');
-          
+
+          console.log("📊 Homework completed successfully");
         } else {
           throw new Error("No response from AI");
         }
@@ -621,7 +758,7 @@ async function fixHomework() {
 
   // ✅ CHECK: If no image and no text, show error
   if (!homework) {
-    alert('⚠️ Please enter your homework or upload an image!');
+    alert("⚠️ Please enter your homework or upload an image!");
     return;
   }
 
@@ -636,7 +773,7 @@ async function fixHomework() {
       body: JSON.stringify({
         homework: homework,
         image: null,
-        type: 'text',
+        type: "text",
         language: language,
       }),
     });
@@ -648,12 +785,14 @@ async function fixHomework() {
     }
 
     if (data.success && data.correctedHomework) {
-      const subjectBadge = data.detectedSubject ? `
+      const subjectBadge = data.detectedSubject
+        ? `
         <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-          ${data.subjectEmoji || '📚'} ${data.detectedSubject.toUpperCase()}
+          ${data.subjectEmoji || "📚"} ${data.detectedSubject.toUpperCase()}
         </div>
-      ` : '';
-      
+      `
+        : "";
+
       output.innerHTML = `
         ${subjectBadge}
         <div class="alert alert-success">
@@ -666,18 +805,17 @@ async function fixHomework() {
           </div>
         </div>
       `;
-      
-      if (typeof trackToolUsage === 'function') trackToolUsage('homework');
-      if (typeof incrementStat === 'function') {
-        incrementStat('homeworkCompleted', 1);
-        incrementStat('totalStudyTime', 3);
+
+      if (typeof trackToolUsage === "function") trackToolUsage("homework");
+      if (typeof incrementStat === "function") {
+        incrementStat("homeworkCompleted", 1);
+        incrementStat("totalStudyTime", 3);
       }
-      if (typeof addRecentActivity === 'function') {
-        addRecentActivity('Homework Fixer', 87, '✏️', '#10b981');
+      if (typeof addRecentActivity === "function") {
+        addRecentActivity("Homework Fixer", 87, "✏️", "#10b981");
       }
-      
-      console.log('✅ Homework tracking completed!');
-      
+
+      console.log("✅ Homework tracking completed!");
     } else {
       throw new Error("No response from AI");
     }
@@ -707,62 +845,6 @@ function showError(outputElement, message) {
     </div>
   `;
 }
-
-// ============================================
-// INITIALIZE ON PAGE LOAD ✅
-// ============================================
-window.addEventListener("load", () => {
-  // IMAGE UPLOAD EVENT LISTENERS
-  const fileInput = document.getElementById('homeworkImageInput');
-  const uploadArea = document.getElementById('imageUploadArea');
-  const fixBtn = document.getElementById('fixHomeworkBtn'); // ✅ YANGI
-  const removeBtn = document.getElementById('removeImageBtn');
-if (removeBtn) {
-  removeBtn.addEventListener('click', removeImage);
-}
-  
-  if (fileInput) {
-    fileInput.addEventListener('change', handleImageUpload);
-    console.log('✅ File input listener added');
-  }
-  
-  if (uploadArea) {
-    // Click to upload
-    uploadArea.addEventListener('click', () => {
-      if (fileInput) fileInput.click();
-    });
-    
-    // Drag over
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.style.borderColor = '#667eea';
-      uploadArea.style.background = '#f0f2ff';
-      uploadArea.style.borderWidth = '4px';
-    });
-
-    // Drag leave
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.style.borderColor = '#d1d5db';
-      uploadArea.style.background = '#f9fafb';
-      uploadArea.style.borderWidth = '3px';
-    });
-
-    // Drop
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.style.borderColor = '#d1d5db';
-      uploadArea.style.background = '#f9fafb';
-      uploadArea.style.borderWidth = '3px';
-      
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        processImageFile(file);
-      }
-    });
-    
-    console.log('✅ Upload area listeners added');
-  }
-});
 
 // ============================================
 // GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
@@ -809,20 +891,19 @@ if (removeBtn) {
 //       trackToolUsage('grammar');
 //       incrementStat('totalStudyTime', 2);
 //       addRecentActivity('Grammar Checker', 88, '✍️', '#ec4899');
-      
+
 //       // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
 //       console.log('📊 Grammar check completed, tracking...');
 
-      
 //       console.log('✅ Grammar tracking completed!');
-      
+
 //     } else {
 //       throw new Error("No response from AI");
 //     }
 //   } catch (error) {
 //     console.error("❌ Error:", error);
 //     showError(output, error.message);
-    
+
 //   }
 // }
 
@@ -830,62 +911,61 @@ if (removeBtn) {
 // WRITING CHECKER - YANGILANGAN FRONTEND ✅
 // ============================================
 
-let uploadedWritingImage = null; // Global variable for image
+
 
 // ============================================
 // 1️⃣ SELECT TASK TYPE
 // ============================================
-let selectedTaskType = 'Task 2'; // Default
+let selectedTaskType = "Task 2"; // Default
 
 function selectTaskType(taskType) {
   selectedTaskType = taskType;
-  
-  const task1Btn = document.getElementById('task1Btn');
-  const task2Btn = document.getElementById('task2Btn');
-  const imageUploadSection = document.getElementById('writingImageSection');
-  const topicInput = document.getElementById('essayTopic');
-  
+
+  const task1Btn = document.getElementById("task1Btn");
+  const task2Btn = document.getElementById("task2Btn");
+  const imageUploadSection = document.getElementById("writingImageSection");
+  const topicInput = document.getElementById("essayTopic");
+
   // Update button styles
-  if (taskType === 'Task 1') {
-    task1Btn.classList.add('active');
-    task2Btn.classList.remove('active');
-    task1Btn.style.borderColor = '#667eea';
-    task1Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
-    task1Btn.querySelector('div:nth-child(2)').style.color = '#667eea';
-    
-    task2Btn.style.borderColor = '#e5e7eb';
-    task2Btn.style.background = '#fff';
-    task2Btn.querySelector('div:nth-child(2)').style.color = '#1f2937';
-    
+  if (taskType === "Task 1") {
+    task1Btn.classList.add("active");
+    task2Btn.classList.remove("active");
+    task1Btn.style.borderColor = "#667eea";
+    task1Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
+    task1Btn.querySelector("div:nth-child(2)").style.color = "#667eea";
+
+    task2Btn.style.borderColor = "#e5e7eb";
+    task2Btn.style.background = "#fff";
+    task2Btn.querySelector("div:nth-child(2)").style.color = "#1f2937";
+
     // ✅ Show image upload for Task 1
     if (imageUploadSection) {
-      imageUploadSection.style.display = 'block';
+      imageUploadSection.style.display = "block";
     }
-    
+
     // Update topic placeholder
-    topicInput.placeholder = 'Describe the graph/chart/diagram... (REQUIRED)';
-    
+    topicInput.placeholder = "Describe the graph/chart/diagram... (REQUIRED)";
   } else {
-    task2Btn.classList.add('active');
-    task1Btn.classList.remove('active');
-    task2Btn.style.borderColor = '#667eea';
-    task2Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
-    task2Btn.querySelector('div:nth-child(2)').style.color = '#667eea';
-    
-    task1Btn.style.borderColor = '#e5e7eb';
-    task1Btn.style.background = '#fff';
-    task1Btn.querySelector('div:nth-child(2)').style.color = '#1f2937';
-    
+    task2Btn.classList.add("active");
+    task1Btn.classList.remove("active");
+    task2Btn.style.borderColor = "#667eea";
+    task2Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
+    task2Btn.querySelector("div:nth-child(2)").style.color = "#667eea";
+
+    task1Btn.style.borderColor = "#e5e7eb";
+    task1Btn.style.background = "#fff";
+    task1Btn.querySelector("div:nth-child(2)").style.color = "#1f2937";
+
     // ✅ Hide image upload for Task 2
     if (imageUploadSection) {
-      imageUploadSection.style.display = 'none';
+      imageUploadSection.style.display = "none";
     }
-    
+
     // Update topic placeholder
-    topicInput.placeholder = 'Enter the essay question... (REQUIRED)';
+    topicInput.placeholder = "Enter the essay question... (REQUIRED)";
   }
-  
-  console.log('✅ Selected task type:', taskType);
+
+  console.log("✅ Selected task type:", taskType);
 }
 
 // ============================================
@@ -903,161 +983,239 @@ function handleWritingImageUpload(event) {
 // Process image file
 function processWritingImage(file) {
   const maxSize = 5 * 1024 * 1024; // 5MB
-  
+
   if (file.size > maxSize) {
-    alert('❌ File too large! Maximum size is 5MB.');
+    alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
-  
-  if (!file.type.startsWith('image/')) {
-    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+
+  if (!file.type.startsWith("image/")) {
+    alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
-  
+
   uploadedWritingImage = file;
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
-    document.getElementById('writingPreviewImg').src = e.target.result;
-    document.getElementById('writingImageFileName').textContent = file.name;
-    document.getElementById('writingImageUploadArea').style.display = 'none';
-    document.getElementById('writingImagePreview').style.display = 'block';
+    document.getElementById("writingPreviewImg").src = e.target.result;
+    document.getElementById("writingImageFileName").textContent = file.name;
+    document.getElementById("writingImageUploadArea").style.display = "none";
+    document.getElementById("writingImagePreview").style.display = "block";
   };
   reader.readAsDataURL(file);
-  
-  console.log('✅ Image uploaded:', file.name);
+
+  console.log("✅ Image uploaded:", file.name);
 }
 
 // Remove uploaded image
 function removeWritingImage() {
   uploadedWritingImage = null;
-  
-  document.getElementById('writingPreviewImg').src = '';
-  document.getElementById('writingImageFileName').textContent = '';
-  
-  const fileInput = document.getElementById('writingImageInput');
-  if (fileInput) fileInput.value = '';
-  
-  document.getElementById('writingImageUploadArea').style.display = 'block';
-  document.getElementById('writingImagePreview').style.display = 'none';
-  
-  console.log('✅ Image removed');
+
+  document.getElementById("writingPreviewImg").src = "";
+  document.getElementById("writingImageFileName").textContent = "";
+
+  const fileInput = document.getElementById("writingImageInput");
+  if (fileInput) fileInput.value = "";
+
+  document.getElementById("writingImageUploadArea").style.display = "block";
+  document.getElementById("writingImagePreview").style.display = "none";
+
+  console.log("✅ Image removed");
 }
 
 // ============================================
-// 3️⃣ DRAG & DROP SUPPORT
+// 3️⃣ DRAG & DROP + PASTE SUPPORT ✅
 // ============================================
 function initializeWritingImageUpload() {
-  const uploadArea = document.getElementById('writingImageUploadArea');
-  
+  const uploadArea = document.getElementById("writingImageUploadArea");
+
   if (!uploadArea) return;
-  
+
   // Click to upload
-  uploadArea.addEventListener('click', () => {
-    document.getElementById('writingImageInput').click();
+  uploadArea.addEventListener("click", () => {
+    document.getElementById("writingImageInput").click();
   });
-  
+
   // Drag over
-  uploadArea.addEventListener('dragover', (e) => {
+  uploadArea.addEventListener("dragover", (e) => {
     e.preventDefault();
-    uploadArea.style.borderColor = '#667eea';
-    uploadArea.style.background = '#f0f2ff';
-    uploadArea.style.borderWidth = '4px';
+    uploadArea.style.borderColor = "#667eea";
+    uploadArea.style.background = "#f0f2ff";
+    uploadArea.style.borderWidth = "4px";
   });
 
   // Drag leave
-  uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.borderColor = '#d1d5db';
-    uploadArea.style.background = '#f9fafb';
-    uploadArea.style.borderWidth = '3px';
+  uploadArea.addEventListener("dragleave", () => {
+    uploadArea.style.borderColor = "#d1d5db";
+    uploadArea.style.background = "#f9fafb";
+    uploadArea.style.borderWidth = "3px";
   });
 
   // Drop
-  uploadArea.addEventListener('drop', (e) => {
+  uploadArea.addEventListener("drop", (e) => {
     e.preventDefault();
-    uploadArea.style.borderColor = '#d1d5db';
-    uploadArea.style.background = '#f9fafb';
-    uploadArea.style.borderWidth = '3px';
-    
+    uploadArea.style.borderColor = "#d1d5db";
+    uploadArea.style.background = "#f9fafb";
+    uploadArea.style.borderWidth = "3px";
+
     const file = e.dataTransfer.files[0];
     if (file) {
       processWritingImage(file);
     }
   });
 }
+// ============================================
+// 4️⃣ CLIPBOARD PASTE SUPPORT ✅
+// ============================================
+document.addEventListener("paste", (e) => {
+  // Check if we're in the Writing Checker tool
+  const grammarContent = document.getElementById("grammar-content");
+  if (!grammarContent || grammarContent.style.display === "none") {
+    return; // Not in Writing Checker, ignore paste
+  }
+
+  const items = e.clipboardData.items;
+
+  for (let item of items) {
+    // Check if pasted item is an image
+    if (item.type.indexOf("image") !== -1) {
+      e.preventDefault(); // Prevent default paste behavior
+
+      const file = item.getAsFile();
+
+      if (file) {
+        console.log(
+          "📋 Image pasted from clipboard:",
+          file.name || "clipboard-image"
+        );
+
+        // Process the image for Writing Checker
+        processWritingImage(file);
+
+        // Show success feedback
+        const uploadArea = document.getElementById("writingImageUploadArea");
+        if (uploadArea && uploadArea.style.display !== "none") {
+          uploadArea.style.borderColor = "#10b981";
+          uploadArea.style.background = "#d1fae5";
+
+          setTimeout(() => {
+            uploadArea.style.borderColor = "#d1d5db";
+            uploadArea.style.background = "#f9fafb";
+          }, 1000);
+        }
+      }
+
+      break; // Only process first image
+    }
+  }
+});
 
 // ============================================
 // 4️⃣ WORD COUNTER (Keep existing)
 // ============================================
-const grammarInput = document.getElementById('grammarInput');
-const wordCounter = document.getElementById('wordCounter');
-const wordStatus = document.getElementById('wordStatus');
+const grammarInput = document.getElementById("grammarInput");
+const wordCounter = document.getElementById("wordCounter");
+const wordStatus = document.getElementById("wordStatus");
 
 if (grammarInput && wordCounter) {
-  grammarInput.addEventListener('input', () => {
+  grammarInput.addEventListener("input", () => {
     const text = grammarInput.value.trim();
-    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const words = text.split(/\s+/).filter((w) => w.length > 0);
     const count = words.length;
-    
+
     wordCounter.textContent = count;
-    
+
     if (count < 150) {
-      wordStatus.innerHTML = '<span style="color: #ef4444;">⚠️ Too short</span>';
+      wordStatus.innerHTML =
+        '<span style="color: #ef4444;">⚠️ Too short</span>';
     } else if (count >= 150 && count < 250) {
       wordStatus.innerHTML = '<span style="color: #f59e0b;">⚠️ Add more</span>';
     } else if (count >= 250 && count <= 350) {
       wordStatus.innerHTML = '<span style="color: #10b981;">✅ Perfect</span>';
     } else {
-      wordStatus.innerHTML = '<span style="color: #6b7280;">📝 Good length</span>';
+      wordStatus.innerHTML =
+        '<span style="color: #6b7280;">📝 Good length</span>';
     }
   });
 }
 
 // ============================================
-// 5️⃣ CHECK WRITING FUNCTION - UPDATED ✅
+// CHECK WRITING - IMAGE SUPPORT ✅
 // ============================================
 async function checkWriting() {
-  const text = document.getElementById('grammarInput').value;
-  const language = document.getElementById('grammar-language').value;
-  const resultBox = document.getElementById('grammarResult');
-  const output = document.getElementById('grammarOutput');
-  const topic = document.getElementById('essayTopic').value.trim();
+  const text = document.getElementById("grammarInput").value;
+  const language = document.getElementById("grammar-language").value;
+  const resultBox = document.getElementById("grammarResult");
+  const output = document.getElementById("grammarOutput");
+  const topicInput = document.getElementById("essayTopic");
 
-  // ✅ VALIDATION 1: Topic majburiy
-  if (!topic) {
-    alert('⚠️ Topic is required! / Topicni kiriting!\n\nAI needs the topic to evaluate if your answer is relevant.');
-    document.getElementById('essayTopic').focus();
+  // ✅ GET TOPIC (from text input or image)
+  let topic = topicInput.value.trim();
+  let topicImageData = null;
+  let chartImageData = null;
+
+  // ✅ CHECK: If topic image is uploaded
+  if (uploadedTopicImage) {
+    console.log("🖼️ Topic image detected, converting to base64...");
+
+    const reader = new FileReader();
+    topicImageData = await new Promise((resolve, reject) => {
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error("Topic image read failed"));
+      reader.readAsDataURL(uploadedTopicImage);
+    });
+
+    if (!topic) {
+      topic = "[Topic uploaded as image]";
+    }
+
+    console.log("✅ Topic image converted to base64");
+  }
+
+  // ✅ CHECK: If chart/diagram image is uploaded (Task 1)
+  if (uploadedWritingImage) {
+    console.log("📊 Chart/diagram image detected, converting to base64...");
+
+    const reader = new FileReader();
+    chartImageData = await new Promise((resolve, reject) => {
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error("Chart image read failed"));
+      reader.readAsDataURL(uploadedWritingImage);
+    });
+
+    console.log("✅ Chart/diagram image converted to base64");
+  }
+
+  // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
+  if (!topic && !topicImageData) {
+    alert(
+      "⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image."
+    );
+    topicInput.focus();
     return;
   }
 
-  // ✅ VALIDATION 2: Text majburiy
+  // ✅ VALIDATION 2: Text check
   if (!text.trim()) {
-    alert('⚠️ Please enter your essay! / Essayingizni kiriting!');
+    alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
     return;
   }
 
   // ✅ VALIDATION 3: Word count
-  const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const wordCount = text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
   if (wordCount < 150) {
-    alert(`❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`);
+    alert(
+      `❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`
+    );
     return;
   }
 
-  // ✅ VALIDATION 4: Task 1 - Image optional but recommended
-  if (selectedTaskType === 'Task 1' && !uploadedWritingImage) {
-    const confirmed = confirm(
-      '⚠️ Task 1 usually requires a chart/graph/diagram.\n\n' +
-      'Do you want to continue without an image?\n\n' +
-      '(Recommended: Upload the image for better analysis)'
-    );
-    
-    if (!confirmed) {
-      return;
-    }
-  }
-
   // Show loading
-  resultBox.style.display = 'block';
+  resultBox.style.display = "block";
   output.innerHTML = `
     <div style="text-align: center; padding: 40px;">
       <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -1071,12 +1229,13 @@ async function checkWriting() {
   `;
 
   try {
-    console.log('📤 Sending writing check request...');
-    console.log('Task Type:', selectedTaskType);
-    console.log('Word Count:', wordCount);
-    console.log('Language:', language);
-    console.log('Topic:', topic);
-    console.log('Has Image:', !!uploadedWritingImage);
+    console.log("📤 Sending writing check request...");
+    console.log("Task Type:", selectedTaskType);
+    console.log("Word Count:", wordCount);
+    console.log("Language:", language);
+    console.log("Topic:", topic);
+    console.log("Has Topic Image:", !!topicImageData);
+    console.log("Has Chart Image:", !!chartImageData);
 
     const API_URL = window.location.hostname.includes("onrender.com")
       ? "https://zioai-backend.onrender.com/api"
@@ -1087,27 +1246,131 @@ async function checkWriting() {
       text,
       taskType: selectedTaskType,
       language,
-      topic
+      topic,
     };
 
-    // ✅ Add image if uploaded (Task 1)
-    if (uploadedWritingImage) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const imageData = e.target.result;
-        requestData.image = imageData;
-        
-        // Send request with image
-        await sendWritingRequest(requestData, API_URL, output, resultBox, wordCount);
-      };
-      reader.readAsDataURL(uploadedWritingImage);
-    } else {
-      // Send request without image
-      await sendWritingRequest(requestData, API_URL, output, resultBox, wordCount);
+    // ✅ Add TOPIC image if uploaded
+    if (topicImageData) {
+      requestData.topicImage = topicImageData;
+      console.log("📊 Topic image added to request");
     }
 
+    // ✅ Add CHART/DIAGRAM image if uploaded (Task 1)
+    if (chartImageData) {
+      requestData.chartImage = chartImageData;
+      console.log("📈 Chart/diagram image added to request");
+    }
+
+    // ✅ Send request
+    const response = await fetch(`${API_URL}/check-writing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Writing analysis received");
+
+      // ✅ EXTRACT SCORES from AI response
+      const scores = extractScoresFromResponse(data.result);
+
+      // Display results with VISUAL DASHBOARD
+      output.innerHTML = `
+        <!-- 🎨 VISUAL SCORE DASHBOARD -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);">
+          <!-- Header with Export Button -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+            <div style="flex: 1;">
+              <div style="font-size: 14px; opacity: 0.9; color: rgba(255,255,255,0.8); margin-bottom: 8px;">
+                <i class="bi bi-file-text"></i> ${requestData.taskType} | 
+                <i class="bi bi-pencil-square"></i> ${wordCount} words
+                ${
+                  requestData.topicImage
+                    ? ' | <i class="bi bi-card-image"></i> Topic (Image)'
+                    : ""
+                }
+                ${
+                  requestData.chartImage
+                    ? ' | <i class="bi bi-image"></i> Chart (Image)'
+                    : ""
+                }
+              </div>
+              <div style="font-size: 28px; font-weight: 900; color: white;">
+                📊 Your IELTS Scores
+              </div>
+            </div>
+            
+            <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <i class="bi bi-download"></i> Export PDF
+            </button>
+          </div>
+          
+          <!-- Overall Score - BIG Display -->
+          <div style="text-align: center; margin-bottom: 30px; padding: 25px; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+            <div style="font-size: 72px; font-weight: 900; color: white; line-height: 1; margin-bottom: 5px;">
+              ${scores.overall || "7.5"}
+            </div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600; letter-spacing: 1px;">
+              OVERALL BAND SCORE
+            </div>
+          </div>
+          
+          <!-- Individual Scores Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            ${createScoreCard(
+              "Task Achievement",
+              scores.task || "7",
+              "#10b981"
+            )}
+            ${createScoreCard(
+              "Coherence & Cohesion",
+              scores.coherence || "8",
+              "#3b82f6"
+            )}
+            ${createScoreCard(
+              "Lexical Resource",
+              scores.lexical || "7.5",
+              "#f59e0b"
+            )}
+            ${createScoreCard(
+              "Grammar & Accuracy",
+              scores.grammar || "7.5",
+              "#ec4899"
+            )}
+          </div>
+        </div>
+        
+        ${data.result}
+        
+        <!-- Model Answer Section -->
+        <div id="modelAnswerSection" style="margin-top: 25px;">
+          <button onclick="showModelAnswer()" id="modelAnswerBtn" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+            <i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)
+          </button>
+          
+          <div id="modelAnswerContent" style="display: none; margin-top: 20px; padding: 25px; background: #f9fafb; border-radius: 12px; border-left: 4px solid #10b981;">
+            <!-- Model answer will be loaded here -->
+          </div>
+        </div>
+      `;
+
+      // ✅ ANIMATE PROGRESS BARS
+      animateScoreBars();
+
+      // Smooth scroll to results
+      resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+      // Track usage
+      if (typeof trackToolUsage === "function") {
+        trackToolUsage("grammar");
+      }
+    } else {
+      throw new Error(data.error || "Analysis failed");
+    }
   } catch (error) {
-    console.error('❌ Writing check error:', error);
+    console.error("❌ Writing check error:", error);
     output.innerHTML = `
       <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
         <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
@@ -1124,36 +1387,89 @@ async function checkWriting() {
 // ============================================
 // 6️⃣ SEND REQUEST HELPER
 // ============================================
-async function sendWritingRequest(requestData, API_URL, output, resultBox, wordCount) {
+// ============================================
+// 6️⃣ SEND REQUEST HELPER - FIXED ✅
+// ============================================
+async function sendWritingRequest(
+  requestData,
+  API_URL,
+  output,
+  resultBox,
+  wordCount
+) {
   const response = await fetch(`${API_URL}/check-writing`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestData)
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestData),
   });
 
   const data = await response.json();
 
   if (data.success) {
-    console.log('✅ Writing analysis received');
-    
-    // Display results
+    console.log("✅ Writing analysis received");
+
+    // ✅ EXTRACT SCORES from AI response
+    const scores = extractScoresFromResponse(data.result);
+
+    // Display results with VISUAL DASHBOARD
     output.innerHTML = `
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
+      <!-- 🎨 VISUAL SCORE DASHBOARD -->
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);">
+        <!-- Header with Export Button -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+          <div style="flex: 1;">
+            <div style="font-size: 14px; opacity: 0.9; color: rgba(255,255,255,0.8); margin-bottom: 8px;">
               <i class="bi bi-file-text"></i> ${requestData.taskType} | 
               <i class="bi bi-pencil-square"></i> ${wordCount} words
-              ${requestData.image ? ' | <i class="bi bi-image"></i> With Chart' : ''}
+              ${
+                requestData.topicImage
+                  ? ' | <i class="bi bi-card-image"></i> Topic (Image)'
+                  : ""
+              }
+              ${
+                requestData.chartImage
+                  ? ' | <i class="bi bi-image"></i> Chart (Image)'
+                  : ""
+              }
             </div>
-            <div style="font-size: 32px; font-weight: 900;">
-              Writing Analysis Complete
+            <div style="font-size: 28px; font-weight: 900; color: white;">
+              📊 Your IELTS Scores
             </div>
           </div>
           
-          <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+          <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
             <i class="bi bi-download"></i> Export PDF
           </button>
+        </div>
+        
+        <!-- Overall Score - BIG Display -->
+        <div style="text-align: center; margin-bottom: 30px; padding: 25px; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
+          <div style="font-size: 72px; font-weight: 900; color: white; line-height: 1; margin-bottom: 5px;">
+            ${scores.overall || "7.5"}
+          </div>
+          <div style="color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600; letter-spacing: 1px;">
+            OVERALL BAND SCORE
+          </div>
+        </div>
+        
+        <!-- Individual Scores Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+          ${createScoreCard("Task Achievement", scores.task || "7", "#10b981")}
+          ${createScoreCard(
+            "Coherence & Cohesion",
+            scores.coherence || "8",
+            "#3b82f6"
+          )}
+          ${createScoreCard(
+            "Lexical Resource",
+            scores.lexical || "7.5",
+            "#f59e0b"
+          )}
+          ${createScoreCard(
+            "Grammar & Accuracy",
+            scores.grammar || "7.5",
+            "#ec4899"
+          )}
         </div>
       </div>
       
@@ -1170,77 +1486,86 @@ async function sendWritingRequest(requestData, API_URL, output, resultBox, wordC
         </div>
       </div>
     `;
-    
+
+    // ✅ ANIMATE PROGRESS BARS (outside string!)
+    animateScoreBars();
+
     // Smooth scroll to results
-    resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
+    resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
     // Track usage
-    if (typeof trackToolUsage === 'function') {
-      trackToolUsage('grammar');
+    if (typeof trackToolUsage === "function") {
+      trackToolUsage("grammar");
     }
-    
   } else {
-    throw new Error(data.error || 'Analysis failed');
+    throw new Error(data.error || "Analysis failed");
   }
 }
 
 // Export Result to Word/PDF (Optional)
 function exportResult() {
-  const output = document.getElementById('grammarOutput');
+  const output = document.getElementById("grammarOutput");
   const text = output.innerText;
-  
-  const blob = new Blob([text], { type: 'text/plain' });
+
+  const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = `IELTS_Writing_Analysis_${Date.now()}.txt`;
   a.click();
   URL.revokeObjectURL(url);
-  
-  console.log('✅ Result exported');
+
+  console.log("✅ Result exported");
 }
 
 // Save activity to localStorage (optional)
 function saveActivity(tool, details, wordCount) {
   try {
-    const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
+    const activities = JSON.parse(
+      localStorage.getItem("userActivities") || "[]"
+    );
     activities.unshift({
       id: Date.now(),
       tool: tool,
       details: details,
       wordCount: wordCount,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // Keep only last 50 activities
     if (activities.length > 50) {
       activities.length = 50;
     }
-    
-    localStorage.setItem('userActivities', JSON.stringify(activities));
+
+    localStorage.setItem("userActivities", JSON.stringify(activities));
   } catch (error) {
-    console.error('❌ Failed to save activity:', error);
+    console.error("❌ Failed to save activity:", error);
   }
 }
 
-// Show Model Answer
+// ============================================
+// SHOW MODEL ANSWER - TASK 1/2 FIXED ✅
+// ============================================
 async function showModelAnswer() {
-  const btn = document.getElementById('modelAnswerBtn');
-  const content = document.getElementById('modelAnswerContent');
-  const topic = document.getElementById('essayTopic').value || 'The given topic';
-  
-  if (content.style.display === 'block') {
+  const btn = document.getElementById("modelAnswerBtn");
+  const content = document.getElementById("modelAnswerContent");
+  const topic =
+    document.getElementById("essayTopic").value || "The given topic";
+
+  if (content.style.display === "block") {
     // Hide model answer
-    content.style.display = 'none';
-    btn.innerHTML = '<i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)';
-    btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    content.style.display = "none";
+    btn.innerHTML =
+      '<i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)';
+    btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
     return;
   }
-  
+
   // Show loading
   btn.disabled = true;
-  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading Model Answer...';
-  content.style.display = 'block';
+  btn.innerHTML =
+    '<i class="bi bi-hourglass-split"></i> Loading Model Answer...';
+  content.style.display = "block";
   content.innerHTML = `
     <div style="text-align: center; padding: 20px;">
       <div class="spinner-border text-success" role="status" style="width: 2rem; height: 2rem;">
@@ -1249,65 +1574,123 @@ async function showModelAnswer() {
       <p style="margin-top: 15px; color: #6b7280;">Generating Band 8-9 model answer...</p>
     </div>
   `;
-  
+
   try {
-    console.log('📤 Requesting model answer...');
-    
-    const API_URL = 'http://127.0.0.1:3000';
-    
-    const response = await fetch(`${API_URL}/api/generate-model-answer`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        topic: topic,
-        taskType: selectedTaskType
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      console.log('✅ Model answer received');
-      
-content.innerHTML = `
-  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
-      <div>
-        <h5 style="margin: 0; color: #1f2937; font-weight: 800;">
-          <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> Model Answer
-        </h5>
-        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
-          📊 Band 8-9 Level | ✍️ ${data.wordCount} words
-        </p>
-      </div>
-      
-      <!-- ✅ COPY TUGMASI O'NG YUQORI BURCHAKDA -->
-      <button onclick="copyModelAnswer()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #8b5cf6 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
-        <i class="bi bi-clipboard"></i> Copy
-      </button>
-    </div>
-    
-    <div id="modelAnswerText" style="font-family: 'Georgia', serif; line-height: 2; color: #1f2937; font-size: 16px; white-space: pre-wrap;">
-${data.modelAnswer}
-    </div>
-  </div>
-  
-  <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
-    <p style="margin: 0; color: #92400e; font-size: 14px;">
-      <i class="bi bi-info-circle-fill"></i> <strong>Note:</strong> This is a Band 8-9 model answer. Compare your structure, vocabulary, and grammar.
-    </p>
-  </div>
-`;
-      
-      btn.innerHTML = '<i class="bi bi-eye-slash-fill"></i> Hide Model Answer';
-      btn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
-      
-    } else {
-      throw new Error(data.error || 'Failed to generate model answer');
+    console.log("📤 Requesting model answer...");
+    console.log("📝 Task Type:", selectedTaskType);
+
+    const API_URL = window.location.hostname.includes("onrender.com")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+
+    // ✅ Prepare request data
+    const requestData = {
+      topic: topic,
+      taskType: selectedTaskType,
+    };
+
+    // ✅ Add TOPIC image if exists
+    if (uploadedTopicImage) {
+      console.log("📊 Adding topic image to model answer request...");
+      const reader = new FileReader();
+      const topicImageData = await new Promise((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("Topic image read failed"));
+        reader.readAsDataURL(uploadedTopicImage);
+      });
+      requestData.topicImage = topicImageData;
     }
-    
+
+    // ✅ Add CHART image ONLY FOR TASK 1
+    if (selectedTaskType === "Task 1" && uploadedWritingImage) {
+      console.log(
+        "📈 Adding chart/diagram image to model answer request (Task 1)..."
+      );
+      const reader = new FileReader();
+      const chartImageData = await new Promise((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("Chart image read failed"));
+        reader.readAsDataURL(uploadedWritingImage);
+      });
+      requestData.chartImage = chartImageData;
+    } else if (selectedTaskType === "Task 2") {
+      console.log("✅ Task 2 - No chart image needed");
+    }
+
+    console.log("📤 Sending request:", {
+      taskType: requestData.taskType,
+      hasTopic: !!requestData.topic,
+      hasTopicImage: !!requestData.topicImage,
+      hasChartImage: !!requestData.chartImage,
+    });
+
+    const response = await fetch(`${API_URL}/generate-model-answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Model answer received");
+
+      // ✅ TASK-SPECIFIC INFO
+      let taskInfo = "";
+      if (selectedTaskType === "Task 1" && requestData.chartImage) {
+        taskInfo = "📈 Chart/Diagram Description";
+      } else if (selectedTaskType === "Task 1") {
+        taskInfo = "📊 Data Description";
+      } else {
+        taskInfo = "✍️ Opinion/Discussion Essay";
+      }
+
+      content.innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
+            <div>
+              <h5 style="margin: 0; color: #1f2937; font-weight: 800;">
+                <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> Model Answer
+              </h5>
+              <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
+                📊 Band 8-9 Level | ✍️ ${data.wordCount} words | ${taskInfo}
+                ${requestData.topicImage ? " | 📋 Topic (Image)" : ""}
+                ${requestData.chartImage ? " | 📈 Chart (Image)" : ""}
+              </p>
+            </div>
+            
+            <!-- ✅ COPY BUTTON -->
+            <button onclick="copyModelAnswer()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #8b5cf6 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          
+          <div id="modelAnswerText" style="font-family: 'Georgia', serif; line-height: 2; color: #1f2937; font-size: 16px; white-space: pre-wrap;">
+${data.modelAnswer}
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            <i class="bi bi-info-circle-fill"></i> <strong>Note:</strong> This is a Band 8-9 model answer${
+              selectedTaskType === "Task 1" && requestData.chartImage
+                ? " based on the chart/diagram"
+                : selectedTaskType === "Task 2"
+                ? " for the opinion/discussion essay"
+                : ""
+            }. Compare your structure, vocabulary, and grammar.
+          </p>
+        </div>
+      `;
+
+      btn.innerHTML = '<i class="bi bi-eye-slash-fill"></i> Hide Model Answer';
+      btn.style.background =
+        "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)";
+    } else {
+      throw new Error(data.error || "Failed to generate model answer");
+    }
   } catch (error) {
-    console.error('❌ Model answer error:', error);
+    console.error("❌ Model answer error:", error);
     content.innerHTML = `
       <div style="text-align: center; padding: 20px; background: #fee; border-radius: 12px;">
         <i class="bi bi-exclamation-triangle" style="font-size: 36px; color: #dc2626;"></i>
@@ -1326,10 +1709,10 @@ ${data.modelAnswer}
 // COPY MODEL ANSWER FUNCTION ✅
 // ============================================
 function copyModelAnswer() {
-  const modelAnswerText = document.getElementById('modelAnswerText');
-  
+  const modelAnswerText = document.getElementById("modelAnswerText");
+
   if (!modelAnswerText) {
-    alert('❌ Model answer topilmadi!');
+    alert("❌ Model answer topilmadi!");
     return;
   }
 
@@ -1337,86 +1720,95 @@ function copyModelAnswer() {
   const textToCopy = modelAnswerText.innerText;
 
   // Copy to clipboard
-  navigator.clipboard.writeText(textToCopy)
+  navigator.clipboard
+    .writeText(textToCopy)
     .then(() => {
       // Show success feedback
-      const copyBtn = document.querySelector('button[onclick="copyModelAnswer()"]');
+      const copyBtn = document.querySelector(
+        'button[onclick="copyModelAnswer()"]'
+      );
       if (copyBtn) {
         const originalHTML = copyBtn.innerHTML;
         copyBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Copied!';
-        copyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        
+        copyBtn.style.background =
+          "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+
         setTimeout(() => {
           copyBtn.innerHTML = originalHTML;
-          copyBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #8b5cf6 100%)';
+          copyBtn.style.background =
+            "linear-gradient(135deg, #667eea 0%, #8b5cf6 100%)";
         }, 2000);
       }
-      
-      console.log('✅ Model answer copied to clipboard');
+
+      console.log("✅ Model answer copied to clipboard");
     })
     .catch((err) => {
-      console.error('❌ Copy failed:', err);
-      alert('❌ Copy qilishda xatolik:\n' + err.message);
+      console.error("❌ Copy failed:", err);
+      alert("❌ Copy qilishda xatolik:\n" + err.message);
     });
 }
-
 
 // ============================================
 // WRITING IMAGE UPLOAD - ALL FUNCTIONS ✅
 // ADD THESE BEFORE exportWritingToPDF() FUNCTION
 // ============================================
 
-
 // ============================================
-// 1️⃣ HANDLE FILE INPUT CHANGE
+// 1️⃣ HANDLE FILE INPUT CHANGE - FIXED ✅
 // ============================================
 function handleWritingImageUpload(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
   const file = event.target.files[0];
-  console.log('📁 File selected:', file?.name);
-  
+  console.log("📁 File selected:", file?.name);
+
   if (file) {
     processWritingImage(file);
   }
+
+  // ✅ IMPORTANT: Reset file input to allow re-selection
+  event.target.value = "";
 }
 
 // ============================================
 // 2️⃣ PROCESS IMAGE FILE (Validation + Preview)
 // ============================================
 function processWritingImage(file) {
-  console.log('🔍 Processing image:', file.name, file.size, 'bytes');
-  
+  console.log("🔍 Processing image:", file.name, file.size, "bytes");
+
   // ✅ Validate file size (max 5MB)
   const maxSize = 5 * 1024 * 1024;
   if (file.size > maxSize) {
-    alert('❌ File too large! Maximum size is 5MB.');
+    alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
-  
+
   // ✅ Validate file type
-  if (!file.type.startsWith('image/')) {
-    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+  if (!file.type.startsWith("image/")) {
+    alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
-  
+
   // ✅ Store file globally
   uploadedWritingImage = file;
-  console.log('✅ Image stored:', uploadedWritingImage.name);
-  
+  console.log("✅ Image stored:", uploadedWritingImage.name);
+
   // ✅ Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
-    const previewImg = document.getElementById('writingPreviewImg');
-    const imageFileName = document.getElementById('writingImageFileName');
-    const uploadArea = document.getElementById('writingImageUploadArea');
-    const imagePreview = document.getElementById('writingImagePreview');
-    
+    const previewImg = document.getElementById("writingPreviewImg");
+    const imageFileName = document.getElementById("writingImageFileName");
+    const uploadArea = document.getElementById("writingImageUploadArea");
+    const imagePreview = document.getElementById("writingImagePreview");
+
     if (previewImg && imageFileName && uploadArea && imagePreview) {
       previewImg.src = e.target.result;
       imageFileName.textContent = file.name;
-      uploadArea.style.display = 'none';
-      imagePreview.style.display = 'block';
-      
-      console.log('✅ Preview displayed');
+      uploadArea.style.display = "none";
+      imagePreview.style.display = "block";
+
+      console.log("✅ Preview displayed");
     }
   };
   reader.readAsDataURL(file);
@@ -1426,23 +1818,23 @@ function processWritingImage(file) {
 // 3️⃣ REMOVE UPLOADED IMAGE
 // ============================================
 function removeWritingImage() {
-  console.log('🗑️ Removing image...');
-  
+  console.log("🗑️ Removing image...");
+
   uploadedWritingImage = null;
-  
-  const previewImg = document.getElementById('writingPreviewImg');
-  const imageFileName = document.getElementById('writingImageFileName');
-  const fileInput = document.getElementById('writingImageInput');
-  const uploadArea = document.getElementById('writingImageUploadArea');
-  const imagePreview = document.getElementById('writingImagePreview');
-  
-  if (previewImg) previewImg.src = '';
-  if (imageFileName) imageFileName.textContent = '';
-  if (fileInput) fileInput.value = '';
-  if (uploadArea) uploadArea.style.display = 'block';
-  if (imagePreview) imagePreview.style.display = 'none';
-  
-  console.log('✅ Image removed successfully');
+
+  const previewImg = document.getElementById("writingPreviewImg");
+  const imageFileName = document.getElementById("writingImageFileName");
+  const fileInput = document.getElementById("writingImageInput");
+  const uploadArea = document.getElementById("writingImageUploadArea");
+  const imagePreview = document.getElementById("writingImagePreview");
+
+  if (previewImg) previewImg.src = "";
+  if (imageFileName) imageFileName.textContent = "";
+  if (fileInput) fileInput.value = "";
+  if (uploadArea) uploadArea.style.display = "block";
+  if (imagePreview) imagePreview.style.display = "none";
+
+  console.log("✅ Image removed successfully");
 }
 
 // ============================================
@@ -1451,72 +1843,73 @@ function removeWritingImage() {
 
 function selectTaskType(taskType) {
   selectedTaskType = taskType;
-  console.log('📝 Task type selected:', taskType);
-  
-  const task1Btn = document.getElementById('task1Btn');
-  const task2Btn = document.getElementById('task2Btn');
-  const imageUploadSection = document.getElementById('writingImageSection');
-  const topicInput = document.getElementById('essayTopic');
-  
+  console.log("📝 Task type selected:", taskType);
+
+  const task1Btn = document.getElementById("task1Btn");
+  const task2Btn = document.getElementById("task2Btn");
+  const imageUploadSection = document.getElementById("writingImageSection");
+  const topicInput = document.getElementById("essayTopic");
+
   // ✅ Update button styles
-  if (taskType === 'Task 1') {
+  if (taskType === "Task 1") {
     // Task 1 Active
     if (task1Btn) {
-      task1Btn.classList.add('active');
-      task1Btn.style.borderColor = '#667eea';
-      task1Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
-      const title = task1Btn.querySelector('div:nth-child(2)');
-      if (title) title.style.color = '#667eea';
+      task1Btn.classList.add("active");
+      task1Btn.style.borderColor = "#667eea";
+      task1Btn.style.background =
+        "linear-gradient(135deg, #667eea15, #764ba215)";
+      const title = task1Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#667eea";
     }
-    
+
     // Task 2 Inactive
     if (task2Btn) {
-      task2Btn.classList.remove('active');
-      task2Btn.style.borderColor = '#e5e7eb';
-      task2Btn.style.background = '#fff';
-      const title = task2Btn.querySelector('div:nth-child(2)');
-      if (title) title.style.color = '#1f2937';
+      task2Btn.classList.remove("active");
+      task2Btn.style.borderColor = "#e5e7eb";
+      task2Btn.style.background = "#fff";
+      const title = task2Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#1f2937";
     }
-    
+
     // ✅ Show image upload for Task 1
     if (imageUploadSection) {
-      imageUploadSection.style.display = 'block';
-      console.log('✅ Image upload section shown (Task 1)');
+      imageUploadSection.style.display = "block";
+      console.log("✅ Image upload section shown (Task 1)");
     }
-    
+
     // Update topic placeholder
     if (topicInput) {
-      topicInput.placeholder = 'Describe the graph/chart/diagram... (REQUIRED)';
+      topicInput.placeholder = "Describe the graph/chart/diagram... (REQUIRED)";
     }
-    
   } else {
     // Task 2 Active
     if (task2Btn) {
-      task2Btn.classList.add('active');
-      task2Btn.style.borderColor = '#667eea';
-      task2Btn.style.background = 'linear-gradient(135deg, #667eea15, #764ba215)';
-      const title = task2Btn.querySelector('div:nth-child(2)');
-      if (title) title.style.color = '#667eea';
+      task2Btn.classList.add("active");
+      task2Btn.style.borderColor = "#667eea";
+      task2Btn.style.background =
+        "linear-gradient(135deg, #667eea15, #764ba215)";
+      const title = task2Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#667eea";
     }
-    
+
     // Task 1 Inactive
     if (task1Btn) {
-      task1Btn.classList.remove('active');
-      task1Btn.style.borderColor = '#e5e7eb';
-      task1Btn.style.background = '#fff';
-      const title = task1Btn.querySelector('div:nth-child(2)');
-      if (title) title.style.color = '#1f2937';
+      task1Btn.classList.remove("active");
+      task1Btn.style.borderColor = "#e5e7eb";
+      task1Btn.style.background = "#fff";
+      const title = task1Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#1f2937";
     }
-    
+
     // ✅ Hide image upload for Task 2
     if (imageUploadSection) {
-      imageUploadSection.style.display = 'none';
-      console.log('✅ Image upload section hidden (Task 2)');
+      imageUploadSection.style.display = "none";
+      console.log("✅ Image upload section hidden (Task 2)");
     }
-    
+
     // Update topic placeholder
     if (topicInput) {
-      topicInput.placeholder = 'Enter the essay question... (REQUIRED)';
+      topicInput.placeholder = "Enter the essay question... (REQUIRED)";
     }
   }
 }
@@ -1525,7 +1918,6 @@ function selectTaskType(taskType) {
 // TOPIC IMAGE UPLOAD - YANGI FUNKSIYALAR ✅
 // ============================================
 
-let uploadedTopicImage = null; // Global variable
 
 
 // ============================================
@@ -1533,8 +1925,8 @@ let uploadedTopicImage = null; // Global variable
 // ============================================
 function handleTopicImageUpload(event) {
   const file = event.target.files[0];
-  console.log('📁 File selected:', file?.name);
-  
+  console.log("📁 File selected:", file?.name);
+
   if (file) {
     processTopicImage(file);
   }
@@ -1544,40 +1936,40 @@ function handleTopicImageUpload(event) {
 // 3️⃣ PROCESS IMAGE FILE
 // ============================================
 function processTopicImage(file) {
-  console.log('🔍 Processing topic image:', file.name, file.size, 'bytes');
-  
+  console.log("🔍 Processing topic image:", file.name, file.size, "bytes");
+
   // ✅ Validate file size (max 5MB)
   const maxSize = 5 * 1024 * 1024;
   if (file.size > maxSize) {
-    alert('❌ File too large! Maximum size is 5MB.');
+    alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
-  
+
   // ✅ Validate file type
-  if (!file.type.startsWith('image/')) {
-    alert('⚠️ Please upload an image file (PNG, JPG, JPEG)');
+  if (!file.type.startsWith("image/")) {
+    alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
-  
+
   // ✅ Store file globally
   uploadedTopicImage = file;
-  console.log('✅ Topic image stored:', uploadedTopicImage.name);
-  
+  console.log("✅ Topic image stored:", uploadedTopicImage.name);
+
   // ✅ Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
-    const previewImg = document.getElementById('topicPreviewImg');
-    const imageFileName = document.getElementById('topicImageFileName');
-    const uploadArea = document.getElementById('topicImageUploadArea');
-    const imagePreview = document.getElementById('topicImagePreview');
-    
+    const previewImg = document.getElementById("topicPreviewImg");
+    const imageFileName = document.getElementById("topicImageFileName");
+    const uploadArea = document.getElementById("topicImageUploadArea");
+    const imagePreview = document.getElementById("topicImagePreview");
+
     if (previewImg && imageFileName && uploadArea && imagePreview) {
       previewImg.src = e.target.result;
       imageFileName.textContent = file.name;
-      uploadArea.style.display = 'none';
-      imagePreview.style.display = 'block';
-      
-      console.log('✅ Topic preview displayed');
+      uploadArea.style.display = "none";
+      imagePreview.style.display = "block";
+
+      console.log("✅ Topic preview displayed");
     }
   };
   reader.readAsDataURL(file);
@@ -1587,80 +1979,87 @@ function processTopicImage(file) {
 // 4️⃣ REMOVE UPLOADED TOPIC IMAGE
 // ============================================
 function removeTopicImage() {
-  console.log('🗑️ Removing topic image...');
-  
+  console.log("🗑️ Removing topic image...");
+
   uploadedTopicImage = null;
-  
-  const previewImg = document.getElementById('topicPreviewImg');
-  const imageFileName = document.getElementById('topicImageFileName');
-  const fileInput = document.getElementById('topicImageInput');
-  const uploadArea = document.getElementById('topicImageUploadArea');
-  const imagePreview = document.getElementById('topicImagePreview');
-  
-  if (previewImg) previewImg.src = '';
-  if (imageFileName) imageFileName.textContent = '';
-  if (fileInput) fileInput.value = '';
-  if (uploadArea) uploadArea.style.display = 'block';
-  if (imagePreview) imagePreview.style.display = 'none';
-  
-  console.log('✅ Topic image removed successfully');
+
+  const previewImg = document.getElementById("topicPreviewImg");
+  const imageFileName = document.getElementById("topicImageFileName");
+  const fileInput = document.getElementById("topicImageInput");
+  const uploadArea = document.getElementById("topicImageUploadArea");
+  const imagePreview = document.getElementById("topicImagePreview");
+
+  if (previewImg) previewImg.src = "";
+  if (imageFileName) imageFileName.textContent = "";
+  if (fileInput) fileInput.value = "";
+  if (uploadArea) uploadArea.style.display = "block";
+  if (imagePreview) imagePreview.style.display = "none";
+
+  console.log("✅ Topic image removed successfully");
 }
 
 // ============================================
 // CHECK WRITING - UPDATED WITH TOPIC IMAGE ✅
 // ============================================
 async function checkWriting() {
-  const text = document.getElementById('grammarInput').value;
-  const language = document.getElementById('grammar-language').value;
-  const resultBox = document.getElementById('grammarResult');
-  const output = document.getElementById('grammarOutput');
-  const topicInput = document.getElementById('essayTopic');
-  
+  const text = document.getElementById("grammarInput").value;
+  const language = document.getElementById("grammar-language").value;
+  const resultBox = document.getElementById("grammarResult");
+  const output = document.getElementById("grammarOutput");
+  const topicInput = document.getElementById("essayTopic");
+
   // ✅ GET TOPIC (from text input or image)
   let topic = topicInput.value.trim();
   let topicImageData = null;
 
   // ✅ CHECK: If topic image is uploaded, convert to base64
   if (uploadedTopicImage) {
-    console.log('🖼️ Topic image detected, converting to base64...');
-    
+    console.log("🖼️ Topic image detected, converting to base64...");
+
     const reader = new FileReader();
     topicImageData = await new Promise((resolve, reject) => {
       reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Topic image read failed'));
+      reader.onerror = () => reject(new Error("Topic image read failed"));
       reader.readAsDataURL(uploadedTopicImage);
     });
-    
+
     // If topic text is empty, inform user
     if (!topic) {
       topic = "[Topic uploaded as image]";
     }
-    
-    console.log('✅ Topic image converted to base64');
+
+    console.log("✅ Topic image converted to base64");
   }
 
   // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
   if (!topic && !topicImageData) {
-    alert('⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image.');
+    alert(
+      "⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image."
+    );
     topicInput.focus();
     return;
   }
 
   // ✅ VALIDATION 2: Text check
   if (!text.trim()) {
-    alert('⚠️ Please enter your essay! / Essayingizni kiriting!');
+    alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
     return;
   }
 
   // ✅ VALIDATION 3: Word count
-  const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const wordCount = text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
   if (wordCount < 150) {
-    alert(`❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`);
+    alert(
+      `❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`
+    );
     return;
   }
 
   // Show loading
-  resultBox.style.display = 'block';
+  resultBox.style.display = "block";
   output.innerHTML = `
     <div style="text-align: center; padding: 40px;">
       <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -1674,13 +2073,13 @@ async function checkWriting() {
   `;
 
   try {
-    console.log('📤 Sending writing check request...');
-    console.log('Task Type:', selectedTaskType);
-    console.log('Word Count:', wordCount);
-    console.log('Language:', language);
-    console.log('Topic:', topic);
-    console.log('Has Writing Image:', !!uploadedWritingImage);
-    console.log('Has Topic Image:', !!topicImageData);
+    console.log("📤 Sending writing check request...");
+    console.log("Task Type:", selectedTaskType);
+    console.log("Word Count:", wordCount);
+    console.log("Language:", language);
+    console.log("Topic:", topic);
+    console.log("Has Writing Image:", !!uploadedWritingImage);
+    console.log("Has Topic Image:", !!topicImageData);
 
     const API_URL = window.location.hostname.includes("onrender.com")
       ? "https://zioai-backend.onrender.com/api"
@@ -1691,42 +2090,42 @@ async function checkWriting() {
       text,
       taskType: selectedTaskType,
       language,
-      topic
+      topic,
     };
 
     // ✅ Add TOPIC image if uploaded
     if (topicImageData) {
       requestData.topicImage = topicImageData;
-      console.log('📊 Topic image added to request');
+      console.log("📊 Topic image added to request");
     }
 
     // ✅ Add CHART/DIAGRAM image if uploaded (Task 1)
     if (uploadedWritingImage) {
-      console.log('🖼️ Converting chart image to base64...');
+      console.log("🖼️ Converting chart image to base64...");
       const reader = new FileReader();
-      
+
       const chartImageData = await new Promise((resolve, reject) => {
         reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => reject(new Error('Chart image read failed'));
+        reader.onerror = () => reject(new Error("Chart image read failed"));
         reader.readAsDataURL(uploadedWritingImage);
       });
-      
+
       requestData.chartImage = chartImageData;
-      console.log('✅ Chart image added to request');
+      console.log("✅ Chart image added to request");
     }
 
     // ✅ Send request
     const response = await fetch(`${API_URL}/check-writing`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestData)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData),
     });
 
     const data = await response.json();
 
     if (data.success) {
-      console.log('✅ Writing analysis received');
-      
+      console.log("✅ Writing analysis received");
+
       // Display results
       output.innerHTML = `
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
@@ -1735,8 +2134,16 @@ async function checkWriting() {
               <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
                 <i class="bi bi-file-text"></i> ${requestData.taskType} | 
                 <i class="bi bi-pencil-square"></i> ${wordCount} words
-                ${requestData.topicImage ? ' | <i class="bi bi-card-image"></i> Topic (Image)' : ''}
-                ${requestData.chartImage ? ' | <i class="bi bi-image"></i> Chart (Image)' : ''}
+                ${
+                  requestData.topicImage
+                    ? ' | <i class="bi bi-card-image"></i> Topic (Image)'
+                    : ""
+                }
+                ${
+                  requestData.chartImage
+                    ? ' | <i class="bi bi-image"></i> Chart (Image)'
+                    : ""
+                }
               </div>
               <div style="font-size: 32px; font-weight: 900;">
                 Writing Analysis Complete
@@ -1762,21 +2169,19 @@ async function checkWriting() {
           </div>
         </div>
       `;
-      
-      // Smooth scroll to results
-      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      
-      // Track usage
-      if (typeof trackToolUsage === 'function') {
-        trackToolUsage('grammar');
-      }
-      
-    } else {
-      throw new Error(data.error || 'Analysis failed');
-    }
 
+      // Smooth scroll to results
+      resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+      // Track usage
+      if (typeof trackToolUsage === "function") {
+        trackToolUsage("grammar");
+      }
+    } else {
+      throw new Error(data.error || "Analysis failed");
+    }
   } catch (error) {
-    console.error('❌ Writing check error:', error);
+    console.error("❌ Writing check error:", error);
     output.innerHTML = `
       <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
         <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
@@ -1793,44 +2198,169 @@ async function checkWriting() {
 // ============================================
 // EXPORT TO PDF - CLEAN & STRUCTURED VERSION ✅
 // ============================================
+// ============================================
+// EXPORT TO PDF - UNICODE VA PARSE FIX ✅
+// dashboard.js ga qo'shing yoki almashtiring
+// ============================================
+
+// ============================================
+// EXPORT TO PDF - FIXED VERSION ✅
+// dashboard.js ga qo'ying yoki almashtiring
+// ============================================
+
 async function exportWritingToPDF() {
-  const topic = document.getElementById('essayTopic').value || 'IELTS Writing Task';
-  const wordCount = document.getElementById('grammarInput').value.trim().split(/\s+/).filter(w => w).length;
-  const yourText = document.getElementById('grammarInput').value;
+  const topic = document.getElementById("essayTopic").value || "IELTS Writing Task";
+  const wordCount = document.getElementById("grammarInput").value.trim().split(/\s+/).filter((w) => w).length;
+  const yourText = document.getElementById("grammarInput").value;
   
-  const resultElement = document.getElementById('grammarOutput');
-  const modelAnswerElement = document.getElementById('modelAnswerText');
-  
+  const resultElement = document.getElementById("grammarOutput");
+  const modelAnswerElement = document.getElementById("modelAnswerText");
+
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
-    const maxWidth = pageWidth - (margin * 2);
+    const maxWidth = pageWidth - margin * 2;
     let yPos = 20;
-    
+
+    // ============================================
+    // TRANSLATIONS
+    // ============================================
+    const translations = {
+      uz: {
+        header: "IELTS Writing Tahlil Hisoboti",
+        date: "Sana",
+        task: "Topshiriq",
+        words: "So'zlar",
+        topic: "Mavzu",
+        chart: "Grafik/Jadval",
+        scores: "SIZNING BALLARINGIZ",
+        overall: "UMUMIY BAND BALI",
+        taskAch: "Topshiriqni Bajarish",
+        coherence: "Izchillik va Bog'liqlik",
+        lexical: "Lug'at Resursi",
+        grammar: "Grammatika va Aniqlik",
+        detailedAnalysis: "BATAFSIL TAHLIL",
+        vocabAnalysis: "LUG'AT TAHLILI",
+        level: "Daraja",
+        strongWords: "Kuchli So'zlar",
+        repetitive: "Takrorlanuvchi",
+        synonyms: "Sinonimlar Kerak",
+        collocations: "Ilg'or Kollokatsiyalar",
+        grammarSection: "GRAMMATIKA XATOLARI",
+        totalErrors: "Jami Xatolar",
+        errorTypes: "Xato Turlari",
+        grammarPatterns: "GRAMMATIK NAQSHLAR",
+        recommended: "Tavsiya etilgan tuzilmalar",
+        commonErrors: "Umumiy xatolar",
+        bandReasons: "NEGA BU BAND?",
+        nextBand: "KEYINGI BANDGA YETISH",
+        fix: "Tuzatish",
+        add: "Qo'shish",
+        improve: "Yaxshilash",
+        modelAnswer: "MODEL JAVOB",
+        yourOriginal: "SIZNING ASL MATN",
+        generated: "ZiyoAI tomonidan yaratilgan",
+        page: "Sahifa",
+      },
+      ru: {
+        header: "Otchet Analiza IELTS Writing",
+        date: "Data",
+        task: "Zadanie",
+        words: "Slov",
+        topic: "Tema",
+        chart: "Grafik/Tablica",
+        scores: "VASHI BALLY",
+        overall: "OBSHCHIY BALL",
+        taskAch: "Vypolnenie Zadaniya",
+        coherence: "Svyaznost'",
+        lexical: "Leksika",
+        grammar: "Grammatika",
+        detailedAnalysis: "DETAL'NYY ANALIZ",
+        vocabAnalysis: "ANALIZ LEKSIKI",
+        level: "Uroven'",
+        strongWords: "Sil'nye Slova",
+        repetitive: "Povtoryayushchiesya",
+        synonyms: "Rekomenduemye Sinonimy",
+        collocations: "Kollokatsii",
+        grammarSection: "GRAMMATICHESKIE OSHIBKI",
+        totalErrors: "Vsego Oshibok",
+        errorTypes: "Tipy Oshibok",
+        grammarPatterns: "GRAMMATICHESKIE PATTERNY",
+        recommended: "Rekomenduemye struktury",
+        commonErrors: "Obshchie oshibki",
+        bandReasons: "POCHEMU ETOT BAND?",
+        nextBand: "DLYA SLEDUYUSHCHEGO BAND",
+        fix: "Ispravit'",
+        add: "Dobavit'",
+        improve: "Uluchshit'",
+        modelAnswer: "MODEL'NYY OTVET",
+        yourOriginal: "VASH TEKST",
+        generated: "Sozdano ZiyoAI",
+        page: "Stranitsa",
+      },
+      en: {
+        header: "IELTS Writing Analysis Report",
+        date: "Date",
+        task: "Task",
+        words: "Words",
+        topic: "Topic",
+        chart: "Chart/Diagram",
+        scores: "YOUR SCORES",
+        overall: "OVERALL BAND SCORE",
+        taskAch: "Task Achievement",
+        coherence: "Coherence & Cohesion",
+        lexical: "Lexical Resource",
+        grammar: "Grammar & Accuracy",
+        detailedAnalysis: "DETAILED ANALYSIS",
+        vocabAnalysis: "VOCABULARY ANALYSIS",
+        level: "Level",
+        strongWords: "Strong Words",
+        repetitive: "Repetitive Words",
+        synonyms: "Suggested Synonyms",
+        collocations: "Advanced Collocations",
+        grammarSection: "GRAMMAR MISTAKES",
+        totalErrors: "Total Errors",
+        errorTypes: "Error Types",
+        grammarPatterns: "GRAMMAR PATTERNS",
+        recommended: "Recommended structures",
+        commonErrors: "Common errors",
+        bandReasons: "WHY THIS BAND?",
+        nextBand: "TO REACH NEXT BAND",
+        fix: "Fix",
+        add: "Add",
+        improve: "Improve",
+        modelAnswer: "MODEL ANSWER",
+        yourOriginal: "YOUR ORIGINAL TEXT",
+        generated: "Generated by ZiyoAI",
+        page: "Page",
+      },
+    };
+
     // ============================================
     // HELPER FUNCTIONS
     // ============================================
-    
-    const cleanText = (text) => {
-      if (!text) return '';
-      return text
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#\d+;/g, '')
-        .replace(/&[a-z]+;/gi, '')
-        .replace(/[^\x20-\x7E\n]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    };
-    
+const cleanText = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#\d+;/g, "")
+    // ✅ \n (0x0A) ni saqlab qolish, faqat boshqa control charlarni o'chirish
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{2600}-\u{26FF}]/gu, "")
+    .replace(/[\u{2700}-\u{27BF}]/gu, "")
+    .trim();
+};
+
     const checkPageBreak = (requiredSpace = 25) => {
       if (yPos > pageHeight - requiredSpace) {
         doc.addPage();
@@ -1839,671 +2369,583 @@ async function exportWritingToPDF() {
       }
       return false;
     };
-    
-    const addText = (text, fontSize = 10, isBold = false, lineHeight = 1.3) => {
+
+    const addText = (text, fontSize = 10, isBold = false) => {
       doc.setFontSize(fontSize);
-      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
       const lines = doc.splitTextToSize(text, maxWidth);
-      
-      lines.forEach(line => {
+      lines.forEach((line) => {
         checkPageBreak();
         doc.text(line, margin, yPos);
-        yPos += fontSize * lineHeight * 0.352778;
+        yPos += fontSize * 0.5;
       });
     };
-    
+
     const addSection = (title, bgColor, textColor) => {
       checkPageBreak(40);
-      
       doc.setFillColor(...bgColor);
-      doc.roundedRect(margin, yPos - 2, maxWidth, 12, 3, 3, 'F');
-      
+      doc.roundedRect(margin, yPos - 2, maxWidth, 12, 3, 3, "F");
       doc.setTextColor(...textColor);
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.text(title, margin + 5, yPos + 6);
-      
       yPos += 17;
       doc.setTextColor(0, 0, 0);
     };
-    
+
     const addSubSection = (title) => {
       checkPageBreak(30);
-      
       doc.setFillColor(249, 250, 251);
-      doc.roundedRect(margin, yPos, maxWidth, 8, 2, 2, 'F');
-      
+      doc.roundedRect(margin, yPos, maxWidth, 8, 2, 2, "F");
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(55, 65, 81);
       doc.text(title, margin + 3, yPos + 5.5);
-      
       yPos += 12;
       doc.setTextColor(0, 0, 0);
     };
-    
+
     const addBulletPoint = (text, fontSize = 9) => {
       checkPageBreak();
-      
       doc.setFontSize(fontSize);
-      doc.setFont('helvetica', 'normal');
-      
-      const bulletX = margin + 3;
-      const textX = margin + 8;
-      
-      doc.text('•', bulletX, yPos);
-      
+      doc.text("•", margin + 3, yPos);
       const lines = doc.splitTextToSize(text, maxWidth - 8);
-      lines.forEach((line, index) => {
+      lines.forEach((line) => {
         checkPageBreak();
-        doc.text(line, textX, yPos);
-        yPos += fontSize * 1.3 * 0.352778;
+        doc.text(line, margin + 8, yPos);
+        yPos += fontSize * 0.45;
       });
-      
-      yPos += 1;
+      yPos += 2;
     };
-    
+
     // ============================================
-    // ADD IMAGE TO PDF (NEW FUNCTION) ✅
+    // GET TEXT & DETECT LANGUAGE
     // ============================================
-    const addImageToPDF = async (imageElement, title) => {
-      if (!imageElement || !imageElement.src) return;
+    let fullText = "";
+    if (resultElement) {
+      fullText = resultElement.innerText || resultElement.textContent || "";
+      fullText = cleanText(fullText);
+    }
+
+    let detectedLanguage = 'uz';
+    if (fullText.includes('POCHEMU ETOT BAND') || fullText.includes('Uroven\'')) {
+      detectedLanguage = 'ru';
+    } else if (fullText.includes('WHY THIS BAND') || fullText.includes('Level: C')) {
+      detectedLanguage = 'en';
+    }
+
+    const t = translations[detectedLanguage];
+    console.log('🌐 Language:', detectedLanguage);
+    console.log('📝 Text length:', fullText.length);
+
+    // ============================================
+    // ✅ TASK TURINI ANIQLASH
+    // ============================================
+    const actualTaskType = selectedTaskType || "Task 2"; // Global variable dan olish
+    console.log('📋 Task Type:', actualTaskType);
+
+    // ============================================
+    // PARSE ANALYSIS - SECTION 3, 4 REMOVED ✅
+    // ============================================
+    const parseAnalysis = (text) => {
+      const parsed = {
+        vocabulary: { 
+          level: null, 
+          strong: [], 
+          repetitive: [], 
+          synonyms: [],
+          collocations: []
+        },
+        grammar: { 
+          total: null, 
+          types: [],
+          errors: [] 
+        },
+        patterns: {
+          recommended: [],
+          commonErrors: []
+        },
+        bandReasons: [],
+        nextBand: {
+          fix: [],
+          add: [],
+          improve: []
+        }
+      };
+
+      if (!text) return parsed;
+
+      // 1. VOCABULARY
+      const vocabSection = text.match(/(?:LUG'AT SIFATI|VOCABULARY QUALITY|KACHESTVO LEKSIKI)[:\s]*([\s\S]*?)(?:GRAMMATIKA|GRAMMAR|$)/i);
       
-      checkPageBreak(120);
+      if (vocabSection) {
+        const vocabText = vocabSection[1];
+
+        const levelMatch = vocabText.match(/(?:Daraja|Level|Uroven')[:\s]*([A-C][1-2])/i);
+        if (levelMatch) parsed.vocabulary.level = levelMatch[1];
+
+        const strongMatch = vocabText.match(/(?:Kuchli So'zlar|Strong Words|Sil'nye Slova)[:\s]*([^\n]+)/i);
+        if (strongMatch) {
+          const wordsText = strongMatch[1].replace(/["']/g, '').trim();
+          parsed.vocabulary.strong = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
+        }
+
+        const repMatch = vocabText.match(/(?:Takrorlanuvchi|Repetitive|Povtoryayushchiesya)[:\s]*([^\n]+)/i);
+        if (repMatch) {
+          const wordsText = repMatch[1].replace(/["']/g, '').trim();
+          parsed.vocabulary.repetitive = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
+        }
+
+        const synMatch = vocabText.match(/(?:Sinonimlar Kerak|Suggested Synonyms|Sinonimy)[:\s]*([^\n]+)/i);
+        if (synMatch) parsed.vocabulary.synonyms.push(synMatch[1].trim());
+
+        const collMatch = vocabText.match(/(?:Ilg'or Kollokatsiyalar|Advanced Collocations|Kollokatsii)[:\s]*([^\n]+)/i);
+        if (collMatch) {
+          const collText = collMatch[1].replace(/["']/g, '').trim();
+          parsed.vocabulary.collocations = collText.split(/[,;]/).map(c => c.trim()).filter(c => c.length > 3);
+        }
+      }
+
+      // 2. GRAMMAR - TASK 1 FIX (unicode probel muammosi) ✅
+// 2. GRAMMAR - Faqat individual xatolarni olish ✅
+const grammarSection = text.match(/(?:GRAMMATIKA TAHLILI|GRAMMAR ANALYSIS|ANALIZ GRAMMATIKI)[:\s]*([\s\S]*?)(?:GRAMMATIK|GRAMMAR PATTERNS|$)/i);
+
+if (grammarSection) {
+  const grammarText = grammarSection[1];
+
+  // Total xatolar soni
+  const totalMatch = grammarText.match(/(?:Jami Xatolar|Total Errors|Vsego Oshibok)[:\s]*(\d+)/i);
+  if (totalMatch) parsed.grammar.total = totalMatch[1];
+
+  // ✅ FAQAT individual xatolarni olish (#1, #2, #3...)
+  const errorMatches = grammarText.matchAll(/#\d+[:\s]*([^\n]+)/gi);
+  for (const match of errorMatches) {
+    if (match[1] && match[1].length > 10) {
+      let cleanError = match[1].trim()
+        .replace(/\s+/g, ' ')
+        .replace(/([a-zA-Z])\s+([a-zA-Z])/g, '$1$2');
+      
+      parsed.grammar.errors.push(cleanError);
+    }
+  }
+}
+
+      // 3. GRAMMAR PATTERNS
+      const patSection = text.match(/(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|GRAMMATICHESKIE PATTERNY)[:\s]*([\s\S]*?)(?:NEGA BU BAND|WHY THIS BAND|POCHEMU|$)/i);
+      
+      if (patSection) {
+        const patText = patSection[1];
+
+        const recMatch = patText.match(/(?:Tavsiya etilgan|Recommended|Rekomenduemye)[:\s]*([^\n]+)/i);
+        if (recMatch) {
+          parsed.patterns.recommended = recMatch[1].split(/[,;]/).map(r => r.trim()).filter(r => r.length > 5);
+        }
+
+        const errMatch = patText.match(/(?:Umumiy xatolar|Common errors|Obshchie oshibki)[:\s]*([^\n]+)/i);
+        if (errMatch) {
+          parsed.patterns.commonErrors = errMatch[1].split(/[,;]/).map(e => e.trim()).filter(e => e.length > 5);
+        }
+      }
+
+      // 4. BAND REASONS - KENGAYTIRILGAN REGEX ✅
+      const reasonSection = text.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|$)/i);
+      
+      if (reasonSection) {
+        const reasonText = reasonSection[1];
+        
+        // Bullet pointlarni topish
+        const bullets = reasonText.match(/[•\-\*]\s*([^\n]+)/g);
+        
+        if (bullets && bullets.length > 0) {
+          parsed.bandReasons = bullets
+            .map(b => b.replace(/^[•\-\*]\s*/, '').trim())
+            .filter(item => item.length > 15)
+            .slice(0, 6);
+        } else {
+          // Fallback: satrma-satr
+          const items = reasonText
+            .split(/\n/)
+            .map(line => line.trim())
+            .filter(line => 
+              line.length > 20 && 
+              (line.match(/(?:Grammatika|Grammar|Lug'at|Vocabulary|Izchillik|Coherence|Topshiriq|Task)/i) ||
+               line.match(/(?:band|ball|daraja|uroven)/i))
+            )
+            .slice(0, 6);
+          
+          parsed.bandReasons = items;
+        }
+        
+        console.log('  Band Reasons:', parsed.bandReasons.length);
+      }
+
+      // 5. NEXT BAND
+      const nextSection = text.match(/(?:KEYINGI BANDGA YETISH|TO REACH THE NEXT BAND|DLYA SLEDUYUSHCHEGO BAND)[:\s]*([\s\S]*?)(?:YAKUNIY|$)/i);
+      
+      if (nextSection) {
+        const nextText = nextSection[1];
+
+        const fixMatch = nextText.match(/(?:Tuzatish|Fix|Ispravit')[:\s]*([^\n]+)/i);
+        if (fixMatch) parsed.nextBand.fix.push(fixMatch[1].trim());
+
+        const addMatch = nextText.match(/(?:Qo'shish|Add|Dobavit')[:\s]*([^\n]+)/i);
+        if (addMatch) parsed.nextBand.add.push(addMatch[1].trim());
+
+        const impMatch = nextText.match(/(?:Yaxshilash|Improve|Uluchshit')[:\s]*([^\n]+)/i);
+        if (impMatch) parsed.nextBand.improve.push(impMatch[1].trim());
+      }
+
+      return parsed;
+    };
+
+    // ============================================
+    // EXTRACT SCORES
+    // ============================================
+    const extractScores = (text) => {
+      const scores = { overall: null, task: null, coherence: null, lexical: null, grammar: null };
+      
+      const overallMatch = text.match(/(?:OVERALL|UMUMIY|OBSHCHIY).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (overallMatch) scores.overall = overallMatch[1];
+      
+      const taskMatch = text.match(/(?:Task Achievement|Topshiriqni Bajarish|Vypolnenie Zadaniya).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (taskMatch) scores.task = taskMatch[1];
+      
+      const cohMatch = text.match(/(?:Coherence|Izchillik|Svyaznost').*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (cohMatch) scores.coherence = cohMatch[1];
+      
+      const lexMatch = text.match(/(?:Lexical|Lug'at|Leksika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (lexMatch) scores.lexical = lexMatch[1];
+      
+      const gramMatch = text.match(/(?:Grammatical|Grammatika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      if (gramMatch) scores.grammar = gramMatch[1];
+      
+      return scores;
+    };
+
+    // ============================================
+    // BUILD PDF
+    // ============================================
+    
+    // Header
+    doc.setFillColor(44, 170, 154);
+    doc.rect(0, 0, pageWidth, 50, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    doc.text("ZiyoAI", pageWidth / 2, 22, { align: "center" });
+    doc.setFontSize(13);
+    doc.text(t.header, pageWidth / 2, 34, { align: "center" });
+    yPos = 60;
+
+    // ============================================
+    // ✅ INFO BOX - TASK TURINI TO'G'RI KO'RSATISH
+    // ============================================
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, maxWidth, 47, 3, 3, "F");
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    const infoY = yPos + 8;
+    doc.text(`${t.date}: ${new Date().toLocaleDateString("en-GB")}`, margin + 5, infoY);
+    doc.text(`${t.task}: ${actualTaskType}`, margin + 5, infoY + 7); // ✅ To'g'ri task
+    doc.text(`${t.words}: ${wordCount}`, margin + 5, infoY + 14);
+    const topicLines = doc.splitTextToSize(`${t.topic}: ${cleanText(topic)}`, maxWidth - 10);
+    doc.text(topicLines, margin + 5, infoY + 21);
+    yPos += 60;
+
+    // ============================================
+    // ✅ TASK 1 RASMI - ASPECT RATIO BILAN (cho'zilmasin)
+    // ============================================
+    if (actualTaskType === "Task 1" && uploadedWritingImage) {
+      console.log('📷 Adding Task 1 chart to PDF...');
       
       try {
-        // Calculate image dimensions (maintain aspect ratio)
-        const maxImageWidth = maxWidth - 20; // Leave some margin
-        const maxImageHeight = 100;
-        
+        const reader = new FileReader();
+        const imageData = await new Promise((resolve, reject) => {
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = () => reject(new Error("Image read failed"));
+          reader.readAsDataURL(uploadedWritingImage);
+        });
+
+        checkPageBreak(80);
+
+        // ✅ ASPECT RATIO SAQLASH (cho'zilmasin)
         const img = new Image();
-        img.src = imageElement.src;
+        img.src = imageData;
         
         await new Promise((resolve) => {
           img.onload = resolve;
         });
         
-        let imgWidth = maxImageWidth;
-        let imgHeight = (img.height / img.width) * imgWidth;
+        const imgRatio = img.width / img.height;
+        const maxImgWidth = maxWidth;
+        const maxImgHeight = 80;
         
-        if (imgHeight > maxImageHeight) {
-          imgHeight = maxImageHeight;
-          imgWidth = (img.width / img.height) * imgHeight;
+        let finalWidth = maxImgWidth;
+        let finalHeight = finalWidth / imgRatio;
+        
+        // Agar balandlik juda katta bo'lsa
+        if (finalHeight > maxImgHeight) {
+          finalHeight = maxImgHeight;
+          finalWidth = finalHeight * imgRatio;
         }
         
-        // Center the image
-        const xCenter = (pageWidth - imgWidth) / 2;
+        // Markazga joylashtirish
+        const xOffset = margin + (maxImgWidth - finalWidth) / 2;
         
-        // Add border around image
-        doc.setDrawColor(226, 232, 240);
-        doc.setLineWidth(0.5);
-        doc.rect(xCenter - 2, yPos - 2, imgWidth + 4, imgHeight + 4);
+        doc.addImage(imageData, 'JPEG', xOffset, yPos, finalWidth, finalHeight);
+        yPos += finalHeight + 10;
         
-        // Add image to PDF (centered)
-        doc.addImage(
-          img.src,
-          'JPEG',
-          xCenter,
-          yPos,
-          imgWidth,
-          imgHeight
-        );
-        
-        yPos += imgHeight + 15;
-        
-        console.log(`✅ Image added to PDF: ${title}`);
-        
+        console.log('✅ Chart image added (aspect ratio preserved)');
       } catch (error) {
-        console.error(`❌ Failed to add image: ${title}`, error);
-        yPos += 5;
+        console.error('❌ Failed to add chart:', error);
       }
-    };
-    
-    const extractScores = (text) => {
-      const scores = {
-        overall: null,
-        task: null,
-        coherence: null,
-        lexical: null,
-        grammar: null
-      };
-      
-      const overallMatch = text.match(/(?:OVERALL|Band Score|Overall Band).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
-      if (overallMatch) scores.overall = overallMatch[1];
-      
-      const taskMatch = text.match(/Task Achievement.*?(\d+)\s*\/\s*9/is);
-      if (taskMatch) scores.task = taskMatch[1];
-      
-      const cohMatch = text.match(/(?:Coherence|Cohesion).*?(\d+)\s*\/\s*9/is);
-      if (cohMatch) scores.coherence = cohMatch[1];
-      
-      const lexMatch = text.match(/(?:Lexical|Vocabulary).*?(\d+)\s*\/\s*9/is);
-      if (lexMatch) scores.lexical = lexMatch[1];
-      
-      const gramMatch = text.match(/(?:Grammar|Grammatical Range).*?(\d+)\s*\/\s*9/is);
-      if (gramMatch) scores.grammar = gramMatch[1];
-      
-      return scores;
-    };
-    
-    const parseAnalysis = (text) => {
-      if (!text) return {
-        vocabulary: { level: null, strong: [], repetitive: [], synonyms: [] },
-        grammar: { total: null, errors: [] },
-        taskResponse: [],
-        patterns: [],
-        tips: []
-      };
-      
-      const analysis = {
-        vocabulary: { 
-          level: null, 
-          strong: [], 
-          repetitive: [], 
-          synonyms: [] 
-        },
-        grammar: { 
-          total: null, 
-          errors: [] 
-        },
-        taskResponse: [],
-        patterns: [],
-        tips: []
-      };
-      
-      // ============================================
-      // VOCABULARY ANALYSIS - CLEAN EXTRACTION
-      // ============================================
-      
-      // Level
-      const vocabMatch = text.match(/Level:\s*([A-C][1-2]|Beginner|Intermediate|Advanced)/is);
-      if (vocabMatch) analysis.vocabulary.level = vocabMatch[1];
-      
-      // Strong Words - extract properly
-      const strongMatch = text.match(/Strong Words?:?\s*([^\n]+?)(?=\n|$)/is);
-      if (strongMatch) {
-        const wordsText = strongMatch[1];
-        const cleanWords = wordsText.split(/(?=Repetitive|GRAMMAR|Total Errors|#\d+|ta#)/i)[0];
-        analysis.vocabulary.strong = cleanWords
-          .split(/[,;]/)
-          .map(w => w.trim())
-          .filter(w => w && w.length > 2 && w.length < 50 && !w.toLowerCase().includes('grammar') && !w.toLowerCase().includes('mistakes'));
-      }
-      
-      // Repetitive Words - separate from strong words and stop before Synonyms
-      const repMatch = text.match(/Repetitive(?:\s+Words?)?:?\s*([^\n]+?)(?=\n|$)/is);
-      if (repMatch) {
-        const repText = repMatch[1];
-        const cleanRep = repText.split(/(?=Synonym|GRAMMAR|Total Errors|#\d+|ta#|Strong)/i)[0];
-        analysis.vocabulary.repetitive = cleanRep
-          .split(/[,;]/)
-          .map(w => w.trim())
-          .filter(w => w && w.length > 2 && w.length < 50 && !w.toLowerCase().includes('grammar') && !w.toLowerCase().includes('synonym') && !w.toLowerCase().includes('mistakes'));
-      }
-      
-      // Synonyms - clean extraction
-      const synMatch = text.match(/(?:Synonyms?|Suggested Synonyms):?\s*([\s\S]+?)(?=\n*(?:#|GRAMMAR|Task|Coherence|$))/is);
-      if (synMatch) {
-        const synText = synMatch[1];
-        analysis.vocabulary.synonyms = synText
-          .split(/[;•\n]/)
-          .map(s => s.replace(/^[-•\s]+/, '').trim())
-          .filter(s => s && s.includes('-') && s.length > 3);
-      }
-      
-      // ============================================
-      // GRAMMAR MISTAKES - STRUCTURED
-      // ============================================
-      
-      const gramTotalMatch = text.match(/Total Errors:\s*(\d+)/is);
-      if (gramTotalMatch) analysis.grammar.total = gramTotalMatch[1];
-      
-      // Extract errors with better regex
-      const errorSection = text.match(/GRAMMAR MISTAKES:?([\s\S]+?)(?=TASK RESPONSE|COHERENCE|GRAMMAR PATTERNS|$)/is);
-      if (errorSection) {
-        const errorMatches = errorSection[1].matchAll(/#?(\d+)[:\s]*(?:Wrong|Xato)?:?\s*[""]([^""]+)[""][\s\S]*?(?:Correct|To'g'ri)?:?\s*[""]([^""]+)[""][\s\S]*?(?:Rule|Qoida)?:?\s*([^\n#]+)/gis);
-        
-        for (const match of errorMatches) {
-          analysis.grammar.errors.push({
-            number: match[1],
-            wrong: match[2].trim(),
-            correct: match[3].trim(),
-            rule: match[4].trim()
-          });
-        }
-      }
-      
-// ============================================
-      // TASK RESPONSE - TO'G'RILANGAN ✅
-      // ============================================
-      
-      const taskSection = text.match(/TASK RESPONSE:?\s*([\s\S]+?)(?=COHERENCE|GRAMMAR PATTERNS|IMPROVEMENT|MODEL ANSWER|YOUR ORIGINAL|$)/i);
-      if (taskSection) {
-        let taskText = taskSection[1].trim();
-        
-        // Raqamlarni olib tashlash (6 yoki boshqa raqamlar)
-        taskText = taskText.replace(/^\d+\s*/gm, '');
-        
-        const lines = [];
-        
-        // Har bir savolni alohida ajratish
-        const questionPattern = /([^?]+\?)\s*(Ha|Yo'q|Yes|No)\s*[✓✗]?/gi;
-        const matches = taskText.matchAll(questionPattern);
-        
-        for (const match of matches) {
-          const question = match[1].trim();
-          const answer = match[2].trim();
-          
-          if (question.length > 5) {
-            lines.push(`${question} ${answer}`);
-          }
-        }
-
-        if (lines.length > 0) {
-          analysis.taskResponse = lines;
-        }
-      }
-      
-      // COHERENCE & COHESION - O'CHIRILDI ❌
-      
-      // ============================================
-      // GRAMMAR PATTERNS
-      // ============================================
-      
-      const patternsSection = text.match(/GRAMMAR PATTERNS[^:]*:([\s\S]+?)(?=\d+IMPROVEMENT|IMPROVEMENT|MODEL|$)/is);
-      if (patternsSection) {
-        let patternsText = patternsSection[1].trim();
-        
-        patternsText = patternsText.replace(/^\d+\s*/, '');
-        
-        if (!patternsText.includes('\n')) {
-          patternsText = patternsText.replace(/(IF Conditionals|Passive Voice|Complex Sentences|Relative Clauses|Modal Verbs)/gi, '\n$1');
-        }
-        
-        const patterns = patternsText
-          .split(/\n/)
-          .map(p => p.replace(/^[-•\s]+/, '').trim())
-          .filter(p => p.length > 15 && !p.includes('IMPROVEMENT') && !p.includes('MODEL'));
-        
-        if (patterns.length === 0 && patternsText.length > 15) {
-          patterns.push(patternsText);
-        }
-        
-        analysis.patterns = patterns;
-      }
-      
-      // ============================================
-      // IMPROVEMENT TIPS - TO'G'RILANGAN ✅
-      // ============================================
-      
-      const tipsMatch = text.match(/(?:\d+\s*)?IMPROVEMENT\s*TIPS?:?\s*([\s\S]+?)(?=MODEL ANSWER|YOUR ORIGINAL|Generated|$)/i);
-      
-      if (tipsMatch) {
-        let tipsText = tipsMatch[1].trim();
-        
-        // Keraksiz qismlarni olib tashlash
-        tipsText = tipsText
-          .replace(/\s*(Hide|Show|Quick Tips|MODEL ANSWER|YOUR ORIGINAL|Generated).*$/is, '')
-          .trim();
-        
-        // Bullet point bilan ajratish
-        const lines = [];
-        
-        if (tipsText.includes('•')) {
-          // Agar • belgisi bo'lsa
-          lines.push(...tipsText
-            .split(/•/)
-            .map(t => t.trim())
-            .filter(t => t.length > 5)
-          );
-        } else {
-          // Agar yo'q bo'lsa, katta harf bilan boshlanuvchi gaplarni ajratish
-          const sentences = tipsText.match(/[A-ZА-ЯЁЎҒҲҚ][^.!?]*[.!?]*/g) || [];
-          lines.push(...sentences.map(s => s.trim()).filter(s => s.length > 5));
-        }
-
-        if (lines.length > 0) {
-          analysis.tips = lines.filter(t => 
-            !t.match(/^(?:Hide|Show|Quick|MODEL|YOUR|Generated|Band Score)/i)
-          );
-        }
-      }
-      
-      return analysis;
-    };
-    
-    // ============================================
-    // DOCUMENT HEADER
-    // ============================================
-    doc.setFillColor(44, 170, 154);
-    doc.rect(0, 0, pageWidth, 50, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ZiyoAI', pageWidth / 2, 22, { align: 'center' });
-    
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'normal');
-    doc.text('IELTS Writing Analysis Report', pageWidth / 2, 34, { align: 'center' });
-    
-    yPos = 60;
-    
-    // ============================================
-    // INFO BOX
-    // ============================================
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, yPos, maxWidth, 42, 3, 3, 'F');
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    const infoY = yPos + 8;
-    doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, margin + 5, infoY);
-    doc.text(`Task: ${selectedTaskType || 'Task 2'}`, margin + 5, infoY + 7);
-    doc.text(`Words: ${wordCount}`, margin + 5, infoY + 14);
-    
-    const topicText = cleanText(topic);
-    const topicLines = doc.splitTextToSize(`Topic: ${topicText}`, maxWidth - 10);
-    doc.text(topicLines, margin + 5, infoY + 21);
-    
-    yPos += 48;
-    
-    // ============================================
-    // ADD UPLOADED IMAGES ✅
-    // ============================================
-    
-    // 1️⃣ Topic Image
-    const topicImageElement = document.getElementById('topicPreviewImg');
-    if (topicImageElement && topicImageElement.src) {
-      await addImageToPDF(topicImageElement, '📋 Essay Topic/Question (Uploaded Image)');
     }
-    
-    // 2️⃣ Chart/Diagram Image (Task 1)
-    const chartImageElement = document.getElementById('writingPreviewImg');
-    if (chartImageElement && chartImageElement.src) {
-      await addImageToPDF(chartImageElement, '📊 Chart/Diagram (Task 1 - Uploaded Image)');
-    }
-    
-    // ============================================
-    // SCORES SECTION
-    // ============================================
-    let fullText = '';
-    let analysis = null;
-    
-    if (resultElement) {
-      fullText = cleanText(resultElement.textContent);
+
+    // Parse & Display
+    if (fullText) {
+      const analysis = parseAnalysis(fullText);
       const scores = extractScores(fullText);
-      
+
+      // SCORES
       if (scores.overall) {
-        addSection('YOUR SCORES', [232, 248, 245], [44, 170, 154]);
-        
-        // Overall score
+        addSection(t.scores, [232, 248, 245], [44, 170, 154]);
         doc.setFillColor(232, 248, 245);
-        doc.roundedRect(margin, yPos, maxWidth, 15, 2, 2, 'F');
-        
+        doc.roundedRect(margin, yPos, maxWidth, 15, 2, 2, "F");
         doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Overall Band Score:', margin + 5, yPos + 10);
-        
+        doc.setFont("helvetica", "bold");
+        doc.text(`${t.overall}:`, margin + 5, yPos + 10);
         doc.setFontSize(14);
         doc.setTextColor(44, 170, 154);
-        doc.text(`${scores.overall}/9.0`, margin + maxWidth - 5, yPos + 10, { align: 'right' });
+        doc.text(`${scores.overall}/9.0`, margin + maxWidth - 5, yPos + 10, { align: "right" });
         doc.setTextColor(0, 0, 0);
-        
         yPos += 20;
-        
-        // Individual scores
-        if (scores.task || scores.coherence || scores.lexical || scores.grammar) {
+
+        if (scores.task) {
           doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          
-          const scoreLabels = [
-            { label: 'Task Achievement', value: scores.task },
-            { label: 'Coherence & Cohesion', value: scores.coherence },
-            { label: 'Lexical Resource', value: scores.lexical },
-            { label: 'Grammatical Range & Accuracy', value: scores.grammar }
-          ];
-          
-          scoreLabels.forEach(({ label, value }) => {
-            if (value) {
-              checkPageBreak();
-              doc.text(`${label}:`, margin + 5, yPos);
-              doc.setFont('helvetica', 'bold');
-              doc.text(`${value}/9`, margin + maxWidth - 5, yPos, { align: 'right' });
-              doc.setFont('helvetica', 'normal');
-              yPos += 7;
-            }
-          });
-          
-          yPos += 5;
+          doc.text(`${t.taskAch}: ${scores.task}/9`, margin + 5, yPos);
+          yPos += 7;
+        }
+        if (scores.coherence) {
+          doc.text(`${t.coherence}: ${scores.coherence}/9`, margin + 5, yPos);
+          yPos += 7;
+        }
+        if (scores.lexical) {
+          doc.text(`${t.lexical}: ${scores.lexical}/9`, margin + 5, yPos);
+          yPos += 7;
+        }
+        if (scores.grammar) {
+          doc.text(`${t.grammar}: ${scores.grammar}/9`, margin + 5, yPos);
+          yPos += 10;
         }
       }
-      
-      // ============================================
-      // DETAILED ANALYSIS - CLEAN & STRUCTURED
-      // ============================================
-      addSection('DETAILED ANALYSIS', [232, 248, 245], [44, 170, 154]);
-      
-      analysis = parseAnalysis(fullText);
-      
-      // ============================================
-      // 1. VOCABULARY ANALYSIS
-      // ============================================
+
+      // DETAILED ANALYSIS
+      addSection(t.detailedAnalysis, [232, 248, 245], [44, 170, 154]);
+
+      // 1. VOCABULARY
       if (analysis.vocabulary.level || analysis.vocabulary.strong.length > 0) {
-        addSubSection('1. VOCABULARY ANALYSIS');
+        addSubSection(`1. ${t.vocabAnalysis}`);
         
         if (analysis.vocabulary.level) {
-          doc.setFont('helvetica', 'bold');
-          addText(`Level: ${analysis.vocabulary.level}`, 9, true);
-          yPos += 3;
+          addText(`${t.level}: ${analysis.vocabulary.level}`, 9, true);
+          yPos += 2;
         }
         
         if (analysis.vocabulary.strong.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          addText('Strong Words:', 9, true);
-          doc.setFont('helvetica', 'normal');
-          addText(analysis.vocabulary.strong.join(', '), 9);
+          addText(`${t.strongWords}: ${analysis.vocabulary.strong.join(", ")}`, 9);
           yPos += 3;
         }
         
         if (analysis.vocabulary.repetitive.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          addText('Repetitive Words:', 9, true);
-          doc.setFont('helvetica', 'normal');
-          addText(analysis.vocabulary.repetitive.join(', '), 9);
+          addText(`${t.repetitive}: ${analysis.vocabulary.repetitive.join(", ")}`, 9);
           yPos += 3;
         }
         
         if (analysis.vocabulary.synonyms.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          addText('Suggested Synonyms:', 9, true);
-          yPos += 2;
-          doc.setFont('helvetica', 'normal');
-          analysis.vocabulary.synonyms.forEach(syn => {
-            addBulletPoint(syn, 9);
-          });
+          addText(`${t.synonyms}: ${analysis.vocabulary.synonyms.join("; ")}`, 9);
+          yPos += 3;
         }
         
-        yPos += 5;
-      }
-      
-      // ============================================
-      // 2. GRAMMAR MISTAKES
-      // ============================================
-      if (analysis.grammar.total || analysis.grammar.errors.length > 0) {
-        addSubSection('2. GRAMMAR MISTAKES');
-        
-        if (analysis.grammar.total) {
-          doc.setFont('helvetica', 'bold');
-          addText(`Total Errors: ${analysis.grammar.total}`, 9, true);
-          yPos += 5;
+        if (analysis.vocabulary.collocations.length > 0) {
+          addText(`${t.collocations}: ${analysis.vocabulary.collocations.join(", ")}`, 9);
+          yPos += 3;
         }
-        
-        analysis.grammar.errors.forEach(error => {
-          checkPageBreak(25);
-          
-          doc.setFont('helvetica', 'bold');
-          addText(`Error #${error.number}:`, 9, true);
-          yPos += 2;
-          
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'normal');
-          
-          doc.setTextColor(220, 38, 38);
-          addText(`Wrong: "${error.wrong}"`, 9);
-          yPos += 1;
-          
-          doc.setTextColor(22, 163, 74);
-          addText(`Correct: "${error.correct}"`, 9);
-          yPos += 1;
-          
-          doc.setTextColor(107, 114, 128);
-          addText(`Rule: ${error.rule}`, 9);
-          
-          doc.setTextColor(0, 0, 0);
-          yPos += 5;
-        });
         
         yPos += 3;
       }
-      
-      // ============================================
-      // 3. TASK RESPONSE
-      // ============================================
-      if (analysis.taskResponse.length > 0) {
-        addSubSection('3. TASK RESPONSE');
+
+// 2. GRAMMAR - Faqat individual xatolar
+if (analysis.grammar.total) {
+  addSubSection(`2. ${t.grammarSection}`);
+  addText(`${t.totalErrors}: ${analysis.grammar.total}`, 9, true);
+  yPos += 5;
+  
+  // ✅ Faqat individual xatolarni ko'rsatish
+  if (analysis.grammar.errors.length > 0) {
+    analysis.grammar.errors.slice(0, 5).forEach((error, idx) => {
+      addBulletPoint(`#${idx + 1}: ${error}`, 8);
+    });
+  }
+  
+  yPos += 3;
+}
+
+
+      // 3. GRAMMAR PATTERNS (eski 5-section)
+      if (analysis.patterns.recommended.length > 0 || analysis.patterns.commonErrors.length > 0) {
+        addSubSection(`3. ${t.grammarPatterns}`);
         
-        analysis.taskResponse.forEach(feedback => {
-          addBulletPoint(feedback, 9);
-        });
+        if (analysis.patterns.recommended.length > 0) {
+          addText(`${t.recommended}: ${analysis.patterns.recommended.join("; ")}`, 9);
+          yPos += 3;
+        }
         
-        yPos += 5;
+        if (analysis.patterns.commonErrors.length > 0) {
+          addText(`${t.commonErrors}: ${analysis.patterns.commonErrors.join("; ")}`, 9);
+          yPos += 3;
+        }
+        
+        yPos += 3;
       }
-      
-      // ============================================
-      // 4. COHERENCE & COHESION - O'CHIRILDI ❌
-      // ============================================
-      
-      // ============================================
-      // 4. GRAMMAR PATTERNS TO IMPROVE
-      // ============================================
-      if (analysis.patterns.length > 0) {
-        addSubSection('4. GRAMMAR PATTERNS TO IMPROVE');
+
+      // 4. BAND REASONS (eski 6-section) - YANGILANGAN ✅
+      if (analysis.bandReasons.length > 0) {
+        addSubSection(`4. ${t.bandReasons}`);
+        analysis.bandReasons.forEach(item => addBulletPoint(item, 9));
+        yPos += 3;
+      } else {
+        // Fallback: agar bandReasons bo'sh bo'lsa, to'g'ridan-to'g'ri textdan qidirish
+        const reasonAlt = fullText.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
         
-        analysis.patterns.forEach(pattern => {
-          addBulletPoint(pattern, 9);
-        });
-        
-        yPos += 5;
+        if (reasonAlt) {
+          addSubSection(`4. ${t.bandReasons}`);
+          const reasonText = reasonAlt[1];
+          
+          // Bullet pointlarni topish
+          const bullets = reasonText.match(/[•\-\*]\s*([^\n]+)/g);
+          
+          if (bullets && bullets.length > 0) {
+            bullets.slice(0, 5).forEach(bullet => {
+              const cleanBullet = bullet.replace(/^[•\-\*]\s*/, '').trim();
+              if (cleanBullet.length > 15) {
+                addBulletPoint(cleanBullet, 9);
+              }
+            });
+          } else {
+            // Agar bullet yo'q bo'lsa, satrma-satr
+            const lines = reasonText
+              .split(/\n/)
+              .map(line => line.trim())
+              .filter(line => 
+                line.length > 20 && 
+                (line.match(/(?:band|ball|daraja|uroven)/i) || 
+                 line.match(/(?:grammar|lug'at|vocabulary|coherence|task)/i))
+              )
+              .slice(0, 5);
+            
+            lines.forEach(line => addBulletPoint(line, 9));
+          }
+          
+          yPos += 3;
+        }
       }
-      
-      // ============================================
-      // 5. IMPROVEMENT TIPS
-      // ============================================
-      if (analysis.tips.length > 0) {
-        addSubSection('5. IMPROVEMENT TIPS');
+
+      // 5. NEXT BAND (eski 7-section)
+      if (analysis.nextBand.fix.length > 0 || 
+          analysis.nextBand.add.length > 0 || 
+          analysis.nextBand.improve.length > 0) {
+        addSubSection(`5. ${t.nextBand}`);
         
-        analysis.tips.forEach(tip => {
-          addBulletPoint(tip, 9);
-        });
+        if (analysis.nextBand.fix.length > 0) {
+          addText(`${t.fix}:`, 9, true);
+          yPos += 2;
+          analysis.nextBand.fix.forEach(item => addBulletPoint(item, 8));
+          yPos += 2;
+        }
+        
+        if (analysis.nextBand.add.length > 0) {
+          addText(`${t.add}:`, 9, true);
+          yPos += 2;
+          analysis.nextBand.add.forEach(item => addBulletPoint(item, 8));
+          yPos += 2;
+        }
+        
+        if (analysis.nextBand.improve.length > 0) {
+          addText(`${t.improve}:`, 9, true);
+          yPos += 2;
+          analysis.nextBand.improve.forEach(item => addBulletPoint(item, 8));
+          yPos += 2;
+        }
         
         yPos += 5;
       }
     }
-    
-    // ============================================
+
     // MODEL ANSWER
-    // ============================================
-    if (modelAnswerElement) {
-      addSection('MODEL ANSWER (Band 8-9)', [220, 252, 231], [44, 170, 154]);
-      
-      const modelText = cleanText(modelAnswerElement.textContent);
-      const paragraphs = modelText.split(/\n\n+/).filter(p => p.trim().length > 30);
-      
+    if (modelAnswerElement && modelAnswerElement.textContent) {
+      addSection(t.modelAnswer, [254, 243, 199], [245, 158, 11]);
+      const modelText = cleanText(modelAnswerElement.innerText || modelAnswerElement.textContent);
+      const paragraphs = modelText.split(/\n+/).filter(p => p.trim().length > 10);
       paragraphs.forEach(para => {
-        addText(para.trim(), 9, false, 1.5);
-        yPos += 5;
-      });
-      
-      yPos += 3;
-      
-      doc.setFillColor(254, 243, 199);
-      doc.roundedRect(margin, yPos, maxWidth, 12, 2, 2, 'F');
-      doc.setFontSize(9);
-      doc.setTextColor(146, 64, 14);
-      doc.text('Note: This is a Band 8-9 model. Compare your structure, vocabulary, and grammar.', margin + 3, yPos + 7);
-      doc.setTextColor(0, 0, 0);
-      
-      yPos += 17;
-    }
-    
-    // ============================================
-    // YOUR ORIGINAL TEXT
-    // ============================================
-    if (yourText && yourText.trim()) {
-      addSection('YOUR ORIGINAL TEXT', [254, 243, 199], [245, 158, 11]);
-      
-      const cleanOriginal = cleanText(yourText);
-      const paragraphs = cleanOriginal.split(/\n+/).filter(p => p.trim().length > 10);
-      
-      paragraphs.forEach(para => {
-        addText(para.trim(), 9, false, 1.5);
-        yPos += 5;
+        addText(para.trim(), 9, false);
+        yPos += 3;
       });
     }
-    
-    // ============================================
+
+// YOUR ORIGINAL TEXT - Paragraflar bilan ✅
+if (yourText && yourText.trim()) {
+  addSection(t.yourOriginal, [254, 243, 199], [245, 158, 11]);
+  
+  // ✅ cleanText ishlatmaslik - faqat HTML taglarni olib tashlash
+  const cleanOriginal = yourText.trim().replace(/<[^>]*>/g, '');
+  
+  // ✅ Ikki yoki undan ortiq newline = paragraf ajratish
+  const paragraphs = cleanOriginal.split(/\n\n+/);
+  
+  paragraphs.forEach(para => {
+    const trimmed = para.trim();
+    if (trimmed.length > 10) {
+      addText(trimmed, 9, false);
+      yPos += 4; // Paragraflar orasida bo'sh joy
+    }
+  });
+}
+
     // FOOTER
-    // ============================================
     const totalPages = doc.internal.getNumberOfPages();
-    
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
-      
       doc.setDrawColor(226, 232, 240);
       doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
-      
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
-      doc.setFont('helvetica', 'normal');
-      doc.text(
-        `Generated by ZiyoAI - Page ${i} of ${totalPages}`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
+      doc.text(`${t.generated} - ${t.page} ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
     }
-    
-    // ============================================
+
     // SAVE
-    // ============================================
-    const filename = `ZiyoAI_Writing_Report_${Date.now()}.pdf`;
+    const filename = `ZiyoAI_${actualTaskType.replace(' ', '_')}_Report_${Date.now()}.pdf`;
     doc.save(filename);
-    
-    console.log('✅ PDF exported:', filename);
-    
+    console.log("✅ PDF exported:", filename);
+
+    // Success feedback
     const exportBtn = document.querySelector('button[onclick="exportWritingToPDF()"]');
     if (exportBtn) {
       const originalHTML = exportBtn.innerHTML;
       exportBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded!';
-      exportBtn.style.background = '#10b981';
-      
+      exportBtn.style.background = "#10b981";
       setTimeout(() => {
         exportBtn.innerHTML = originalHTML;
-        exportBtn.style.background = '';
+        exportBtn.style.background = "";
       }, 2500);
     }
-    
+
   } catch (error) {
-    console.error('❌ PDF export error:', error);
-    alert('PDF export failed: ' + error.message);
+    console.error("❌ PDF export error:", error);
+    alert("PDF export failed: " + error.message);
   }
 }
 
-
-
+console.log("✅ Fixed PDF Export with Task 1 Chart loaded!");
 
 // ============================================
 // AUTOMATIC LANGUAGE DETECTION ✅
@@ -2603,10 +3045,10 @@ let isVocabProcessing = false;
 async function buildVocab() {
   // ✅ Prevent duplicate calls
   if (isVocabProcessing) {
-    console.log('⚠️ Vocabulary already processing, skipping...');
+    console.log("⚠️ Vocabulary already processing, skipping...");
     return;
   }
-  
+
   const input = document.getElementById("vocabInput").value;
   const result = document.getElementById("vocabResult");
   const output = document.getElementById("vocabOutput");
@@ -2624,7 +3066,7 @@ async function buildVocab() {
 
   // ✅ Set processing flag
   isVocabProcessing = true;
-  
+
   result.style.display = "block";
   showLoading(output);
 
@@ -2655,7 +3097,10 @@ async function buildVocab() {
               <i class="bi bi-book"></i> ${data.word || input}
             </h5>
             <button 
-              onclick="playPronunciation('${(data.word || input).replace(/'/g, "\\'")}')" 
+              onclick="playPronunciation('${(data.word || input).replace(
+                /'/g,
+                "\\'"
+              )}')" 
               class="audio-btn"
               title="Listen to pronunciation">
               <i class="bi bi-volume-up-fill"></i> Eshitish
@@ -2667,15 +3112,14 @@ async function buildVocab() {
           </div>
         </div>
       `;
-       trackToolUsage('vocabulary');
-       incrementStat('totalStudyTime', 1);
-       addRecentActivity('Vocabulary Builder', 92, '📖', '#3b82f6');
-           
-      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA VA BIR MARTA
-      console.log('📊 Vocabulary learned successfully, tracking...');
+      trackToolUsage("vocabulary");
+      incrementStat("totalStudyTime", 1);
+      addRecentActivity("Vocabulary Builder", 92, "📖", "#3b82f6");
 
-      console.log('✅ Vocabulary tracking completed!');
-      
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA VA BIR MARTA
+      console.log("📊 Vocabulary learned successfully, tracking...");
+
+      console.log("✅ Vocabulary tracking completed!");
     } else {
       throw new Error("No response from AI");
     }
@@ -2687,11 +3131,10 @@ async function buildVocab() {
     // ✅ Reset processing flag after 1 second
     setTimeout(() => {
       isVocabProcessing = false;
-      console.log('🔓 Vocabulary processing unlocked');
+      console.log("🔓 Vocabulary processing unlocked");
     }, 1000);
   }
 }
-
 
 // ============================================
 // AUDIO PRONUNCIATION - GOOGLE TTS ✅
@@ -2776,12 +3219,12 @@ let isMotivationVisible = false;
 async function showMotivation() {
   // Don't show if already visible
   if (isMotivationVisible) {
-    console.log('⏳ Motivation already showing');
+    console.log("⏳ Motivation already showing");
     return;
   }
 
   // ✅ SET STRICT LOCK
-  console.log('🔒 LOCKING tool switching for motivation');
+  console.log("🔒 LOCKING tool switching for motivation");
   window.preventToolSwitch = true;
   isMotivationVisible = true;
 
@@ -2794,7 +3237,7 @@ async function showMotivation() {
       const text = document.querySelector(".motivation-text");
 
       if (!toast || !text) {
-        console.error('❌ Motivation elements missing');
+        console.error("❌ Motivation elements missing");
         window.preventToolSwitch = false;
         isMotivationVisible = false;
         return;
@@ -2807,10 +3250,10 @@ async function showMotivation() {
         </span>
       `;
 
-      toast.style.display = 'flex';
-      setTimeout(() => toast.classList.add('show'), 50);
+      toast.style.display = "flex";
+      setTimeout(() => toast.classList.add("show"), 50);
 
-      console.log('✨ Motivation displayed');
+      console.log("✨ Motivation displayed");
 
       // Auto-close after 7 seconds
       setTimeout(() => {
@@ -2818,25 +3261,25 @@ async function showMotivation() {
       }, 7000);
     }
   } catch (error) {
-    console.error('❌ Motivation fetch error:', error);
+    console.error("❌ Motivation fetch error:", error);
     window.preventToolSwitch = false;
     isMotivationVisible = false;
   }
 }
 
 function closeMotivation() {
-  const toast = document.getElementById('motivationToast');
-  
+  const toast = document.getElementById("motivationToast");
+
   if (toast) {
-    toast.classList.remove('show');
-    
+    toast.classList.remove("show");
+
     setTimeout(() => {
-      toast.style.display = 'none';
+      toast.style.display = "none";
       isMotivationVisible = false;
-      
+
       // ✅ UNLOCK tool switching
       window.preventToolSwitch = false;
-      console.log('🔓 Tool switching UNLOCKED after motivation');
+      console.log("🔓 Tool switching UNLOCKED after motivation");
     }, 800);
   } else {
     window.preventToolSwitch = false;
@@ -2872,28 +3315,113 @@ window.addEventListener("beforeunload", () => {
   isMotivationVisible = false;
 });
 
-console.log('✅ Dashboard.js (fixed version) loaded successfully!');
+console.log("✅ Dashboard.js (fixed version) loaded successfully!");
 
 // ============================================
 // DEBUG HELPERS (can be removed in production)
 // ============================================
 window.debugDashboard = () => {
-  console.log('=== DASHBOARD DEBUG ===');
-  console.log('Current tool:', window.currentActiveTool);
-  console.log('Initialized:', window.hasInitialized);
-  console.log('Is switching:', window.isToolSwitching);
-  console.log('Prevent switch:', window.preventToolSwitch);
-  console.log('Motivation visible:', isMotivationVisible);
-  console.log('======================');
+  console.log("=== DASHBOARD DEBUG ===");
+  console.log("Current tool:", window.currentActiveTool);
+  console.log("Initialized:", window.hasInitialized);
+  console.log("Is switching:", window.isToolSwitching);
+  console.log("Prevent switch:", window.preventToolSwitch);
+  console.log("Motivation visible:", isMotivationVisible);
+  console.log("======================");
 };
 
-console.log('✅ Dashboard.js loaded successfully');
-console.log('   Type window.debugDashboard() to see current state');
+console.log("✅ Dashboard.js loaded successfully");
+console.log("   Type window.debugDashboard() to see current state");
+
+// ============================================
+// HELPER FUNCTIONS FOR VISUAL SCORE DASHBOARD ✅
+// ADD THESE AT THE END OF dashboard.js FILE
+// ============================================
+
+// Extract scores from AI response text
+function extractScoresFromResponse(resultText) {
+  const scores = {
+    overall: null,
+    task: null,
+    coherence: null,
+    lexical: null,
+    grammar: null,
+  };
+
+  try {
+    // Overall score
+    const overallMatch = resultText.match(
+      /(?:OVERALL|Band Score|Overall Band).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+    );
+    if (overallMatch) scores.overall = overallMatch[1];
+
+    // Task Achievement
+    const taskMatch = resultText.match(
+      /Task Achievement.*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+    );
+    if (taskMatch) scores.task = taskMatch[1];
+
+    // Coherence & Cohesion
+    const cohMatch = resultText.match(
+      /(?:Coherence|Cohesion).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+    );
+    if (cohMatch) scores.coherence = cohMatch[1];
+
+    // Lexical Resource
+    const lexMatch = resultText.match(
+      /(?:Lexical Resource|Vocabulary).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+    );
+    if (lexMatch) scores.lexical = lexMatch[1];
+
+    // Grammar
+    const gramMatch = resultText.match(
+      /(?:Grammatical Range|Grammar).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+    );
+    if (gramMatch) scores.grammar = gramMatch[1];
+  } catch (error) {
+    console.error("Score extraction error:", error);
+  }
+
+  return scores;
+}
+
+// Create visual score card
+function createScoreCard(label, score, color) {
+  const numericScore = parseFloat(score) || 0;
+  const percentage = (numericScore / 9) * 100;
+
+  return `
+    <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 18px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'">
+      <div style="color: rgba(255,255,255,0.85); font-size: 12px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+        ${label}
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 5px; margin-bottom: 12px;">
+        <span style="font-size: 36px; font-weight: 800; color: white;">${score}</span>
+        <span style="font-size: 20px; color: rgba(255,255,255,0.7); font-weight: 600;">/9</span>
+      </div>
+      <!-- Animated Progress Bar -->
+      <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; position: relative;">
+        <div style="width: 0%; height: 100%; background: white; border-radius: 10px; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(255,255,255,0.5);" class="score-progress-bar" data-target="${percentage}"></div>
+      </div>
+    </div>
+  `;
+}
+
+// Animate progress bars (call this after rendering)
+function animateScoreBars() {
+  setTimeout(() => {
+    document.querySelectorAll(".score-progress-bar").forEach((bar) => {
+      const target = bar.getAttribute("data-target");
+      bar.style.width = target + "%";
+    });
+  }, 100);
+}
+
+console.log("✅ Visual Score Dashboard helpers loaded");
 
 // ============================================
 // PAGE LOAD - DEFAULT TOOL ✅
 // ============================================
-
 
 let miniTimerInterval;
 let miniTimeLeft = 25 * 60;
@@ -3114,12 +3642,12 @@ document.addEventListener("click", function (event) {
 //     window.incrementStat('totalPomodoros', 1);
 //     window.incrementStat('totalStudyTime', 25); // 25 minutes
 //     window.trackToolUsage('study');
-    
+
 //     // Add activity
 //     if (typeof window.addRecentActivity === 'function') {
 //       window.addRecentActivity('Study Session', 100, '🎓', '#f59e0b');
 //     }
-    
+
 //     console.log('✅ Pomodoro tracked: 25 minutes');
 //   }
 // }
@@ -3260,9 +3788,6 @@ async function generateQuizQuestions() {
   }
 }
 
-
-
-
 // Display Quiz Question
 function displayQuizQuestion() {
   if (!quizData || !quizData.questions) {
@@ -3383,37 +3908,41 @@ function finishQuiz() {
   }
 
   // ✅ TRACKING - QUIZ YAKUNLANGANDA
-  console.log('📊 Quiz finished, tracking...');
-  
-  if (typeof incrementStat === 'function') {
-    incrementStat('quizzesTaken', 1);
-    
+  console.log("📊 Quiz finished, tracking...");
+
+  if (typeof incrementStat === "function") {
+    incrementStat("quizzesTaken", 1);
+
     // Real time calculation
-    const questionCount = parseInt(document.getElementById('quizQuestionCount').value);
-    const totalSeconds = (questionCount * 60) - quizTimeLeft;
+    const questionCount = parseInt(
+      document.getElementById("quizQuestionCount").value
+    );
+    const totalSeconds = questionCount * 60 - quizTimeLeft;
     const minutes = Math.max(1, Math.ceil(totalSeconds / 60));
-    
-    console.log('⏱️ Quiz time:', { totalSeconds, minutes });
-    incrementStat('totalStudyTime', minutes);
+
+    console.log("⏱️ Quiz time:", { totalSeconds, minutes });
+    incrementStat("totalStudyTime", minutes);
   }
-  
+
   // ✅ MANA SHU JOYGA (quiz yakunlanganda):
-  incrementStat('quizzesTaken', 1);
-  
-  const questionCount = parseInt(document.getElementById('quizQuestionCount').value);
-  const totalSeconds = (questionCount * 60) - quizTimeLeft;
+  incrementStat("quizzesTaken", 1);
+
+  const questionCount = parseInt(
+    document.getElementById("quizQuestionCount").value
+  );
+  const totalSeconds = questionCount * 60 - quizTimeLeft;
   const minutes = Math.max(1, Math.ceil(totalSeconds / 60));
-  
-  incrementStat('totalStudyTime', minutes);
-  trackToolUsage('quiz');
+
+  incrementStat("totalStudyTime", minutes);
+  trackToolUsage("quiz");
 
   // Hide quiz section
   document.getElementById("quizQuestionsSection").style.display = "none";
 
   // Show results
   displayQuizResults();
-  
-  console.log('✅ Quiz tracking completed!');
+
+  console.log("✅ Quiz tracking completed!");
 }
 
 function displayQuizResults() {
@@ -3427,13 +3956,15 @@ function displayQuizResults() {
 
   const totalQuestions = quizData.questions.length;
   const percentage = Math.round((score / totalQuestions) * 100);
-  addRecentActivity('Quiz Generator', percentage, '❓', '#10b981');
-
-
+  addRecentActivity("Quiz Generator", percentage, "❓", "#10b981");
 
   // Update score display
-  document.getElementById("quizScoreDisplay").textContent = `${score}/${totalQuestions}`;
-  document.getElementById("quizPercentageDisplay").textContent = `${percentage}% to'g'ri!`;
+  document.getElementById(
+    "quizScoreDisplay"
+  ).textContent = `${score}/${totalQuestions}`;
+  document.getElementById(
+    "quizPercentageDisplay"
+  ).textContent = `${percentage}% to'g'ri!`;
 
   // Display detailed answers
   const reviewContainer = document.getElementById("quizAnswersReview");
@@ -3482,7 +4013,7 @@ function displayQuizResults() {
 
   // Confetti effect for high scores
   if (percentage >= 80) {
-    if (typeof createConfetti === 'function') {
+    if (typeof createConfetti === "function") {
       createConfetti();
     }
   }
@@ -3578,7 +4109,7 @@ async function submitStudyAssistant() {
   const input = document.getElementById("studyInput").value;
   const result = document.getElementById("studyResult");
   const output = document.getElementById("studyOutput");
-  
+
   const languageDropdown = document.getElementById("study-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
 
@@ -3586,7 +4117,7 @@ async function submitStudyAssistant() {
     alert("Iltimos, avval rejim tanlang!");
     return;
   }
-  
+
   if (!input.trim()) {
     alert("Iltimos, matn kiriting!");
     return;
@@ -3602,8 +4133,8 @@ async function submitStudyAssistant() {
       body: JSON.stringify({
         mode: selectedMode,
         content: input,
-        language: language
-      })
+        language: language,
+      }),
     });
 
     const data = await response.json();
@@ -3620,7 +4151,7 @@ async function submitStudyAssistant() {
         plan: "📅 O'quv Reja",
         mistakes: "🔍 Xato Tahlili",
         flashcards: "🎴 Flashcardlar",
-        script: "🎤 Speaking/Writing Script"
+        script: "🎤 Speaking/Writing Script",
       };
 
       output.innerHTML = `
@@ -3639,15 +4170,14 @@ async function submitStudyAssistant() {
           </div>
         </div>
       `;
-      trackToolUsage('study');
-      incrementStat('totalStudyTime', 4);
-      addRecentActivity('Study Assistant', 90, '🎓', '#f59e0b');
-      
-      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
-      console.log('📊 Study assistant completed, tracking...');
+      trackToolUsage("study");
+      incrementStat("totalStudyTime", 4);
+      addRecentActivity("Study Assistant", 90, "🎓", "#f59e0b");
 
-      console.log('✅ Study assistant tracking completed!');
-      
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log("📊 Study assistant completed, tracking...");
+
+      console.log("✅ Study assistant tracking completed!");
     } else {
       throw new Error("AI dan javob kelmadi");
     }
@@ -3657,7 +4187,6 @@ async function submitStudyAssistant() {
     // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
-
 
 // Nusxa olish funksiyasi
 function copyToClipboard() {
@@ -3884,61 +4413,66 @@ async function submitRecordedAudio() {
     alert("❌ Audio yozilmagan!");
     return;
   }
-  
-  const topic = document.getElementById('speakingTopicInput').value.trim();
-  const result = document.getElementById('speakingResult');
-  const output = document.getElementById('speakingOutput');
-  
-  const languageDropdown = document.getElementById('speaking-language');
-  const language = languageDropdown ? languageDropdown.value : 'uz';
-  
-  result.style.display = 'block';
+
+  const topic = document.getElementById("speakingTopicInput").value.trim();
+  const result = document.getElementById("speakingResult");
+  const output = document.getElementById("speakingOutput");
+
+  const languageDropdown = document.getElementById("speaking-language");
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
+  result.style.display = "block";
   showLoading(output);
-  
+
   try {
     const formData = new FormData();
-    const audioFileName = 'recording.webm';
-    formData.append('audio', recordedAudioBlob, audioFileName);
-    
-    const transcriptResponse = await fetch(`${API_URL.replace('/api', '')}/api/audio-to-text`, {
-      method: 'POST',
-      body: formData
-    });
-    
+    const audioFileName = "recording.webm";
+    formData.append("audio", recordedAudioBlob, audioFileName);
+
+    const transcriptResponse = await fetch(
+      `${API_URL.replace("/api", "")}/api/audio-to-text`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
     if (!transcriptResponse.ok) {
       const errorText = await transcriptResponse.text();
-      throw new Error(`Backend xatosi (${transcriptResponse.status}): ${errorText}`);
+      throw new Error(
+        `Backend xatosi (${transcriptResponse.status}): ${errorText}`
+      );
     }
-    
+
     const transcriptData = await transcriptResponse.json();
-    
+
     if (!transcriptData.success) {
-      throw new Error(transcriptData.error || 'Speech-to-Text xatosi');
+      throw new Error(transcriptData.error || "Speech-to-Text xatosi");
     }
-    
+
     const transcript = transcriptData.transcript;
-    
+
     if (!transcript || transcript.trim().length < 10) {
       throw new Error("❌ Ovoz aniq eshitilmadi yoki juda qisqa.");
     }
-    
+
     const feedbackResponse = await fetch(`${API_URL}/speaking-feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         transcript: transcript,
         topic: topic,
         examType: selectedExamType,
-        language: language
-      })
+        language: language,
+      }),
     });
-    
+
     const feedbackData = await feedbackResponse.json();
-    
+
     if (!feedbackResponse.ok) {
-      throw new Error(feedbackData.error || 'Server error');
+      throw new Error(feedbackData.error || "Server error");
     }
-    
+
     if (feedbackData.success && feedbackData.result) {
       output.innerHTML = `
         <div class="alert alert-success">
@@ -3965,40 +4499,36 @@ async function submitRecordedAudio() {
           </div>
         </div>
       `;
-      
-      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
-      console.log('📊 Speaking feedback received, tracking...');
-      
-      
-      if (typeof addRecentActivity === 'function') {
-        const score = Math.floor(Math.random() * (92 - 78 + 1)) + 78;
-        addRecentActivity('IELTS Feedback', score, '💬', '#06b6d4');
-      }
-      
-      trackToolUsage('speaking');
 
-      if (typeof incrementStat === 'function') {
-        const minutes = Math.max(1, Math.ceil(recordingSeconds / 60));
-        incrementStat('totalStudyTime', minutes);
+      // ✅ TRACKING - FAQAT SUCCESS HOLATIDA
+      console.log("📊 Speaking feedback received, tracking...");
+
+      if (typeof addRecentActivity === "function") {
+        const score = Math.floor(Math.random() * (92 - 78 + 1)) + 78;
+        addRecentActivity("IELTS Feedback", score, "💬", "#06b6d4");
       }
-      
-      console.log('✅ Speaking tracking completed!');
-      
+
+      trackToolUsage("speaking");
+
+      if (typeof incrementStat === "function") {
+        const minutes = Math.max(1, Math.ceil(recordingSeconds / 60));
+        incrementStat("totalStudyTime", minutes);
+      }
+
+      console.log("✅ Speaking tracking completed!");
+
       setTimeout(() => {
-        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        result.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 300);
-      
     } else {
       throw new Error("AI dan javob kelmadi");
     }
-    
   } catch (error) {
     console.error("❌ Xatolik:", error);
     showError(output, error.message);
     // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
-
 
 // Speaking tozalash
 function clearSpeaking() {
@@ -4040,91 +4570,169 @@ function showLoading(element) {
 }
 
 function showError(element, message) {
+  // Detect common error types for better messages
+  let errorIcon = "❌";
+  let errorTitle = "Xatolik yuz berdi";
+  let helpText =
+    "Iltimos, qaytadan urinib ko'ring yoki qo'llab-quvvatlash xizmatiga murojaat qiling.";
+
+  if (message.includes("Audio") || message.includes("speech")) {
+    errorIcon = "🎤";
+    errorTitle = "Audio Xatosi";
+    helpText = "Mikrofon sozlamalarini tekshiring va qaytadan yozib ko'ring.";
+  } else if (message.includes("network") || message.includes("fetch")) {
+    errorIcon = "📡";
+    errorTitle = "Internet Aloqasi";
+    helpText = "Internetga ulanganingizni tekshiring va qayta urinib ko'ring.";
+  } else if (message.includes("timeout") || message.includes("slow")) {
+    errorIcon = "⏱️";
+    errorTitle = "Vaqt Tugadi";
+    helpText =
+      "Server javob bermadi. Iltimos, bir necha daqiqadan keyin qaytadan urinib ko'ring.";
+  }
+
   element.innerHTML = `
     <div style="
       background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      border: 1px solid #fca5a5;
-      border-radius: 12px;
-      padding: 20px;
+      border: 2px solid #fca5a5;
+      border-radius: 16px;
+      padding: 25px;
       margin: 20px 0;
-      box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1);
-      animation: slideDown 0.3s ease-out;
+      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.15);
+      animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     ">
-      <!-- Header with Icon -->
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+      <!-- Header with Animated Icon -->
+      <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 16px;">
         <div style="
-          width: 40px;
-          height: 40px;
-          background: #ef4444;
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         ">
-          <i class="bi bi-exclamation-triangle-fill" style="color: white; font-size: 20px;"></i>
+          <span style="font-size: 24px;">${errorIcon}</span>
         </div>
         <div style="flex: 1;">
           <h4 style="
             margin: 0;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: #991b1b;
-          ">Xatolik yuz berdi</h4>
+            letter-spacing: -0.5px;
+          ">${errorTitle}</h4>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #b91c1c; opacity: 0.9;">
+            ${new Date().toLocaleTimeString("uz-UZ", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
         </div>
       </div>
 
-      <!-- Error Message -->
+      <!-- Error Message Box -->
       <div style="
-        background: rgba(255, 255, 255, 0.7);
-        padding: 12px 16px;
-        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 16px 18px;
+        border-radius: 10px;
         margin-bottom: 16px;
+        border-left: 4px solid #ef4444;
       ">
         <p style="
           margin: 0;
           font-size: 14px;
           line-height: 1.6;
           color: #7f1d1d;
-          white-space: pre-wrap;
+          font-weight: 500;
         ">${message}</p>
       </div>
-
-      <!-- Retry Button -->
-      <button onclick="clearSpeaking()" style="
-        width: 100%;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-        border: none;
+      
+      <!-- Help Text -->
+      <div style="
+        padding: 12px 16px;
+        background: rgba(254, 243, 199, 0.5);
         border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
-      " 
-      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(239, 68, 68, 0.3)'"
-      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.2)'">
-        <i class="bi bi-arrow-clockwise"></i>
-        <span>Qaytadan Urinish</span>
-      </button>
+        margin-bottom: 16px;
+        border-left: 3px solid #f59e0b;
+      ">
+        <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.5;">
+          <i class="bi bi-info-circle-fill" style="margin-right: 6px;"></i>
+          <strong>Yordam:</strong> ${helpText}
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 10px;">
+        <button onclick="location.reload()" style="
+          flex: 1;
+          padding: 12px 20px;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+        " 
+        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.35)'"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(239, 68, 68, 0.25)'">
+          <i class="bi bi-arrow-clockwise"></i>
+          <span>Qaytadan Urinish</span>
+        </button>
+        
+        <button onclick="window.location.href='mailto:support@ziyoai.com?subject=Error%20Report&body=${encodeURIComponent(
+          message
+        )}'" style="
+          padding: 12px 20px;
+          background: white;
+          color: #dc2626;
+          border: 2px solid #fca5a5;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s ease;
+        "
+        onmouseover="this.style.background='#fef2f2'"
+        onmouseout="this.style.background='white'">
+          <i class="bi bi-envelope"></i>
+          <span>Yordam</span>
+        </button>
+      </div>
     </div>
 
-    <!-- CSS Animation -->
+    <!-- CSS Animations -->
     <style>
       @keyframes slideDown {
         from {
           opacity: 0;
-          transform: translateY(-20px);
+          transform: translateY(-30px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
+        }
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
         }
       }
     </style>
@@ -4132,10 +4740,3 @@ function showError(element, message) {
 }
 
 // console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
-
-
-
-
-
-
-

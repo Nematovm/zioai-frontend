@@ -203,6 +203,124 @@ function applyDashboardLock() {
   return true;
 }
 
+function applyVocabularyLock() {
+  const dashboardNavItem = document.querySelector('.nav-link[data-tool="vocabulary"]');
+  
+  if (!dashboardNavItem) {
+    if (!hasLoggedInitialState) {
+      console.warn('⚠️ Dashboard nav item not found, retrying...');
+    }
+    return false;
+  }
+  
+  const isUnlocked = isDashboardUnlocked();
+  
+  // ✅ ONLY LOG IF STATE CHANGED
+  if (lastLockState !== isUnlocked) {
+    console.log('🔐 Dashboard lock status changed:', { 
+      isUnlocked, 
+      previousState: lastLockState,
+      stats: getUserStatsForLock() 
+    });
+    lastLockState = isUnlocked;
+  }
+  
+  if (!isUnlocked) {
+    // ✅ ONLY APPLY STYLES IF NOT ALREADY APPLIED
+    if (!dashboardNavItem.classList.contains('vocabulary-locked')) {
+      dashboardNavItem.classList.add('vocabulary-locked');
+      dashboardNavItem.classList.remove('active');
+      
+      const parentLi = dashboardNavItem.closest('.nav-item');
+      if (parentLi) {
+        parentLi.style.opacity = '0.5';
+        parentLi.style.cursor = 'not-allowed';
+      }
+      
+
+      
+      dashboardNavItem.style.opacity = '0.6';
+      dashboardNavItem.style.cursor = 'not-allowed';
+      dashboardNavItem.style.pointerEvents = 'none';
+      dashboardNavItem.style.background = 'transparent';
+      
+      // ✅ ONLY LOG ONCE
+      if (!hasLoggedInitialState) {
+        console.log('🔒 Dashboard locked successfully');
+        hasLoggedInitialState = true;
+      }
+    }
+    
+    // ✅ CHECK IF DASHBOARD IS VISIBLE - ONLY SWITCH ONCE
+    const dashboardContent = document.getElementById('vocabulary-content');
+    if (dashboardContent && dashboardContent.classList.contains('active')) {
+      console.log('⚠️ Dashboard is visible but should be locked - switching to homework');
+      
+      // Switch to homework WITHOUT triggering tool switch logs
+      const homeworkContent = document.getElementById('homework-content');
+      const homeworkNav = document.querySelector('.nav-link[data-tool="homework"]');
+      
+      if (dashboardContent) {
+        dashboardContent.classList.remove('active');
+        dashboardContent.style.display = 'none';
+      }
+      
+      if (homeworkContent) {
+        homeworkContent.classList.add('active');
+        homeworkContent.style.display = 'block';
+      }
+      
+      if (homeworkNav) {
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        homeworkNav.classList.add('active');
+      }
+      
+      // Update current tool silently
+      window.currentActiveTool = 'homework';
+      
+      // Update header
+      const headerTitle = document.getElementById('headerTitle');
+      if (headerTitle) {
+        headerTitle.textContent = 'Homework Fixer';
+      }
+      const headerSubtitle = document.getElementById('headerSubtitle');
+      if (headerSubtitle) {
+        headerSubtitle.textContent = 'Paste your homework and get instant corrections';
+      }
+    }
+    
+  } else {
+    // ✅ UNLOCK ONLY IF CURRENTLY LOCKED
+    if (dashboardNavItem.classList.contains('vocabulary-locked')) {
+      dashboardNavItem.classList.remove('vocabulary-locked');
+      const lockIcon = dashboardNavItem.querySelector('.lock-icon');
+      if (lockIcon) lockIcon.remove();
+      
+      const parentLi = dashboardNavItem.closest('.nav-item');
+      if (parentLi) {
+        parentLi.style.opacity = '1';
+        parentLi.style.cursor = 'pointer';
+      }
+      
+      dashboardNavItem.style.opacity = '1';
+      dashboardNavItem.style.cursor = 'pointer';
+      dashboardNavItem.style.pointerEvents = 'auto';
+      dashboardNavItem.style.background = '';
+      
+      console.log('✅ Dashboard unlocked');
+      
+      // Show unlock notification (only once)
+      const hasShownUnlock = localStorage.getItem('ziyoai_dashboard_unlocked');
+      if (!hasShownUnlock) {
+        showDashboardUnlockNotification();
+        localStorage.setItem('ziyoai_dashboard_unlocked', 'true');
+      }
+    }
+  }
+  
+  return true;
+}
+
 // ============================================
 // INTERCEPT DASHBOARD CLICKS
 // ============================================
@@ -520,6 +638,33 @@ function initDashboardLock() {
   }
 }
 
+function initDashboardLock() {
+  console.log('🔒 Initializing Dashboard Lock System...');
+  
+  const success = applyVocabularyLock();
+  
+  if (success) {
+    interceptDashboardClick();
+    
+    // Monitor stats changes - SILENT VERSION
+    const originalIncrementStat = window.incrementStat;
+    if (originalIncrementStat) {
+      window.incrementStat = function(...args) {
+        originalIncrementStat(...args);
+        // Check silently after 200ms
+        setTimeout(checkDashboardUnlock, 200);
+      };
+    }
+    
+    // ✅ CHECK EVERY 10 SECONDS (not 5) - LESS FREQUENT
+    setInterval(checkDashboardUnlock, 10000);
+    
+    console.log('✅ Dashboard Lock System Initialized');
+  } else {
+    setTimeout(initDashboardLock, 500);
+  }
+}
+
 // ============================================
 // START WITH DELAY
 // ============================================
@@ -544,6 +689,7 @@ if (document.readyState === 'loading') {
 
 // Export functions
 window.applyDashboardLock = applyDashboardLock;
+window.applyVocabularyLock = applyVocabularyLock;
 window.isDashboardUnlocked = isDashboardUnlocked;
 window.DASHBOARD_LOCK = DASHBOARD_LOCK;
 
