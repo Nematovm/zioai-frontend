@@ -13,6 +13,74 @@ window.hasInitialized = false;
 window.isToolSwitching = false;
 window.preventToolSwitch = false;
 
+// Global variables
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+let recordingTimer = null;
+let recordingSeconds = 0;
+let selectedExamType = null;
+let recordedAudioBlob = null;
+
+
+// Wait for coin system to be ready
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (window.coinManager) {
+      coinSystemReady = true;
+      console.log('✅ Coin system ready for integration');
+      updateProfileCoinDisplay();
+    }
+  }, 1000);
+});
+
+// Wait for coin system to be ready - IMPROVED
+function initCoinSystemIntegration() {
+  console.log('🔄 Checking coin system...');
+  
+  if (window.coinManager) {
+    coinSystemReady = true;
+    console.log('✅ Coin system ready!');
+    updateProfileCoinDisplay();
+    
+    // Update coin display immediately
+    const coinElement = document.getElementById('userCoins');
+    if (coinElement && window.coinManager) {
+      coinElement.textContent = window.coinManager.getCoins();
+    }
+    
+    return true;
+  } else {
+    console.warn('⚠️ Coin system not ready yet, retrying...');
+    
+    // Retry after 500ms
+    setTimeout(() => {
+      if (window.coinManager) {
+        coinSystemReady = true;
+        console.log('✅ Coin system ready (delayed)!');
+        updateProfileCoinDisplay();
+        
+        const coinElement = document.getElementById('userCoins');
+        if (coinElement) {
+          coinElement.textContent = window.coinManager.getCoins();
+        }
+      } else {
+        console.error('❌ Coin system failed to initialize');
+      }
+    }, 500);
+    
+    return false;
+  }
+}
+
+// Initialize when page loads
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    initCoinSystemIntegration();
+  }, 1000);
+});
+
+
 // ============================================
 // 2️⃣B GLOBAL IMAGE VARIABLES ✅
 // ============================================
@@ -254,167 +322,70 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
-// 7️⃣ WINDOW LOAD - INITIALIZE SYSTEMS
+// UPDATED WINDOW.LOAD EVENT ✅
+// Replace the existing window.addEventListener('load') section
 // ============================================
-// PAGE LOAD - BITTA JOYDA HAMMASI
-window.addEventListener("load", () => {
-  console.log("🪟 Window fully loaded");
-
+window.addEventListener('load', async () => {
+  console.log('🪟 Window loaded - starting initialization');
+  
   // ============================================
-  // 1️⃣ INITIALIZE DEFAULT TOOL
+  // 1️⃣ WAIT FOR COIN SYSTEM (NEW!)
+  // ============================================
+  await waitForCoinSystem();
+  
+  // ============================================
+  // 2️⃣ UPDATE COIN DISPLAY
+  // ============================================
+  if (window.coinManager) {
+    console.log('💰 Current coin balance:', window.coinManager.getCoins());
+    
+    if (typeof updateCoinDisplay === 'function') {
+      updateCoinDisplay();
+    }
+    
+    // Update profile display if on profile page
+    if (typeof updateProfileCoinDisplay === 'function') {
+      updateProfileCoinDisplay();
+    }
+  } else {
+    console.warn('⚠️ Coin manager still not available');
+  }
+  
+  // ============================================
+  // 3️⃣ INITIALIZE DEFAULT TOOL
   // ============================================
   setTimeout(() => {
     if (!window.hasInitialized) {
-      console.warn("⚠️ Backup initialization");
+      console.warn('⚠️ Backup initialization');
       initializeDefaultTool();
     }
 
     // Mini timer
-    if (typeof updateMiniTimerDisplay === "function") {
+    if (typeof updateMiniTimerDisplay === 'function') {
       updateMiniTimerDisplay();
     }
 
     // Stats system
     try {
-      if (typeof window.loadUserStats === "function") {
+      if (typeof window.loadUserStats === 'function') {
         window.loadUserStats();
-        console.log("✅ Stats loaded");
+        console.log('✅ Stats loaded');
       }
     } catch (error) {
-      console.warn("⚠️ Stats error (non-critical):", error.message);
+      console.warn('⚠️ Stats error (non-critical):', error.message);
     }
 
     // Motivation system
-    if (typeof startMotivationSystem === "function") {
+    if (typeof startMotivationSystem === 'function') {
       startMotivationSystem();
-      console.log("✅ Motivation system started");
+      console.log('✅ Motivation system started');
     }
 
-    console.log("✅ All systems ready");
+    console.log('✅ All systems ready');
   }, 200);
 
   // ============================================
-  // 2️⃣ HOMEWORK IMAGE UPLOAD
-  // ============================================
-  const homeworkFileInput = document.getElementById("homeworkImageInput");
-  const homeworkUploadArea = document.getElementById("imageUploadArea");
-
-  if (homeworkFileInput && homeworkUploadArea) {
-    let isHomeworkClickHandled = false;
-
-    homeworkFileInput.addEventListener("change", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleImageUpload(e);
-    });
-
-    homeworkUploadArea.addEventListener("click", (e) => {
-      if (isHomeworkClickHandled || e.target === homeworkFileInput) {
-        return;
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      isHomeworkClickHandled = true;
-      homeworkFileInput.click();
-
-      setTimeout(() => {
-        isHomeworkClickHandled = false;
-      }, 500);
-    });
-
-    homeworkUploadArea.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      homeworkUploadArea.style.borderColor = "#667eea";
-      homeworkUploadArea.style.background = "#f0f2ff";
-      homeworkUploadArea.style.borderWidth = "4px";
-    });
-
-    homeworkUploadArea.addEventListener("dragleave", (e) => {
-      e.stopPropagation();
-      homeworkUploadArea.style.borderColor = "#d1d5db";
-      homeworkUploadArea.style.background = "#f9fafb";
-      homeworkUploadArea.style.borderWidth = "3px";
-    });
-
-    homeworkUploadArea.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      homeworkUploadArea.style.borderColor = "#d1d5db";
-      homeworkUploadArea.style.background = "#f9fafb";
-      homeworkUploadArea.style.borderWidth = "3px";
-
-      const file = e.dataTransfer.files[0];
-      if (file) processImageFile(file);
-    });
-
-    console.log("✅ Homework image upload initialized");
-  }
-
-  // ============================================
-  // 3️⃣ WRITING IMAGE UPLOAD
-  // ============================================
-  const writingFileInput = document.getElementById("writingImageInput");
-  const writingUploadArea = document.getElementById("writingImageUploadArea");
-
-  if (writingFileInput && writingUploadArea) {
-    let isWritingClickHandled = false;
-
-    writingFileInput.addEventListener("change", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleWritingImageUpload(e);
-    });
-
-    writingUploadArea.addEventListener("click", (e) => {
-      if (isWritingClickHandled || e.target === writingFileInput) {
-        return;
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      isWritingClickHandled = true;
-      writingFileInput.click();
-
-      setTimeout(() => {
-        isWritingClickHandled = false;
-      }, 500);
-    });
-
-    writingUploadArea.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      writingUploadArea.style.borderColor = "#667eea";
-      writingUploadArea.style.background = "#f0f2ff";
-      writingUploadArea.style.borderWidth = "4px";
-    });
-
-    writingUploadArea.addEventListener("dragleave", (e) => {
-      e.stopPropagation();
-      writingUploadArea.style.borderColor = "#d1d5db";
-      writingUploadArea.style.background = "#f9fafb";
-      writingUploadArea.style.borderWidth = "3px";
-    });
-
-    writingUploadArea.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      writingUploadArea.style.borderColor = "#d1d5db";
-      writingUploadArea.style.background = "#f9fafb";
-      writingUploadArea.style.borderWidth = "3px";
-
-      const file = e.dataTransfer.files[0];
-      if (file) processWritingImage(file);
-    });
-
-    console.log("✅ Writing image upload initialized");
-  }
-
-  // ============================================
-  // 4️⃣ FIREBASE AUTH
+  // 4️⃣ FIREBASE AUTH & USERNAME
   // ============================================
   const auth = window.firebaseAuth;
   if (auth) {
@@ -430,6 +401,8 @@ window.addEventListener("load", () => {
         if (userNameElement) {
           userNameElement.textContent = username;
         }
+        
+        console.log('✅ User authenticated:', username);
       }
       unsubscribe();
     });
@@ -443,8 +416,9 @@ window.addEventListener("load", () => {
     if (spinner) spinner.style.display = "none";
   }, 500);
 
-  console.log("✅ Page load initialization complete!");
+  console.log('✅ Page load initialization complete!');
 });
+
 
 // ============================================
 // BACKEND AVAILABILITY CHECKER
@@ -675,155 +649,110 @@ document.addEventListener("paste", (e) => {
 });
 
 // ============================================
-// FIX HOMEWORK - WITH IMAGE SUPPORT ✅
+// COIN CHECK FUNCTION - FIXED VERSION ✅
+// Replace the existing checkAndSpendCoins function in dashboard.js
 // ============================================
-async function fixHomework() {
-  const result = document.getElementById("homeworkResult");
-  const output = document.getElementById("homeworkOutput");
-  const languageDropdown = document.getElementById("homework-language");
-  const language = languageDropdown ? languageDropdown.value : "uz";
 
-  let homework = document.getElementById("homeworkInput").value.trim();
-
-  // ✅ CHECK: If image is uploaded, use image mode
-  if (uploadedImage) {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const imageData = e.target.result;
-
-      result.style.display = "block";
-      showLoading(output);
-
-      try {
-        const response = await fetch(`${API_URL}/fix-homework`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            homework: null,
-            image: imageData,
-            type: "image",
-            language: language,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Server error");
-        }
-
-        if (data.success && data.correctedHomework) {
-          const subjectBadge = data.detectedSubject
-            ? `
-            <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-              ${data.subjectEmoji || "📚"} ${data.detectedSubject.toUpperCase()}
-            </div>
-          `
-            : "";
-
-          output.innerHTML = `
-            ${subjectBadge}
-            <div class="alert alert-success">
-              <h5 class="alert-heading">
-                <i class="bi bi-check-circle-fill"></i> AI Analysis
-              </h5>
-              <hr>
-              <div style="white-space: pre-wrap; line-height: 1.8;">
-                ${data.correctedHomework}
-              </div>
-            </div>
-          `;
-
-          if (typeof trackToolUsage === "function") trackToolUsage("homework");
-          if (typeof incrementStat === "function") {
-            incrementStat("homeworkCompleted", 1);
-            incrementStat("totalStudyTime", 3);
-          }
-          if (typeof addRecentActivity === "function") {
-            addRecentActivity("Homework Fixer", 87, "✏️", "#10b981");
-          }
-
-          console.log("📊 Homework completed successfully");
-        } else {
-          throw new Error("No response from AI");
-        }
-      } catch (error) {
-        console.error("❌ Error:", error);
-        showError(output, error.message);
-      }
-    };
-    reader.readAsDataURL(uploadedImage);
-    return;
-  }
-
-  // ✅ CHECK: If no image and no text, show error
-  if (!homework) {
-    alert("⚠️ Please enter your homework or upload an image!");
-    return;
-  }
-
-  // ✅ TEXT HOMEWORK
-  result.style.display = "block";
-  showLoading(output);
-
-  try {
-    const response = await fetch(`${API_URL}/fix-homework`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        homework: homework,
-        image: null,
-        type: "text",
-        language: language,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Server error");
+function checkAndSpendCoins(toolName) {
+  console.log(`🪙 Checking coins for tool: ${toolName}`);
+  
+  // ✅ CRITICAL FIX: Never allow if coin manager not ready
+  if (!window.coinManager) {
+    console.error('❌ Coin manager NOT initialized - blocking tool usage!');
+    
+    // Show error message
+    alert('⚠️ Coin system is loading...\n\nPlease wait a moment and try again.');
+    
+    // Try to initialize
+    if (typeof initCoinSystem === 'function') {
+      initCoinSystem();
     }
-
-    if (data.success && data.correctedHomework) {
-      const subjectBadge = data.detectedSubject
-        ? `
-        <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-          ${data.subjectEmoji || "📚"} ${data.detectedSubject.toUpperCase()}
-        </div>
-      `
-        : "";
-
-      output.innerHTML = `
-        ${subjectBadge}
-        <div class="alert alert-success">
-          <h5 class="alert-heading">
-            <i class="bi bi-check-circle-fill"></i> AI Analysis
-          </h5>
-          <hr>
-          <div style="white-space: pre-wrap; line-height: 1.8;">
-            ${data.correctedHomework}
-          </div>
-        </div>
-      `;
-
-      if (typeof trackToolUsage === "function") trackToolUsage("homework");
-      if (typeof incrementStat === "function") {
-        incrementStat("homeworkCompleted", 1);
-        incrementStat("totalStudyTime", 3);
-      }
-      if (typeof addRecentActivity === "function") {
-        addRecentActivity("Homework Fixer", 87, "✏️", "#10b981");
-      }
-
-      console.log("✅ Homework tracking completed!");
+    
+    return false; // ✅ BLOCK USAGE
+  }
+  
+  // ✅ Get tool cost and check balance
+  const check = window.coinManager.canUseTool(toolName);
+  
+  console.log(`💰 Tool: ${toolName}`);
+  console.log(`   Cost: ${check.cost} coins`);
+  console.log(`   Balance: ${window.coinManager.getCoins()} coins`);
+  console.log(`   Can use: ${check.canUse}`);
+  console.log(`   Reason: ${check.reason}`);
+  
+  if (!check.canUse) {
+    // Show insufficient coins modal
+    if (typeof window.showInsufficientCoinsModal === 'function') {
+      window.showInsufficientCoinsModal(check.cost, window.coinManager.getCoins());
     } else {
-      throw new Error("No response from AI");
+      alert(`⚠️ Not enough coins!\n\nRequired: ${check.cost} coins\nYour balance: ${window.coinManager.getCoins()} coins`);
     }
-  } catch (error) {
-    console.error("❌ Error:", error);
-    showError(output, error.message);
+    return false;
   }
+  
+  // ✅ Spend coins
+  const success = window.coinManager.useTool(toolName);
+  
+  if (success) {
+    console.log(`✅ Successfully spent ${check.cost} coins for ${toolName}`);
+    console.log(`💰 New balance: ${window.coinManager.getCoins()} coins`);
+    
+    // Update display
+    if (typeof updateCoinDisplay === 'function') {
+      updateCoinDisplay();
+    }
+  } else {
+    console.error(`❌ Failed to spend coins for ${toolName}`);
+  }
+  
+  return success;
 }
+
+// ============================================
+// TESTING HELPERS (Console commands)
+// ============================================
+
+// Console da ishlatish uchun:
+window.testCoinSystem = function() {
+  console.log('=== COIN SYSTEM TEST ===');
+  console.log('Coin Manager:', window.coinManager ? '✅ Active' : '❌ Not initialized');
+  
+  if (window.coinManager) {
+    console.log('Current Balance:', window.coinManager.getCoins(), 'coins');
+    console.log('Total Earned:', window.coinManager.data.totalEarned);
+    console.log('Total Spent:', window.coinManager.data.totalSpent);
+    console.log('Subscription:', window.coinManager.data.subscription);
+    console.log('Tool Usage:', window.coinManager.data.toolUsageCount);
+  }
+  console.log('========================');
+};
+
+window.addTestCoins = function(amount) {
+  if (!window.coinManager) {
+    console.error('❌ Coin manager not initialized');
+    return;
+  }
+  window.coinManager.addCoins(amount || 50, 'Test coins');
+  console.log(`✅ Added ${amount || 50} test coins. New balance: ${window.coinManager.getCoins()}`);
+};
+
+window.resetCoinSystem = function() {
+  if (!window.coinManager) {
+    console.error('❌ Coin manager not initialized');
+    return;
+  }
+  window.coinManager.reset();
+  console.log('🔄 Coin system reset to defaults');
+};
+
+console.log('✅ Coin check function (FIXED) loaded!');
+console.log('💡 Test commands:');
+console.log('   window.testCoinSystem() - show current state');
+console.log('   window.addTestCoins(50) - add test coins');
+console.log('   window.resetCoinSystem() - reset to defaults');
+
+
+
 
 // Helper Functions
 function showLoading(outputElement) {
@@ -845,6 +774,631 @@ function showError(outputElement, message) {
     </div>
   `;
 }
+
+// ============================================
+// MATH FORMULA RENDERER - dashboard.js ga qo'shing
+// ============================================
+
+// ✅ Initialize MathJax/KaTeX when page loads
+window.addEventListener('load', () => {
+  console.log('🔢 Initializing math renderer...');
+  
+  // Check which library is available
+  if (typeof MathJax !== 'undefined') {
+    console.log('✅ MathJax loaded');
+  } else if (typeof renderMathInElement !== 'undefined') {
+    console.log('✅ KaTeX loaded');
+  } else {
+    console.warn('⚠️ No math rendering library found!');
+  }
+});
+
+// ============================================
+// RENDER MATH FORMULAS
+// ============================================
+function renderMathFormulas(element) {
+  if (!element) {
+    console.error('❌ No element provided for math rendering');
+    return;
+  }
+
+  try {
+    // Method 1: MathJax (preferred for complex formulas)
+    if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+      console.log('🔢 Rendering with MathJax...');
+      
+      MathJax.typesetPromise([element])
+        .then(() => {
+          console.log('✅ MathJax rendered successfully');
+          // Add styling to math elements
+          element.querySelectorAll('.MathJax').forEach(mjx => {
+            mjx.style.fontSize = '1.1em';
+            mjx.style.margin = '0 4px';
+          });
+        })
+        .catch((err) => {
+          console.error('❌ MathJax error:', err);
+          fallbackToKaTeX(element);
+        });
+    }
+    // Method 2: KaTeX (fallback, faster but simpler)
+    else if (typeof renderMathInElement !== 'undefined') {
+      console.log('🔢 Rendering with KaTeX...');
+      renderKatexFormulas(element);
+    }
+    // Method 3: Manual rendering (basic fallback)
+    else {
+      console.warn('⚠️ No math library, using basic rendering');
+      renderBasicMath(element);
+    }
+  } catch (error) {
+    console.error('❌ Math rendering error:', error);
+  }
+}
+
+// Render with KaTeX
+function renderKatexFormulas(element) {
+  try {
+    renderMathInElement(element, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true},
+        {left: '```latex', right: '```', display: true}
+      ],
+      throwOnError: false,
+      strict: false,
+      trust: true,
+      macros: {
+        "\\RR": "\\mathbb{R}",
+        "\\NN": "\\mathbb{N}"
+      }
+    });
+    
+    console.log('✅ KaTeX rendered successfully');
+    
+    // Style KaTeX elements
+    element.querySelectorAll('.katex').forEach(katex => {
+      katex.style.fontSize = '1.1em';
+      katex.style.margin = '0 4px';
+    });
+  } catch (error) {
+    console.error('❌ KaTeX error:', error);
+    renderBasicMath(element);
+  }
+}
+
+// Fallback to KaTeX if MathJax fails
+function fallbackToKaTeX(element) {
+  console.log('🔄 Falling back to KaTeX...');
+  if (typeof renderMathInElement !== 'undefined') {
+    renderKatexFormulas(element);
+  } else {
+    renderBasicMath(element);
+  }
+}
+
+// Basic math rendering (no library needed)
+function renderBasicMath(element) {
+  console.log('📐 Using basic math rendering...');
+  
+  let html = element.innerHTML;
+  
+  // Replace common LaTeX patterns with Unicode
+  html = html
+    // Fractions: \frac{a}{b} → (a)/(b)
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span style="display: inline-block; text-align: center;"><span style="display: block; border-bottom: 1px solid #000; padding: 0 4px;">$1</span><span style="display: block; padding: 0 4px;">$2</span></span>')
+    
+    // Square root: \sqrt{x} → √x
+    .replace(/\\sqrt\{([^}]+)\}/g, '<span style="position: relative; padding-left: 18px;"><span style="position: absolute; left: 0; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$1</span></span>')
+    
+    // Root with index: \sqrt[n]{x} → ⁿ√x
+    .replace(/\\sqrt\[(\d+)\]\{([^}]+)\}/g, '<span style="position: relative; padding-left: 22px;"><span style="position: absolute; left: 0; top: -4px; font-size: 0.7em;">$1</span><span style="position: absolute; left: 8px; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$2</span></span>')
+    
+    // Superscript: x^{2} → x²
+    .replace(/([a-zA-Z0-9])\^\{([^}]+)\}/g, '$1<sup>$2</sup>')
+    
+    // Subscript: x_{2} → x₂
+    .replace(/([a-zA-Z0-9])_\{([^}]+)\}/g, '$1<sub>$2</sub>')
+    
+    // Operators
+    .replace(/\\times/g, '×')
+    .replace(/\\div/g, '÷')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\pm/g, '±')
+    .replace(/\\leq/g, '≤')
+    .replace(/\\geq/g, '≥')
+    .replace(/\\neq/g, '≠')
+    .replace(/\\approx/g, '≈')
+    
+    // Remove remaining LaTeX commands
+    .replace(/\\[a-zA-Z]+/g, '');
+  
+  element.innerHTML = html;
+  console.log('✅ Basic math rendered');
+}
+
+// ============================================
+// COMPLETE FIX: HOMEWORK + COIN SYSTEM + SUBJECT DETECTION
+// ============================================
+
+// 1️⃣ TEMPORARILY DISABLE PRO SUBSCRIPTION FOR TESTING
+console.log('🧪 TEST MODE: Forcing Free subscription for testing');
+
+// Override subscription check temporarily
+if (window.coinManager && window.coinManager.data.subscription === 'pro') {
+  console.warn('⚠️ Detected Pro subscription, switching to Free for testing');
+  window.coinManager.data.subscription = 'free';
+  window.coinManager.data.coins = 1016; // Your current balance
+  window.coinManager.saveData();
+  console.log('✅ Switched to Free subscription with 1016 coins');
+}
+
+// ============================================
+// 2️⃣ FIXED HOMEWORK FUNCTION
+// ============================================
+async function fixHomework() {
+  console.log('🎯 fixHomework() called');
+  
+  // 🪙 COIN CHECK - MUST BE FIRST
+  console.log('💰 Checking coins...');
+  const canProceed = checkAndSpendCoins('homework');
+  
+  if (!canProceed) {
+    console.error('❌ Cannot proceed: insufficient coins or coin check failed');
+    return;
+  }
+  
+  console.log('✅ Coins deducted successfully');
+
+  const result = document.getElementById("homeworkResult");
+  const output = document.getElementById("homeworkOutput");
+  const languageDropdown = document.getElementById("homework-language");
+  const language = languageDropdown ? languageDropdown.value : "uz";
+
+  let homework = document.getElementById("homeworkInput").value.trim();
+
+  // ============================================
+  // IMAGE UPLOAD CHECK
+  // ============================================
+  if (uploadedImage) {
+    console.log('📷 Processing image upload...');
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageData = e.target.result;
+      result.style.display = "block";
+      showLoading(output);
+
+      try {
+        const response = await fetch(`${API_URL}/fix-homework`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            homework: null,
+            image: imageData,
+            type: "image",
+            language: language,
+          }),
+        });
+
+        const data = await response.json();
+        console.log('📦 Server response:', data);
+
+        if (!response.ok) {
+          // ⚠️ SERVER ERROR - REFUND COINS
+          console.error('❌ Server error:', data.error);
+          if (window.coinManager) {
+            window.coinManager.addCoins(3, 'Refund: Server error');
+            updateCoinDisplay();
+          }
+          throw new Error(data.error || "Server error");
+        }
+
+        if (data.success && data.correctedHomework) {
+          console.log('✅ Homework corrected successfully');
+          
+          // ✅ SUBJECT DETECTION
+          let subjectBadge = '';
+          
+          // Option 1: Backend provides subject
+          if (data.detectedSubject && data.subjectEmoji) {
+            subjectBadge = `
+              <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+                ${data.subjectEmoji} ${data.detectedSubject.toUpperCase()}
+              </div>
+            `;
+          } 
+          // Option 2: Frontend detects from text (FALLBACK)
+          else {
+            const detectedSubject = detectSubject(homework + ' ' + data.correctedHomework);
+            if (detectedSubject) {
+              subjectBadge = `
+                <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+                  ${detectedSubject.emoji} ${detectedSubject.name.toUpperCase()}
+                </div>
+              `;
+            }
+          }
+
+          // ✅ MATH FORMULA (if exists)
+          const formulaDisplay = data.mathData ? `
+            <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #0284c7;">
+              <h6 style="color: #0c4a6e; margin: 0 0 12px 0; font-weight: 700;">
+                📐 Aniqlangan Formula:
+              </h6>
+              <div style="background: white; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; margin-bottom: 10px;">
+                <div style="margin-bottom: 8px;">
+                  <strong>LaTeX:</strong> <code>${data.mathData.latex}</code>
+                </div>
+                <div>
+                  <strong>O'qilishi:</strong> ${data.mathData.readable}
+                </div>
+              </div>
+              <div id="formulaRender" style="font-size: 1.3em; text-align: center; padding: 15px; background: white; border-radius: 8px; border: 2px dashed #0284c7;">
+                $${data.mathData.latex}$
+              </div>
+            </div>
+          ` : '';
+
+          // ✅ AI ANALYSIS - NOW VISIBLE
+          output.innerHTML = `
+            ${subjectBadge}
+            ${formulaDisplay}
+            <div class="alert alert-success">
+              <h5 class="alert-heading">
+                <i class="bi bi-check-circle-fill"></i> AI Tahlil
+              </h5>
+              <hr>
+              <div id="mathContent" style="white-space: pre-wrap; line-height: 1.8;">
+                ${data.correctedHomework}
+              </div>
+            </div>
+          `;
+
+          // ✅ RENDER MATH FORMULAS
+          const mathContent = document.getElementById('mathContent');
+          const formulaRender = document.getElementById('formulaRender');
+          
+          if (mathContent && typeof renderMathFormulas === 'function') {
+            renderMathFormulas(mathContent);
+          }
+          
+          if (formulaRender && data.mathData && typeof renderMathFormulas === 'function') {
+            renderMathFormulas(formulaRender);
+          }
+
+          // Track stats
+          if (typeof trackToolUsage === "function") trackToolUsage("homework");
+          if (typeof incrementStat === "function") {
+            incrementStat("homeworkCompleted", 1);
+            incrementStat("totalStudyTime", 3);
+          }
+
+          console.log('✅ Homework display complete');
+        } else {
+          // ⚠️ NO RESPONSE - REFUND
+          console.error('❌ No AI response');
+          if (window.coinManager) {
+            window.coinManager.addCoins(3, 'Refund: No AI response');
+            updateCoinDisplay();
+          }
+          throw new Error("No response from AI");
+        }
+      } catch (error) {
+        console.error("❌ Error:", error);
+        
+        // ⚠️ ERROR - REFUND
+        if (window.coinManager) {
+          window.coinManager.addCoins(3, 'Refund: ' + error.message);
+          updateCoinDisplay();
+        }
+        
+        showError(output, error.message);
+      }
+    };
+    reader.readAsDataURL(uploadedImage);
+    return;
+  }
+
+  // ============================================
+  // TEXT HOMEWORK
+  // ============================================
+  if (!homework) {
+    // ⚠️ EMPTY INPUT - REFUND
+    console.warn('⚠️ Empty homework input');
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: No homework text');
+      updateCoinDisplay();
+    }
+    alert("⚠️ Please enter your homework or upload an image!");
+    return;
+  }
+
+  console.log('📝 Processing text homework...');
+  result.style.display = "block";
+  showLoading(output);
+
+  try {
+    const response = await fetch(`${API_URL}/fix-homework`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        homework: homework,
+        image: null,
+        type: "text",
+        language: language,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('📦 Server response:', data);
+
+    if (!response.ok) {
+      // ⚠️ SERVER ERROR - REFUND
+      console.error('❌ Server error:', data.error);
+      if (window.coinManager) {
+        window.coinManager.addCoins(3, 'Refund: Server error');
+        updateCoinDisplay();
+      }
+      throw new Error(data.error || "Server error");
+    }
+
+    if (data.success && data.correctedHomework) {
+      console.log('✅ Homework corrected successfully');
+      
+      // ✅ SUBJECT DETECTION
+      let subjectBadge = '';
+      
+      if (data.detectedSubject && data.subjectEmoji) {
+        subjectBadge = `
+          <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+            ${data.subjectEmoji} ${data.detectedSubject.toUpperCase()}
+          </div>
+        `;
+      } else {
+        const detectedSubject = detectSubject(homework + ' ' + data.correctedHomework);
+        if (detectedSubject) {
+          subjectBadge = `
+            <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+              ${detectedSubject.emoji} ${detectedSubject.name.toUpperCase()}
+            </div>
+          `;
+        }
+      }
+
+      output.innerHTML = `
+        ${subjectBadge}
+        <div class="alert alert-success">
+          <h5 class="alert-heading">
+            <i class="bi bi-check-circle-fill"></i> AI Tahlil
+          </h5>
+          <hr>
+          <div id="mathContent" style="white-space: pre-wrap; line-height: 1.8;">
+            ${data.correctedHomework}
+          </div>
+        </div>
+      `;
+
+      // ✅ RENDER MATH
+      const mathContent = document.getElementById('mathContent');
+      if (mathContent && typeof renderMathFormulas === 'function') {
+        renderMathFormulas(mathContent);
+      }
+
+      console.log('✅ Homework display complete');
+    } else {
+      // ⚠️ NO RESPONSE - REFUND
+      console.error('❌ No AI response');
+      if (window.coinManager) {
+        window.coinManager.addCoins(3, 'Refund: No AI response');
+        updateCoinDisplay();
+      }
+      throw new Error("No response from AI");
+    }
+  } catch (error) {
+    console.error("❌ Error:", error);
+    
+    // ⚠️ ERROR - REFUND
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: ' + error.message);
+      updateCoinDisplay();
+    }
+    
+    showError(output, error.message);
+  }
+}
+
+// ============================================
+// 3️⃣ FRONTEND SUBJECT DETECTION (FALLBACK)
+// ============================================
+function detectSubject(text) {
+  if (!text) return null;
+  
+  const textLower = text.toLowerCase();
+  
+  const subjects = [
+    // Math
+    {
+      keywords: ['matematik', 'algebra', 'geometriya', 'trigonometriya', 'calculus', 'integral', 'derivative', 'equation', 'formula', 'theorem', 'proof', 'x=', 'y=', '+', '-', '*', '/', '=', '²', '³', 'sin', 'cos', 'tan', 'log'],
+      name: 'Matematika',
+      emoji: '🔢'
+    },
+    // Physics
+    {
+      keywords: ['fizika', 'physics', 'mexanika', 'elektr', 'magnit', 'yorug\'lik', 'issiqlik', 'energiya', 'kuch', 'tezlik', 'massa', 'zaryad', 'tok', 'kuchlanish', 'qarshilik', 'quvvat', 'newton', 'joule', 'watt', 'volt', 'ampere'],
+      name: 'Fizika',
+      emoji: '⚛️'
+    },
+    // Chemistry
+    {
+      keywords: ['kimyo', 'chemistry', 'element', 'molekula', 'atom', 'reaksiya', 'oksid', 'kislota', 'asos', 'tuz', 'ionlar', 'elektrolitlar', 'pH', 'H2O', 'O2', 'CO2', 'NaCl', 'H2SO4'],
+      name: 'Kimyo',
+      emoji: '🧪'
+    },
+    // Biology
+    {
+      keywords: ['biologiya', 'biology', 'hujayra', 'gen', 'DNK', 'o\'simlik', 'hayvon', 'organizm', 'to\'qima', 'a\'zo', 'fotosintez', 'nafas', 'qon', 'yurak', 'evolyutsiya'],
+      name: 'Biologiya',
+      emoji: '🧬'
+    },
+    // English
+    {
+      keywords: ['ingliz', 'english', 'grammar', 'vocabulary', 'tense', 'present', 'past', 'future', 'verb', 'noun', 'adjective', 'adverb', 'article', 'preposition'],
+      name: 'Ingliz tili',
+      emoji: '🇬🇧'
+    },
+    // Geography
+    {
+      keywords: ['geografiya', 'geography', 'qit\'a', 'okean', 'daryo', 'tog\'', 'cho\'l', 'iqlim', 'xarita', 'davlat', 'poytaxt', 'aholi', 'resurlar'],
+      name: 'Geografiya',
+      emoji: '🌍'
+    },
+    // History
+    {
+      keywords: ['tarix', 'history', 'davlat', 'urush', 'siyosat', 'imperiya', 'inqilob', 'sulola', 'amir', 'shoh', 'xon', 'qudrat'],
+      name: 'Tarix',
+      emoji: '📜'
+    },
+    // Literature
+    {
+      keywords: ['adabiyot', 'literature', 'she\'r', 'hikoya', 'roman', 'drama', 'qissa', 'shoir', 'yozuvchi', 'asar', 'badiiy', 'nasriy'],
+      name: 'Adabiyot',
+      emoji: '📚'
+    },
+    // Computer Science
+    {
+      keywords: ['informatika', 'computer', 'dasturlash', 'kod', 'algoritm', 'python', 'javascript', 'html', 'css', 'function', 'class', 'array', 'loop', 'if', 'else', 'print', 'return'],
+      name: 'Informatika',
+      emoji: '💻'
+    }
+  ];
+
+  for (const subject of subjects) {
+    let matchCount = 0;
+    for (const keyword of subject.keywords) {
+      if (textLower.includes(keyword)) {
+        matchCount++;
+      }
+    }
+    
+    // If 2+ keywords match, return subject
+    if (matchCount >= 2) {
+      console.log(`✅ Subject detected: ${subject.name} (${matchCount} keywords)`);
+      return subject;
+    }
+  }
+
+  console.log('⚠️ No subject detected');
+  return null;
+}
+
+// ============================================
+// 4️⃣ COIN DISPLAY UPDATE
+// ============================================
+function updateCoinDisplay() {
+  if (!window.coinManager) return;
+  
+  const currentCoins = window.coinManager.getCoins();
+  
+  // Update all coin displays
+  const coinElements = document.querySelectorAll('[id*="Coin"], [id*="coin"]');
+  coinElements.forEach(el => {
+    if (el.id && el.textContent && !isNaN(parseInt(el.textContent))) {
+      el.textContent = currentCoins;
+      console.log(`💰 Updated ${el.id}: ${currentCoins} coins`);
+    }
+  });
+  
+  // Update profile
+  if (typeof updateProfileCoinDisplay === 'function') {
+    updateProfileCoinDisplay();
+  }
+  
+  console.log(`💰 Coin display updated: ${currentCoins} coins`);
+}
+
+// ============================================
+// 5️⃣ TESTING COMMANDS
+// ============================================
+window.testHomework = function() {
+  console.log('=== HOMEWORK SYSTEM TEST ===');
+  console.log('Coin Manager:', window.coinManager ? '✅ Active' : '❌ Not initialized');
+  if (window.coinManager) {
+    console.log('Current Balance:', window.coinManager.getCoins(), 'coins');
+    console.log('Subscription:', window.coinManager.data.subscription);
+  }
+  console.log('Homework Input:', document.getElementById('homeworkInput')?.value || '(empty)');
+  console.log('Uploaded Image:', uploadedImage ? '✅ Yes' : '❌ No');
+  console.log('===========================');
+};
+
+window.switchToFree = function() {
+  if (window.coinManager) {
+    window.coinManager.data.subscription = 'free';
+    window.coinManager.saveData();
+    console.log('✅ Switched to Free subscription');
+    updateCoinDisplay();
+  }
+};
+
+window.switchToPro = function() {
+  if (window.coinManager) {
+    window.coinManager.data.subscription = 'pro';
+    window.coinManager.saveData();
+    console.log('✅ Switched to Pro subscription');
+    updateCoinDisplay();
+  }
+};
+
+console.log('✅ Complete homework fix loaded!');
+console.log('📝 Commands:');
+console.log('  window.testHomework() - test system');
+console.log('  window.switchToFree() - switch to Free');
+console.log('  window.switchToPro() - switch to Pro');
+
+// ============================================
+// FORMAT AI RESPONSE WITH MATH SUPPORT ✅
+// ============================================
+function formatAIResponse(text) {
+  let html = text;
+  
+  // Protect LaTeX formulas from formatting
+  const latexBlocks = [];
+  html = html.replace(/\$\$[\s\S]+?\$\$/g, (match) => {
+    latexBlocks.push(match);
+    return `__LATEX_BLOCK_${latexBlocks.length - 1}__`;
+  });
+  
+  html = html.replace(/\$[^$]+\$/g, (match) => {
+    latexBlocks.push(match);
+    return `__LATEX_INLINE_${latexBlocks.length - 1}__`;
+  });
+
+  // Format regular text (existing code)
+  html = html.replace(/\*\*(\d+)\.\s*([^*]+)\*\*/g, (match, number, title) => {
+    const icons = { 1: "🔍", 2: "✅", 3: "📐", 4: "📝", 5: "💡" };
+    return `<div class="ai-section">
+      <div class="ai-heading">
+        <span class="ai-icon">${icons[number] || "📌"}</span>
+        <span class="ai-number">${number}</span>
+        <span class="ai-title">${title.trim()}</span>
+      </div>
+      <div class="ai-body">`;
+  });
+
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="ai-bold">$1</strong>');
+  html = html.replace(/^[-•]\s+(.+)$/gm, '<div class="ai-bullet">$1</div>');
+  
+  // Restore LaTeX formulas
+  html = html.replace(/__LATEX_BLOCK_(\d+)__/g, (match, index) => latexBlocks[index]);
+  html = html.replace(/__LATEX_INLINE_(\d+)__/g, (match, index) => latexBlocks[index]);
+
+  return html;
+}
+
+console.log('✅ Math Formula Renderer loaded');
 
 // ============================================
 // GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
@@ -1141,9 +1695,17 @@ if (grammarInput && wordCounter) {
 }
 
 // ============================================
-// CHECK WRITING - IMAGE SUPPORT ✅
+// CHECK WRITING - WITH COIN REFUND ✅
 // ============================================
 async function checkWriting() {
+  // 🪙 COIN CHECK - MUST BE FIRST
+  console.log('💰 Checking coins for Writing Checker...');
+  if (!checkAndSpendCoins('grammar')) {
+    console.error('❌ Insufficient coins for Writing Checker');
+    return;
+  }
+  console.log('✅ Coins deducted for Writing Checker');
+  
   const text = document.getElementById("grammarInput").value;
   const language = document.getElementById("grammar-language").value;
   const resultBox = document.getElementById("grammarResult");
@@ -1173,6 +1735,51 @@ async function checkWriting() {
     console.log("✅ Topic image converted to base64");
   }
 
+  // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
+  if (!topic && !topicImageData) {
+    // ⚠️ REFUND COINS
+    console.warn('⚠️ No topic provided, refunding coins');
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: No topic provided');
+      updateCoinDisplay();
+    }
+    alert(
+      "⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image."
+    );
+    topicInput.focus();
+    return;
+  }
+
+  // ✅ VALIDATION 2: Text check
+  if (!text.trim()) {
+    // ⚠️ REFUND COINS
+    console.warn('⚠️ No essay text, refunding coins');
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: No essay text');
+      updateCoinDisplay();
+    }
+    alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
+    return;
+  }
+
+  // ✅ VALIDATION 3: Word count
+  const wordCount = text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
+  if (wordCount < 150) {
+    // ⚠️ REFUND COINS
+    console.warn('⚠️ Essay too short, refunding coins');
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: Essay too short');
+      updateCoinDisplay();
+    }
+    alert(
+      `❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`
+    );
+    return;
+  }
+
   // ✅ CHECK: If chart/diagram image is uploaded (Task 1)
   if (uploadedWritingImage) {
     console.log("📊 Chart/diagram image detected, converting to base64...");
@@ -1185,33 +1792,6 @@ async function checkWriting() {
     });
 
     console.log("✅ Chart/diagram image converted to base64");
-  }
-
-  // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
-  if (!topic && !topicImageData) {
-    alert(
-      "⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image."
-    );
-    topicInput.focus();
-    return;
-  }
-
-  // ✅ VALIDATION 2: Text check
-  if (!text.trim()) {
-    alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
-    return;
-  }
-
-  // ✅ VALIDATION 3: Word count
-  const wordCount = text
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w.length > 0).length;
-  if (wordCount < 150) {
-    alert(
-      `❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`
-    );
-    return;
   }
 
   // Show loading
@@ -1371,6 +1951,14 @@ async function checkWriting() {
     }
   } catch (error) {
     console.error("❌ Writing check error:", error);
+    
+    // ⚠️ ERROR - REFUND COINS
+    console.warn('⚠️ Writing check failed, refunding coins');
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: ' + error.message);
+      updateCoinDisplay();
+    }
+    
     output.innerHTML = `
       <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
         <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
@@ -3043,6 +3631,10 @@ function detectWordLanguage(word) {
 let isVocabProcessing = false;
 
 async function buildVocab() {
+    // 🪙 COIN CHECK
+  if (!checkAndSpendCoins('vocabulary')) {
+    return;
+  }
   // ✅ Prevent duplicate calls
   if (isVocabProcessing) {
     console.log("⚠️ Vocabulary already processing, skipping...");
@@ -3055,6 +3647,15 @@ async function buildVocab() {
 
   const languageDropdown = document.getElementById("vocab-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
+
+    if (!input.trim()) {
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(1, 'Refund: No word entered');
+    }
+    alert("Please enter a word!");
+    return;
+  }
 
   console.log("🌐 Interface Til:", language);
   console.log("📝 Kiritilgan so'z:", input);
@@ -3125,8 +3726,11 @@ async function buildVocab() {
     }
   } catch (error) {
     console.error("❌ Error:", error);
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(1, 'Refund: Vocabulary error');
+    }
     showError(output, error.message);
-    // ❌ XATO BO'LSA TRACKING QILMAYDI
   } finally {
     // ✅ Reset processing flag after 1 second
     setTimeout(() => {
@@ -3701,12 +4305,25 @@ let quizTimerInterval = null;
 
 // Generate Quiz Questions - SERVER ORQALI
 async function generateQuizQuestions() {
+    // 🪙 COIN CHECK
+  if (!checkAndSpendCoins('quiz')) {
+    return;
+  }
   const article = document.getElementById("quizArticleInput").value.trim();
   const questionCount = parseInt(
     document.getElementById("quizQuestionCount").value
   );
   const difficulty = document.getElementById("quizDifficulty").value;
   const language = document.getElementById("quiz-language").value;
+
+  if (!article) {
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(2, 'Refund: No text provided');
+    }
+    alert("Iltimos, matn kiriting!");
+    return;
+  }
 
   if (!article) {
     alert("Iltimos, matn kiriting!");
@@ -3777,11 +4394,11 @@ async function generateQuizQuestions() {
     displayQuizQuestion();
   } catch (error) {
     console.error("❌ Xatolik:", error);
-    alert(
-      "Xatolik yuz berdi: " +
-        error.message +
-        "\n\nIltimos, qaytadan urinib ko'ring."
-    );
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(2, 'Refund: Quiz generation error');
+    }
+    alert("Xatolik yuz berdi: " + error.message);
   } finally {
     generateBtn.disabled = false;
     generateBtn.innerHTML = originalText;
@@ -4106,12 +4723,34 @@ function selectStudyMode(mode) {
 // STUDY ASSISTANT - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
 async function submitStudyAssistant() {
+    // 🪙 COIN CHECK
+  if (!checkAndSpendCoins('study')) {
+    return;
+  }
   const input = document.getElementById("studyInput").value;
   const result = document.getElementById("studyResult");
   const output = document.getElementById("studyOutput");
 
   const languageDropdown = document.getElementById("study-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
+
+  if (!selectedMode) {
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(2, 'Refund: No mode selected');
+    }
+    alert("Iltimos, avval rejim tanlang!");
+    return;
+  }
+
+  if (!input.trim()) {
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(2, 'Refund: No input provided');
+    }
+    alert("Iltimos, matn kiriting!");
+    return;
+  }
 
   if (!selectedMode) {
     alert("Iltimos, avval rejim tanlang!");
@@ -4183,8 +4822,11 @@ async function submitStudyAssistant() {
     }
   } catch (error) {
     console.error("❌ Study Assistant xatosi:", error);
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(2, 'Refund: Study assistant error');
+    }
     showError(output, error.message);
-    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
 
@@ -4218,14 +4860,7 @@ function clearStudyAssistant() {
 // SPEAKING FEEDBACK - TUZATILGAN ✅
 // ============================================
 
-// Global variables
-let mediaRecorder = null;
-let audioChunks = [];
-let isRecording = false;
-let recordingTimer = null;
-let recordingSeconds = 0;
-let selectedExamType = null;
-let recordedAudioBlob = null;
+
 
 // Exam type tanlash
 function selectExamType(type) {
@@ -4409,6 +5044,18 @@ function showFeedbackButton() {
 // SPEAKING FEEDBACK - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
 async function submitRecordedAudio() {
+    // 🪙 COIN CHECK
+  if (!checkAndSpendCoins('speaking')) {
+    return;
+  }
+  if (!recordedAudioBlob) {
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: No audio recorded');
+    }
+    alert("❌ Audio yozilmagan!");
+    return;
+  }
   if (!recordedAudioBlob) {
     alert("❌ Audio yozilmagan!");
     return;
@@ -4525,8 +5172,11 @@ async function submitRecordedAudio() {
     }
   } catch (error) {
     console.error("❌ Xatolik:", error);
+    // ⚠️ REFUND COINS
+    if (window.coinManager) {
+      window.coinManager.addCoins(3, 'Refund: Speaking feedback error');
+    }
     showError(output, error.message);
-    // ❌ XATO BO'LSA TRACKING QILMAYDI
   }
 }
 
@@ -4567,6 +5217,98 @@ function showLoading(element) {
       <p style="color: #9ca3af; font-size: 13px;">Bu 5-10 soniya olishi mumkin.</p>
     </div>
   `;
+}
+
+// ============================================
+// UPDATE PROFILE COIN DISPLAY
+// ============================================
+function updateProfileCoinDisplay() {
+  if (!window.coinManager) return;
+  
+  const coinBalance = document.getElementById('profileCoinBalance');
+  if (coinBalance) {
+    coinBalance.textContent = window.coinManager.getCoins();
+  }
+  
+  // Update subscription info
+  const subInfo = window.coinManager.getSubscriptionInfo();
+  
+  const subBadge = document.getElementById('subscriptionBadge');
+  if (subBadge) {
+    subBadge.textContent = subInfo.type.toUpperCase();
+    subBadge.className = 'subscription-badge';
+    if (subInfo.type === 'pro') {
+      subBadge.classList.add('pro');
+    }
+  }
+  
+  const subExpiry = document.getElementById('subscriptionExpiry');
+  if (subExpiry) {
+    if (subInfo.type === 'free') {
+      subExpiry.textContent = 'No expiry';
+    } else if (subInfo.expiry) {
+      const expiryDate = new Date(subInfo.expiry).toLocaleDateString();
+      subExpiry.textContent = `Expires: ${expiryDate}`;
+    }
+  }
+  
+  const dailyLimit = document.getElementById('dailyCoinLimit');
+  if (dailyLimit) {
+    if (subInfo.type === 'free') {
+      dailyLimit.textContent = '5 coins/day';
+    } else if (subInfo.type === 'standard') {
+      dailyLimit.textContent = '100 coins/day';
+    } else if (subInfo.type === 'pro') {
+      dailyLimit.textContent = 'Unlimited coins';
+    }
+  }
+  
+  // Load transaction history
+  loadTransactionHistory();
+}
+
+// ============================================
+// LOAD TRANSACTION HISTORY
+// ============================================
+function loadTransactionHistory() {
+  if (!window.coinManager) return;
+  
+  const transactionList = document.getElementById('transactionList');
+  if (!transactionList) return;
+  
+  const history = window.coinManager.data.purchaseHistory || [];
+  
+  if (history.length === 0) {
+    transactionList.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #9ca3af;">
+        No transactions yet
+      </div>
+    `;
+    return;
+  }
+  
+  // Show last 10 transactions
+  const recentTransactions = history.slice(-10).reverse();
+  
+  transactionList.innerHTML = recentTransactions.map(tx => {
+    const icon = tx.type === 'earn' ? '💰' : '🪙';
+    const amountClass = tx.type === 'earn' ? 'earn' : 'spend';
+    const amountPrefix = tx.type === 'earn' ? '+' : '-';
+    const date = new Date(tx.timestamp).toLocaleString();
+    
+    return `
+      <div class="transaction-item">
+        <span class="transaction-icon">${icon}</span>
+        <div class="transaction-info">
+          <div class="transaction-reason">${tx.reason}</div>
+          <div class="transaction-date">${date}</div>
+        </div>
+        <div class="transaction-amount ${amountClass}">
+          ${amountPrefix}${tx.amount}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function showError(element, message) {
@@ -4740,3 +5482,48 @@ function showError(element, message) {
 }
 
 // console.log('Remaining localStorage:', Object.keys(localStorage).filter(k => k.includes('ziyoai')));
+
+// ============================================
+// TESTING MODE - COIN CHECK NI O'CHIRISH
+// ============================================
+
+// Console da ishlatish uchun:
+// enableCoinCheck() - yoqish
+// disableCoinCheck() - o'chirish
+// addTestCoins(50) - test coinlar qo'shish
+// resetCoins() - reset qilish
+
+window.enableCoinCheck = function() {
+  isCoinCheckEnabled = true;
+  console.log('✅ Coin check enabled');
+};
+
+window.disableCoinCheck = function() {
+  isCoinCheckEnabled = false;
+  console.log('⚠️ Coin check disabled (testing mode)');
+};
+
+window.addTestCoins = function(amount) {
+  if (window.coinManager) {
+    window.coinManager.addCoins(amount, 'Test coins');
+    console.log(`✅ Added ${amount} test coins`);
+  } else {
+    console.error('❌ Coin manager not initialized');
+  }
+};
+
+window.resetCoins = function() {
+  if (window.coinManager) {
+    window.coinManager.reset();
+    console.log('🔄 Coins reset to default');
+  }
+};
+
+window.showCoinInfo = function() {
+  if (window.coinManager) {
+    console.log('🪙 Current Coins:', window.coinManager.getCoins());
+    console.log('📊 Subscription:', window.coinManager.data.subscription);
+    console.log('💰 Total Earned:', window.coinManager.data.totalEarned);
+    console.log('💸 Total Spent:', window.coinManager.data.totalSpent);
+  }
+};

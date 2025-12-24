@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadDarkMode();
 });
 
-// Profile tool ochilganda ma'lumotlarni yuklash
+// Profile tool ochilganda
 function showProfileTool() {
   // Firebase dan current user ni olish
   const auth = window.firebaseAuth;
@@ -33,6 +33,18 @@ function showProfileTool() {
     loadProfileData();
   } else {
     console.error('❌ No user logged in');
+  }
+  
+  // 🪙 UPDATE COIN DISPLAY - FIXED
+  if (coinSystemReady && window.coinManager) {
+    updateProfileCoinDisplay();
+  } else {
+    console.warn('⚠️ Coin system not ready, waiting...');
+    setTimeout(() => {
+      if (window.coinManager) {
+        updateProfileCoinDisplay();
+      }
+    }, 1000);
   }
 }
 

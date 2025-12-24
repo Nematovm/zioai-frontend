@@ -1,0 +1,836 @@
+/* ============================================
+   🪙 COIN SYSTEM - ZIYOAI STYLES
+   ============================================ */
+
+/* ============================================
+   1️⃣ COIN DISPLAY (Header)
+   ============================================ */
+.coin-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  padding: 10px 18px;
+  border-radius: 25px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.coin-display::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.coin-display:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+}
+
+.coin-icon {
+  font-size: 24px;
+  animation: coinSpin 2s infinite linear;
+}
+
+@keyframes coinSpin {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+}
+
+.coin-amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  min-width: 30px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.coin-display button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.coin-display button:hover {
+  background: white;
+  color: #f59e0b;
+  transform: rotate(90deg);
+}
+
+/* ============================================
+   2️⃣ TOOL COST BADGE
+   ============================================ */
+.tool-cost {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-cost::before {
+  content: '🪙';
+  font-size: 16px;
+}
+
+/* Tool card hover effect */
+.tool-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tool-card:hover .tool-cost {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);
+}
+
+/* ============================================
+   3️⃣ DAILY BONUS NOTIFICATION
+   ============================================ */
+.daily-bonus-notification {
+  position: fixed;
+  top: -200px;
+  right: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  z-index: 9999;
+  min-width: 350px;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  border: 3px solid #fbbf24;
+}
+
+.daily-bonus-notification.show {
+  top: 20px;
+}
+
+.daily-bonus-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.daily-bonus-icon {
+  font-size: 48px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.daily-bonus-text h4 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.daily-bonus-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.daily-bonus-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.daily-bonus-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* ============================================
+   4️⃣ FLYING COINS ANIMATION
+   ============================================ */
+.flying-coin {
+  position: fixed;
+  font-size: 32px;
+  pointer-events: none;
+  z-index: 9999;
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: coinFloat 0.8s ease-out;
+}
+
+@keyframes coinFloat {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    transform: scale(0.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   5️⃣ INSUFFICIENT COINS MODAL
+   ============================================ */
+.insufficient-coins-modal .modal-inline {
+  animation: modalBounce 0.4s ease;
+}
+
+@keyframes modalBounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   6️⃣ COIN SHOP MODAL
+   ============================================ */
+.coin-shop-modal .modal-inline {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Coin Package Cards */
+.coin-package {
+  position: relative;
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.coin-package::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea15, #764ba215);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.coin-package:hover {
+  transform: translateY(-5px);
+  border-color: #fbbf24;
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+}
+
+.coin-package:hover::before {
+  opacity: 1;
+}
+
+.coin-package.popular {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.package-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.package-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  animation: coinSpin 2s infinite linear;
+}
+
+.package-coins {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 5px;
+}
+
+.package-bonus {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.package-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4b5563;
+  margin-bottom: 15px;
+}
+
+.package-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.package-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ============================================
+   7️⃣ SUBSCRIPTION CARDS
+   ============================================ */
+.sub-card {
+  position: relative;
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sub-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea15, #764ba215);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sub-card:hover {
+  transform: translateY(-5px);
+  border-color: #667eea;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.sub-card:hover::before {
+  opacity: 1;
+}
+
+.sub-card.pro {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.sub-card.pro:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.sub-badge {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 0 0 12px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 1;
+}
+
+/* ============================================
+   TOOL COST BADGE - SIDEBAR
+   ============================================ */
+.tool-cost-badge {
+  position: absolute;
+  right: -10px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 2px 6px rgba(251, 191, 36, 0.3);
+  transition: all 0.3s ease;
+}
+
+.tool-cost-badge.free {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.nav-link:hover .tool-cost-badge {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(251, 191, 36, 0.4);
+}
+
+.nav-link:hover .tool-cost-badge.free {
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4);
+}
+
+/* Collapsed sidebar da badge ni yashirish */
+.sidebar.collapsed .tool-cost-badge {
+  display: none;
+}
+
+/* Dark Mode */
+.dark-mode .tool-cost-badge {
+  box-shadow: 0 2px 6px rgba(251, 191, 36, 0.5);
+}
+
+.sub-card h5 {
+  margin: 20px 0 10px 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.sub-price {
+  font-size: 36px;
+  font-weight: 800;
+  color: #4b5563;
+  margin-bottom: 15px;
+}
+
+.sub-price span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.sub-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  text-align: left;
+}
+
+.sub-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-features li:last-child {
+  border-bottom: none;
+}
+
+.sub-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sub-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.sub-card.pro .sub-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.sub-card.pro .sub-btn:hover {
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+/* ============================================
+   8️⃣ PROFILE BILLING SECTION
+   ============================================ */
+.billing-section {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.billing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.billing-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.coin-balance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  padding: 12px 20px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.coin-balance-icon {
+  font-size: 24px;
+  animation: coinSpin 2s infinite linear;
+}
+
+.subscription-info {
+  background: linear-gradient(135deg, #667eea15, #764ba215);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.subscription-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.subscription-badge.pro {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.subscription-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.subscription-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.subscription-detail i {
+  color: #667eea;
+  font-size: 18px;
+}
+
+/* Transaction History */
+.transaction-history {
+  margin-top: 25px;
+}
+
+.transaction-history h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.transaction-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s ease;
+}
+
+.transaction-item:hover {
+  background: #f9fafb;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-reason {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 3px;
+}
+
+.transaction-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.transaction-amount.earn {
+  color: #10b981;
+}
+
+.transaction-amount.spend {
+  color: #ef4444;
+}
+
+/* ============================================
+   9️⃣ RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  .coin-display {
+    padding: 8px 14px;
+  }
+  
+  .coin-icon {
+    font-size: 20px;
+  }
+  
+  .coin-amount {
+    font-size: 16px;
+  }
+  
+  .daily-bonus-notification {
+    min-width: 300px;
+    right: 10px;
+  }
+  
+  .daily-bonus-notification.show {
+    top: 10px;
+  }
+  
+  .coin-shop-modal .modal-inline {
+    max-width: 95%;
+  }
+  
+  .package-icon {
+    font-size: 40px;
+  }
+  
+  .package-coins {
+    font-size: 20px;
+  }
+  
+  .sub-price {
+    font-size: 28px;
+  }
+}
+
+/* ============================================
+   🔟 ANIMATIONS
+   ============================================ */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Pulse animation for important elements */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* Glow effect */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.6);
+  }
+}
+
+.glow-animation {
+  animation: glow 2s infinite;
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+.dark-mode .coin-package,
+.dark-mode .sub-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.dark-mode .package-coins,
+.dark-mode .package-price,
+.dark-mode .sub-card h5,
+.dark-mode .sub-price {
+  color: #f9fafb;
+}
+
+.dark-mode .sub-features li {
+  color: #d1d5db;
+  border-bottom-color: #374151;
+}
+
+.dark-mode .billing-section {
+  background: #1f2937;
+}
+
+.dark-mode .subscription-info {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.dark-mode .transaction-item {
+  border-bottom-color: #374151;
+}
+
+.dark-mode .transaction-item:hover {
+  background: #374151;
+}
+
+.dark-mode .transaction-reason {
+  color: #f9fafb;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.transaction-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transaction-list::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.transaction-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.transaction-list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark-mode .transaction-list::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark-mode .transaction-list::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark-mode .transaction-list::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}

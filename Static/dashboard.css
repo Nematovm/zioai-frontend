@@ -410,6 +410,55 @@ body {
   border-radius: 16px;
   box-shadow: 0 5px 10px 2px #d0cfcf;
   transition: margin-left 0.4s ease;
+  gap: 20px;
+}
+
+.header_section_left {
+  flex: 1;
+  min-width: 0; /* ✅ Text overflow oldini olish */
+}
+
+.header_section_right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0; /* ✅ Kichraymasin */
+  position: relative; /* ✅ Timer uchun */
+}
+
+/* ✅ Coin Display - Fixed Size */
+.coin-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  padding: 10px 18px;
+  border-radius: 25px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-width: 120px; /* ✅ Minimum kenglik */
+  white-space: nowrap; /* ✅ Bir qatorda */
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 20px;
+  }
+  
+  .header_section_right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .coin-display {
+    flex: 1;
+  }
 }
 
 .sidebar.collapsed ~ .header-section {
@@ -1232,6 +1281,7 @@ main {
   transition: transform 0.3s ease;
   z-index: 10002;
   animation: shake 2s infinite;
+  flex-shrink: 0; /* ✅ Kichraymasin */
 }
 
 .tomato-icon-btn:hover {
