@@ -466,7 +466,7 @@ function addCoinsToUser(amount) {
 }
 
 function isAdmin(userId) {
-  const adminIds = ['YOUR_ADMIN_UID'];
+  const adminIds = ['HYin7lK9AEZNHBnd8zbFVKp2Wc43'];
   return adminIds.includes(userId);
 }
 
