@@ -1,5 +1,5 @@
 // ============================================
-// 👨‍💼 ADMIN PANEL BUTTON - AUTO-SHOW FOR ADMINS
+// 👨‍💼 ADMIN PANEL BUTTON - FIREBASE VERSION
 // ============================================
 
 (function() {
@@ -10,19 +10,15 @@
   // ============================================
   
   const ADMIN_CONFIG = {
-    // 🔴 O'ZGARTIRING: O'zingizning Firebase UID'ingizni qo'ying
     ADMIN_UIDS: [
-      'HYin7lK9AEZNHBnd8zbFVKp2Wc43',  // Admin 1
-      // 'ANOTHER_ADMIN_UID',    // Admin 2 (agar kerak bo'lsa)
+      'HYin7lK9AEZNHBnd8zbFVKp2Wc43',  // Sizning UID
     ],
     
-    // Button pozitsiyasi
     POSITION: {
       bottom: '20px',
       left: '20px'
     },
     
-    // Button rangi
     STYLE: {
       background: 'linear-gradient(135deg, #ef4444, #dc2626)',
       hoverBackground: 'linear-gradient(135deg, #dc2626, #b91c1c)'
@@ -49,6 +45,7 @@
         if (isAdmin) {
           console.log('👨‍💼 Admin user detected:', user.email);
           createAdminButton();
+          startListeningForPayments();
         } else {
           console.log('👤 Regular user:', user.email);
         }
@@ -57,16 +54,38 @@
   }
   
   // ============================================
-  // 3️⃣ CREATE ADMIN BUTTON
+  // 3️⃣ LISTEN FOR NEW PAYMENTS (FIREBASE)
+  // ============================================
+  
+  function startListeningForPayments() {
+    const db = window.firebaseDB;
+    if (!db) {
+      console.warn('⚠️ Firebase Database not loaded yet, retrying...');
+      setTimeout(startListeningForPayments, 1000);
+      return;
+    }
+    
+    // Listen for pending payments
+    db.ref('payment_attempts')
+      .orderByChild('status')
+      .equalTo('pending')
+      .on('value', (snapshot) => {
+        const count = snapshot.numChildren();
+        updateNotificationBadge(count);
+      });
+    
+    console.log('✅ Started listening for payments');
+  }
+  
+  // ============================================
+  // 4️⃣ CREATE ADMIN BUTTON
   // ============================================
   
   function createAdminButton() {
-    // Check if button already exists
     if (document.getElementById('adminPanelButton')) {
       return;
     }
     
-    // Create button container
     const buttonContainer = document.createElement('div');
     buttonContainer.id = 'adminPanelButton';
     buttonContainer.style.cssText = `
@@ -77,7 +96,6 @@
       animation: slideInFromLeft 0.5s ease;
     `;
     
-    // Create button
     const button = document.createElement('button');
     button.id = 'adminPanelBtn';
     button.onclick = openAdminPanelWithCheck;
@@ -109,7 +127,6 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
     
-    // Hover effect
     button.onmouseover = () => {
       button.style.background = ADMIN_CONFIG.STYLE.hoverBackground;
       button.style.transform = 'translateY(-2px)';
@@ -125,43 +142,38 @@
     buttonContainer.appendChild(button);
     document.body.appendChild(buttonContainer);
     
-    // Update notification badge
-    updateNotificationBadge();
-    
-    // Check for new payments every 30 seconds
-    setInterval(updateNotificationBadge, 30000);
-    
     console.log('✅ Admin button created');
   }
   
   // ============================================
-  // 4️⃣ UPDATE NOTIFICATION BADGE
+  // 5️⃣ UPDATE NOTIFICATION BADGE
   // ============================================
   
-  function updateNotificationBadge() {
+  function updateNotificationBadge(count) {
     const badge = document.getElementById('adminNotificationBadge');
     if (!badge) return;
     
-    const attempts = JSON.parse(localStorage.getItem('payment_attempts') || '[]');
-    const pendingCount = attempts.filter(a => a.status === 'pending').length;
-    
-    if (pendingCount > 0) {
-      badge.textContent = pendingCount;
+    if (count > 0) {
+      badge.textContent = count;
       badge.style.display = 'flex';
+      
+      // Optional: Play notification sound
+      if (window.lastNotificationCount !== count) {
+        console.log(`🔔 ${count} pending payment(s)`);
+        window.lastNotificationCount = count;
+      }
     } else {
       badge.style.display = 'none';
     }
   }
   
   // ============================================
-  // 5️⃣ OPEN ADMIN PANEL WITH CHECK
+  // 6️⃣ OPEN ADMIN PANEL WITH CHECK
   // ============================================
   
   function openAdminPanelWithCheck() {
     if (typeof window.openAdminPanel === 'function') {
       window.openAdminPanel();
-      // Update badge after opening
-      setTimeout(updateNotificationBadge, 500);
     } else {
       console.error('❌ openAdminPanel function not found!');
       alert('Admin panel funksiyasi topilmadi. Iltimos subscription.js yuklanganini tekshiring.');
@@ -169,7 +181,7 @@
   }
   
   // ============================================
-  // 6️⃣ ADD ANIMATIONS
+  // 7️⃣ ADD ANIMATIONS
   // ============================================
   
   const style = document.createElement('style');
@@ -196,7 +208,6 @@
       }
     }
     
-    /* Mobile responsive */
     @media (max-width: 768px) {
       #adminPanelButton {
         bottom: 80px !important;
@@ -212,25 +223,23 @@
   document.head.appendChild(style);
   
   // ============================================
-  // 7️⃣ INITIALIZE
+  // 8️⃣ INITIALIZE
   // ============================================
   
-  // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', checkAdminAccess);
   } else {
     checkAdminAccess();
   }
   
-  console.log('✅ Admin button script loaded');
+  console.log('✅ Admin button script (Firebase) loaded');
   
 })();
 
 // ============================================
-// 8️⃣ HELPER: GET YOUR UID
+// 9️⃣ HELPER: GET YOUR UID
 // ============================================
 
-// Console'da run qiling:
 function getMyUID() {
   const user = window.firebaseAuth?.currentUser;
   if (user) {
@@ -238,7 +247,6 @@ function getMyUID() {
     console.log('📧 Your email:', user.email);
     console.log('📋 Copy this UID and paste it in ADMIN_CONFIG.ADMIN_UIDS');
     
-    // Clipboard'ga nusxalash
     if (navigator.clipboard) {
       navigator.clipboard.writeText(user.uid);
       console.log('✅ UID copied to clipboard!');
@@ -251,7 +259,5 @@ function getMyUID() {
   }
 }
 
-// Global export
 window.getMyUID = getMyUID;
-
 console.log('💡 Tip: Run "getMyUID()" in console to get your Firebase UID');
