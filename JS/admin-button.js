@@ -1,5 +1,5 @@
 // ============================================
-// 👨‍💼 ADMIN PANEL BUTTON - MODULAR SDK
+// 👨‍💼 ADMIN PANEL BUTTON - FIXED VERSION
 // ============================================
 
 (function() {
@@ -12,12 +12,35 @@
       background: 'linear-gradient(135deg, #ef4444, #dc2626)',
       hoverBackground: 'linear-gradient(135deg, #dc2626, #b91c1c)'
     },
-    MAX_RETRIES: 15,
+    MAX_RETRIES: 20,
     RETRY_DELAY: 1000
   };
   
   let retryCount = 0;
   let paymentListener = null;
+  let isAdminVerified = false;
+  
+  // ============================================
+  // VERIFY ADMIN IN DATABASE
+  // ============================================
+  
+  async function verifyAdminInDatabase(uid) {
+    const db = window.firebaseDatabase;
+    if (!db) return false;
+    
+    try {
+      const adminRef = window.firebaseRef(db, `admins/${uid}`);
+      const snapshot = await window.firebaseGet(adminRef);
+      
+      const isAdmin = snapshot.val() === true;
+      console.log(isAdmin ? '✅ Admin verified in database' : '❌ Not admin in database');
+      
+      return isAdmin;
+    } catch (error) {
+      console.error('❌ Admin verification error:', error);
+      return false;
+    }
+  }
   
   // ============================================
   // CHECK ADMIN ACCESS
@@ -25,29 +48,40 @@
   
   function checkAdminAccess() {
     const auth = window.firebaseAuth;
+    const db = window.firebaseDatabase;
     
-    if (!auth) {
+    if (!auth || !db) {
       retryCount++;
       if (retryCount < ADMIN_CONFIG.MAX_RETRIES) {
-        console.warn(`⚠️ [${retryCount}/${ADMIN_CONFIG.MAX_RETRIES}] Waiting for Firebase Auth...`);
+        console.warn(`⚠️ [${retryCount}/${ADMIN_CONFIG.MAX_RETRIES}] Waiting for Firebase...`);
         setTimeout(checkAdminAccess, ADMIN_CONFIG.RETRY_DELAY);
       } else {
-        console.error('❌ Firebase Auth not loaded after 15 attempts');
+        console.error('❌ Firebase not loaded after max retries');
+        console.error('💡 Check Firebase initialization in dashboard.html');
       }
       return;
     }
     
-    console.log('✅ Firebase Auth detected');
+    console.log('✅ Firebase detected');
     
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const isAdmin = ADMIN_CONFIG.ADMIN_UIDS.includes(user.uid);
+        const isInList = ADMIN_CONFIG.ADMIN_UIDS.includes(user.uid);
         
-        if (isAdmin) {
-          console.log('👨‍💼 Admin user detected:', user.email);
-          console.log('🆔 Admin UID:', user.uid);
-          createAdminButton();
-          startListeningForPayments();
+        if (isInList) {
+          console.log('👨‍💼 Admin UID detected:', user.uid);
+          
+          // Verify in database
+          isAdminVerified = await verifyAdminInDatabase(user.uid);
+          
+          if (isAdminVerified) {
+            createAdminButton();
+            startListeningForPayments();
+          } else {
+            console.warn('⚠️ Admin UID in list but not in database!');
+            console.warn('💡 Run: initializeAdmin() in console');
+            showAdminSetupButton();
+          }
         } else {
           console.log('👤 Regular user:', user.email);
         }
@@ -56,25 +90,87 @@
   }
   
   // ============================================
-  // LISTEN FOR PAYMENTS (MODULAR SDK)
+  // SHOW SETUP BUTTON (if admin not in DB)
   // ============================================
   
-  function startListeningForPayments() {
-    const db = window.firebaseDatabase;
+  function showAdminSetupButton() {
+    if (document.getElementById('adminSetupButton')) return;
     
-    if (!db) {
-      retryCount++;
-      if (retryCount < ADMIN_CONFIG.MAX_RETRIES) {
-        console.warn(`⚠️ [${retryCount}/${ADMIN_CONFIG.MAX_RETRIES}] Waiting for Firebase Database...`);
-        setTimeout(startListeningForPayments, ADMIN_CONFIG.RETRY_DELAY);
-      } else {
-        console.error('❌ Firebase Database not loaded after 15 attempts');
-        console.error('💡 Check if databaseURL is set in Firebase config');
-      }
+    const button = document.createElement('button');
+    button.id = 'adminSetupButton';
+    button.innerHTML = '⚠️ Setup Admin';
+    button.onclick = setupAdminInDatabase;
+    
+    button.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9998;
+      padding: 15px 25px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      animation: pulse 2s infinite;
+    `;
+    
+    document.body.appendChild(button);
+  }
+  
+  async function setupAdminInDatabase() {
+    const db = window.firebaseDatabase;
+    const auth = window.firebaseAuth;
+    
+    if (!db || !auth || !auth.currentUser) {
+      alert('❌ Firebase not ready!');
       return;
     }
     
-    console.log('✅ Firebase Database detected');
+    try {
+      // Add to admins
+      const adminRef = window.firebaseRef(db, `admins/${auth.currentUser.uid}`);
+      await window.firebaseSet(adminRef, true);
+      
+      alert('✅ Admin initialized! Refreshing page...');
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('❌ Setup error:', error);
+      
+      if (error.code === 'PERMISSION_DENIED') {
+        alert(`❌ Permission denied!
+        
+Please:
+1. Go to Firebase Console
+2. Realtime Database > Rules
+3. Temporarily set:
+   "admins": { ".write": true }
+4. Try again
+5. Set .write back to restricted`);
+      } else {
+        alert('❌ Error: ' + error.message);
+      }
+    }
+  }
+  
+  // ============================================
+  // LISTEN FOR PAYMENTS
+  // ============================================
+  
+  function startListeningForPayments() {
+    if (!isAdminVerified) {
+      console.error('❌ Cannot start listener - admin not verified');
+      return;
+    }
+    
+    const db = window.firebaseDatabase;
+    if (!db) {
+      console.error('❌ Database not available');
+      return;
+    }
     
     try {
       // Stop previous listener
@@ -82,35 +178,43 @@
         paymentListener();
       }
       
-      // Create query reference
+      // Create query
       const paymentsRef = window.firebaseRef(db, 'payment_attempts');
-      const pendingQuery = window.firebaseQuery(
-        paymentsRef,
-        window.firebaseOrderByChild('status'),
-        window.firebaseEqualTo('pending')
-      );
       
-      // Listen for changes
-      paymentListener = window.firebaseOnValue(pendingQuery, 
+      // Listen to all payments first
+      paymentListener = window.firebaseOnValue(
+        paymentsRef,
         (snapshot) => {
-          const count = snapshot.size;
-          updateNotificationBadge(count);
+          let pendingCount = 0;
           
-          if (count > 0) {
-            console.log(`🔔 ${count} pending payment(s)`);
+          snapshot.forEach((child) => {
+            if (child.val().status === 'pending') {
+              pendingCount++;
+            }
+          });
+          
+          updateNotificationBadge(pendingCount);
+          
+          if (pendingCount > 0) {
+            console.log(`🔔 ${pendingCount} pending payment(s)`);
           }
         },
         (error) => {
-          console.error('❌ Payment listener error:', error);
-          console.error('💡 Check Firebase Database Rules!');
-          console.error('💡 Rules should allow read access to payment_attempts for admins');
+          console.error('❌ Listener error:', error);
+          
+          if (error.code === 'PERMISSION_DENIED') {
+            console.error('💡 Check:');
+            console.error('   1. Admin is in /admins node');
+            console.error('   2. Rules allow admin read access');
+            console.error('   3. Run: debugFirebase() in console');
+          }
         }
       );
       
       console.log('✅ Payment listener started');
       
     } catch (error) {
-      console.error('❌ Error setting up listener:', error);
+      console.error('❌ Listener setup error:', error);
     }
   }
   
@@ -217,6 +321,11 @@
   // ============================================
   
   function openAdminPanelWithCheck() {
+    if (!isAdminVerified) {
+      alert('❌ Admin access not verified!');
+      return;
+    }
+    
     if (typeof window.openAdminPanel === 'function') {
       console.log('📊 Opening admin panel...');
       window.openAdminPanel();
@@ -243,7 +352,7 @@
     }
     
     @media (max-width: 768px) {
-      #adminPanelButton {
+      #adminPanelButton, #adminSetupButton {
         bottom: 80px !important;
         left: 10px !important;
       }
@@ -265,12 +374,12 @@
     checkAdminAccess();
   }
   
-  console.log('✅ Admin button script (Modular SDK) loaded');
+  console.log('✅ Admin button script (FIXED) loaded');
   
 })();
 
 // ============================================
-// HELPERS
+// DEBUG HELPERS
 // ============================================
 
 function getMyUID() {
@@ -289,17 +398,41 @@ function getMyUID() {
   }
 }
 
-function debugFirebase() {
+async function debugFirebase() {
   console.log('=== 🔥 FIREBASE DEBUG ===');
   console.log('Auth:', window.firebaseAuth ? '✅' : '❌');
   console.log('Database:', window.firebaseDatabase ? '✅' : '❌');
   console.log('Current User:', window.firebaseAuth?.currentUser?.email || '❌');
   
-  if (window.firebaseDatabase) {
-    const connectedRef = window.firebaseRef(window.firebaseDatabase, '.info/connected');
-    window.firebaseOnValue(connectedRef, (snapshot) => {
-      console.log('DB Connected:', snapshot.val() ? '✅' : '❌');
-    });
+  if (window.firebaseAuth?.currentUser) {
+    const uid = window.firebaseAuth.currentUser.uid;
+    console.log('UID:', uid);
+    
+    // Check if admin in database
+    if (window.firebaseDatabase) {
+      try {
+        const adminRef = window.firebaseRef(window.firebaseDatabase, `admins/${uid}`);
+        const snapshot = await window.firebaseGet(adminRef);
+        console.log('Is Admin in DB:', snapshot.val() === true ? '✅' : '❌');
+        
+        // Check connection
+        const connectedRef = window.firebaseRef(window.firebaseDatabase, '.info/connected');
+        window.firebaseOnValue(connectedRef, (snap) => {
+          console.log('DB Connected:', snap.val() ? '✅' : '❌');
+        }, { onlyOnce: true });
+        
+        // Try to read payment_attempts
+        const paymentsRef = window.firebaseRef(window.firebaseDatabase, 'payment_attempts');
+        const paymentsSnap = await window.firebaseGet(paymentsRef);
+        console.log('Can read payments:', '✅');
+        console.log('Payments count:', paymentsSnap.size);
+        
+      } catch (error) {
+        console.error('❌ Database check error:', error);
+        console.error('Code:', error.code);
+        console.error('Message:', error.message);
+      }
+    }
   }
   console.log('======================');
 }
@@ -307,5 +440,6 @@ function debugFirebase() {
 window.getMyUID = getMyUID;
 window.debugFirebase = debugFirebase;
 
-console.log('💡 Run "getMyUID()" to get your UID');
-console.log('💡 Run "debugFirebase()" to check connection');
+console.log('💡 Debug commands:');
+console.log('   getMyUID() - Get your UID');
+console.log('   debugFirebase() - Check all connections');

@@ -1,5 +1,5 @@
 // ============================================
-// 💳 TELEGRAM PAYMENT SYSTEM - MODULAR SDK
+// 💳 TELEGRAM PAYMENT SYSTEM - FIXED VERSION
 // ============================================
 
 const PAYMENT_CONFIG = {
@@ -56,9 +56,18 @@ function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-function isAdmin(userId) {
-  const adminIds = ['HYin7lK9AEZNHBnd8zbFVKp2Wc43'];
-  return adminIds.includes(userId);
+async function isAdmin(userId) {
+  const db = getDatabase();
+  if (!db || !userId) return false;
+  
+  try {
+    const adminRef = window.firebaseRef(db, `admins/${userId}`);
+    const snapshot = await window.firebaseGet(adminRef);
+    return snapshot.val() === true;
+  } catch (error) {
+    console.error('Admin check error:', error);
+    return false;
+  }
 }
 
 // ============================================
@@ -196,7 +205,7 @@ Pul o'tkazdim. Iltimos tasdiqlang! 🙏`;
 }
 
 // ============================================
-// LOG PAYMENT (MODULAR SDK)
+// LOG PAYMENT
 // ============================================
 
 async function logPaymentAttempt(productType, userName, userId, userEmail) {
@@ -225,15 +234,24 @@ async function logPaymentAttempt(productType, userName, userId, userEmail) {
 }
 
 // ============================================
-// ADMIN PANEL
+// ADMIN PANEL - FIXED
 // ============================================
 
 async function openAdminPanel() {
   const user = window.firebaseAuth?.currentUser;
-  if (!user || !isAdmin(user.uid)) {
-    showNotification('❌ Ruxsat yo\'q', 'error');
+  if (!user) {
+    showNotification('❌ Tizimga kiring', 'error');
     return;
   }
+  
+  const adminStatus = await isAdmin(user.uid);
+  if (!adminStatus) {
+    showNotification('❌ Ruxsat yo\'q', 'error');
+    console.error('❌ Not admin:', user.email);
+    return;
+  }
+  
+  console.log('✅ Admin verified, opening panel...');
   
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline admin-panel-modal';
@@ -245,7 +263,12 @@ async function openAdminPanel() {
       </div>
       <div class="modal-body-inline" style="padding: 20px;">
         <div id="pendingPaymentsList">
-          <div style="text-align: center; padding: 40px; color: #6b7280;">Yuklanmoqda...</div>
+          <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p style="margin-top: 15px;">Yuklanmoqda...</p>
+          </div>
         </div>
       </div>
     </div>
@@ -260,30 +283,37 @@ async function openAdminPanel() {
 
 async function loadPendingPayments() {
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    console.error('❌ Database not available');
+    return;
+  }
+  
+  const container = document.getElementById('pendingPaymentsList');
+  if (!container) return;
   
   try {
+    // Read ALL payments first
     const paymentsRef = window.firebaseRef(db, 'payment_attempts');
-    const pendingQuery = window.firebaseQuery(
-      paymentsRef,
-      window.firebaseOrderByChild('status'),
-      window.firebaseEqualTo('pending')
-    );
+    const snapshot = await window.firebaseGet(paymentsRef);
     
-    const snapshot = await window.firebaseGet(pendingQuery);
+    console.log('📊 Total payments:', snapshot.size);
+    
     const payments = [];
     
     snapshot.forEach((child) => {
-      payments.push({
-        key: child.key,
-        ...child.val()
-      });
+      const data = child.val();
+      if (data.status === 'pending') {
+        payments.push({
+          key: child.key,
+          ...data
+        });
+      }
     });
     
-    payments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    console.log('⏳ Pending payments:', payments.length);
     
-    const container = document.getElementById('pendingPaymentsList');
-    if (!container) return;
+    // Sort by timestamp
+    payments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     if (payments.length === 0) {
       container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">Kutilayotgan to\'lovlar yo\'q</p>';
@@ -319,6 +349,16 @@ async function loadPendingPayments() {
     
   } catch (error) {
     console.error('❌ Load payments error:', error);
+    
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px;">
+        <p style="color: #ef4444; margin-bottom: 10px;">❌ Xatolik yuz berdi</p>
+        <p style="color: #6b7280; font-size: 14px;">${error.message}</p>
+        <button onclick="loadPendingPayments()" style="margin-top: 15px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          🔄 Qayta urinish
+        </button>
+      </div>
+    `;
   }
 }
 
@@ -332,7 +372,7 @@ function closeAdminPanel() {
 }
 
 // ============================================
-// APPROVE/REJECT (MODULAR SDK)
+// APPROVE/REJECT
 // ============================================
 
 async function approvePayment(paymentKey, userId, productType) {
@@ -417,5 +457,6 @@ window.openAdminPanel = openAdminPanel;
 window.closeAdminPanel = closeAdminPanel;
 window.approvePayment = approvePayment;
 window.rejectPayment = rejectPayment;
+window.loadPendingPayments = loadPendingPayments;
 
-console.log('✅ Subscription.js (Modular SDK) loaded!');
+console.log('✅ Subscription.js (FIXED) loaded!');
