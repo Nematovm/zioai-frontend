@@ -29,21 +29,22 @@ const COIN_CONFIG = {
       dailyCoins: 100,
       maxCoins: null,
       toolAccess: 'all',
-      price: 9.99
+      price: 25000
     },
     pro: {
       dailyCoins: null,
       maxCoins: null,
       toolAccess: 'premium',
-      price: 19.99
+      price: 50000
     }
   },
   
+  // ✅ YANGILANGAN: Real prices (so'mda)
   COIN_PACKAGES: [
-    { coins: 50, price: 4.99, bonus: 0, popular: false },
-    { coins: 100, price: 8.99, bonus: 10, popular: true },
-    { coins: 250, price: 19.99, bonus: 50, popular: false },
-    { coins: 500, price: 34.99, bonus: 150, popular: false }
+    { id: 'COINS_50', coins: 50, price: 10000, bonus: 0, popular: false },
+    { id: 'COINS_100', coins: 100, price: 17000, bonus: 10, popular: true },
+    { id: 'COINS_250', coins: 250, price: 40000, bonus: 50, popular: false },
+    { id: 'COINS_500', coins: 500, price: 70000, bonus: 150, popular: false }
   ]
 };
 
@@ -111,7 +112,6 @@ class UserCoinData {
     this.logTransaction('earn', amount, reason);
     this.save();
     
-    // ✅ IMPORTANT: Trigger UI update
     if (typeof updateCoinDisplay === 'function') {
       updateCoinDisplay();
     }
@@ -133,7 +133,6 @@ class UserCoinData {
     this.logTransaction('spend', amount, reason);
     this.save();
     
-    // ✅ IMPORTANT: Trigger UI update
     if (typeof updateCoinDisplay === 'function') {
       updateCoinDisplay();
     }
@@ -208,37 +207,33 @@ class UserCoinData {
     return timeDiff >= COIN_CONFIG.DAILY_BONUS_COOLDOWN;
   }
   
-// ============================================
-// DAILY BONUS FIX - 5 COINS (NOT 15)
-// ============================================
-claimDailyBonus() {
-  if (!this.canClaimDailyBonus()) {
-    const timeLeft = this.getTimeUntilNextBonus();
-    if (typeof showNotification === 'function') {
-      showNotification(`⏰ Daily bonus available in ${timeLeft}`, 'info');
+  claimDailyBonus() {
+    if (!this.canClaimDailyBonus()) {
+      const timeLeft = this.getTimeUntilNextBonus();
+      if (typeof showNotification === 'function') {
+        showNotification(`⏰ Daily bonus available in ${timeLeft}`, 'info');
+      }
+      return false;
     }
-    return false;
+    
+    let bonusAmount = 5;
+    if (this.data.subscription === 'standard') bonusAmount = 10;
+    if (this.data.subscription === 'pro') bonusAmount = 20;
+    
+    this.addCoins(bonusAmount, 'Daily login bonus');
+    this.data.lastDailyBonus = new Date().toISOString();
+    this.data.lastDailyBonusDate = new Date().toLocaleDateString();
+    this.save();
+    
+    if (typeof showCoinEarnAnimation === 'function') {
+      showCoinEarnAnimation(bonusAmount);
+    }
+    if (typeof showNotification === 'function') {
+      showNotification(`🎉 You earned ${bonusAmount} coins! Daily bonus claimed!`, 'success');
+    }
+    
+    return true;
   }
-  
-  // ✅ FIX: Daily bonus always 5 coins (unless subscription)
-  let bonusAmount = 5; // Changed from COIN_CONFIG.DAILY_BONUS
-  if (this.data.subscription === 'standard') bonusAmount = 10;
-  if (this.data.subscription === 'pro') bonusAmount = 20;
-  
-  this.addCoins(bonusAmount, 'Daily login bonus');
-  this.data.lastDailyBonus = new Date().toISOString();
-  this.data.lastDailyBonusDate = new Date().toLocaleDateString();
-  this.save();
-  
-  if (typeof showCoinEarnAnimation === 'function') {
-    showCoinEarnAnimation(bonusAmount);
-  }
-  if (typeof showNotification === 'function') {
-    showNotification(`🎉 You earned ${bonusAmount} coins! Daily bonus claimed!`, 'success');
-  }
-  
-  return true;
-}
   
   getTimeUntilNextBonus() {
     if (!this.data.lastDailyBonus) return '0h 0m';
@@ -283,10 +278,9 @@ claimDailyBonus() {
 }
 
 // ============================================
-// 3️⃣ GLOBAL INITIALIZATION (FIXED)
+// 3️⃣ GLOBAL INITIALIZATION
 // ============================================
 
-// ✅ CHANGE 1: Initialize immediately when user is available
 function initCoinSystem() {
   const auth = window.firebaseAuth;
   if (!auth || !auth.currentUser) {
@@ -297,10 +291,8 @@ function initCoinSystem() {
   const userId = auth.currentUser.uid;
   const manager = new UserCoinData(userId);
   
-  // ✅ CHANGE 2: Set global reference AFTER creation
   window.coinManager = manager;
   
-  // Update UI
   if (typeof updateCoinDisplay === 'function') {
     updateCoinDisplay();
   }
@@ -373,9 +365,6 @@ function showDailyBonusNotification() {
   }, 10000);
 }
 
-// ============================================
-// CLOSE DAILY BONUS - UNLOCK TOOL SWITCHING
-// ============================================
 function closeDailyBonusNotification() {
   const notification = document.querySelector('.daily-bonus-notification');
   if (notification) {
@@ -383,22 +372,17 @@ function closeDailyBonusNotification() {
     setTimeout(() => notification.remove(), 300);
   }
   
-  // ✅ FIX: Unlock tool switching after closing notification
   if (typeof window.preventToolSwitch !== 'undefined') {
     window.preventToolSwitch = false;
     console.log('🔓 Tool switching unlocked after daily bonus');
   }
 }
 
-// ============================================
-// CLAIM DAILY BONUS - UNLOCK AFTER CLAIMING
-// ============================================
 function claimDailyBonusFromUI() {
   if (window.coinManager) {
     window.coinManager.claimDailyBonus();
     closeDailyBonusNotification();
     
-    // ✅ FIX: Ensure tool switching is enabled after claiming
     if (typeof window.preventToolSwitch !== 'undefined') {
       window.preventToolSwitch = false;
     }
@@ -468,7 +452,7 @@ function showInsufficientCoinsModal(required, current) {
         
         <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 10px; border-left: 4px solid #f59e0b;">
           <p style="margin: 0; color: #92400e; font-size: 14px;">
-            💡 <strong>Tip:</strong> Upgrade to <strong>Standard</strong> ($9.99/mo) for 100 coins/day!
+            💡 <strong>Tip:</strong> Upgrade to <strong>Standard</strong> (25,000 so'm/oy) for 100 coins/day!
           </p>
         </div>
       </div>
@@ -487,18 +471,22 @@ function closeInsufficientCoinsModal() {
   }
 }
 
+// ============================================
+// COIN SHOP - TO'G'RILANGAN ✅
+// ============================================
+
 function openCoinShop() {
   closeInsufficientCoinsModal();
   
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline coin-shop-modal';
   modal.innerHTML = `
-    <div class="modal-inline" style="max-width: 800px;">
-      <div class="modal-header-inline">
-        <h3>🪙 Coin Shop</h3>
-        <button class="modal-close-inline" onclick="closeCoinShop()">×</button>
+    <div class="modal-inline" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 2px solid #e5e7eb;">
+        <h3 style="margin: 0;">🪙 Coin Shop</h3>
+        <button class="modal-close-inline" onclick="closeCoinShop()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #6b7280;">×</button>
       </div>
-      <div class="modal-body-inline">
+      <div class="modal-body-inline" style="padding: 20px;">
         ${generateCoinPackagesHTML()}
         
         <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px;">
@@ -515,6 +503,9 @@ function openCoinShop() {
   
   document.body.appendChild(modal);
   setTimeout(() => modal.classList.add('active'), 10);
+  
+  // ✅ Prevent body scroll
+  document.body.style.overflow = 'hidden';
 }
 
 function closeCoinShop() {
@@ -523,19 +514,36 @@ function closeCoinShop() {
     modal.classList.remove('active');
     setTimeout(() => modal.remove(), 300);
   }
+  
+  // ✅ Re-enable body scroll
+  document.body.style.overflow = '';
 }
 
 function generateCoinPackagesHTML() {
   return `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px;">
       ${COIN_CONFIG.COIN_PACKAGES.map(pkg => `
-        <div class="coin-package ${pkg.popular ? 'popular' : ''}" onclick="purchaseCoinPackage(${pkg.coins}, ${pkg.price})">
-          ${pkg.popular ? '<div class="package-badge">Popular</div>' : ''}
-          <div class="package-icon">🪙</div>
-          <div class="package-coins">${pkg.coins} Coins</div>
-          ${pkg.bonus > 0 ? `<div class="package-bonus">+${pkg.bonus} Bonus!</div>` : ''}
-          <div class="package-price">$${pkg.price}</div>
-          <button class="package-btn">Buy Now</button>
+        <div class="coin-package ${pkg.popular ? 'popular' : ''}" onclick="purchaseCoinPackage('${pkg.id}', ${pkg.coins}, ${pkg.price}, ${pkg.bonus})" style="
+          background: white;
+          border: 2px solid ${pkg.popular ? '#f59e0b' : '#e5e7eb'};
+          border-radius: 12px;
+          padding: 20px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s;
+          position: relative;
+        ">
+          ${pkg.popular ? '<div class="package-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Popular</div>' : ''}
+          <div class="package-icon" style="font-size: 48px; margin-bottom: 10px;">🪙</div>
+          <div class="package-coins" style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 5px;">${pkg.coins} Coins</div>
+          ${pkg.bonus > 0 ? `<div class="package-bonus" style="color: #ffffffff; font-size: 14px; font-weight: 600; margin-bottom: 10px;">+${pkg.bonus} Bonus!</div>` : '<div style="height: 24px;"></div>'}
+          <div class="package-price" style="font-size: 18px; color: #6b7280; margin-bottom: 15px;">${formatPrice(pkg.price)} so'm</div>
+          <button class="package-btn" style="width: 100%; padding: 10px; background: linear-gradient(
+    151deg,
+    rgba(93, 156, 245, 1) 0%,
+    rgba(44, 170, 154, 1) 60%,
+    rgba(35, 195, 101, 1) 100%
+  ); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Buy Now</button>
         </div>
       `).join('')}
     </div>
@@ -544,63 +552,85 @@ function generateCoinPackagesHTML() {
 
 function generateSubscriptionCardsHTML() {
   return `
-    <div class="sub-card" onclick="purchaseSubscription('standard')">
-      <div class="sub-badge">Best Value</div>
-      <h5>Standard</h5>
-      <div class="sub-price">$9.99<span>/mo</span></div>
-      <ul class="sub-features">
-        <li>✅ 100 coins/day</li>
-        <li>✅ All tools</li>
-        <li>✅ No ads</li>
+    <div class="sub-card" onclick="purchaseSubscription('standard')" style="
+      background: white;
+      border: 2px solid #10b981;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    ">
+      <div class="sub-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Best Value</div>
+      <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Standard</h5>
+      <div class="sub-price" style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">25,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
+      <ul class="sub-features" style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 100 coins/day</li>
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ All tools</li>
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ No ads</li>
       </ul>
-      <button class="sub-btn">Subscribe</button>
+      <button class="sub-btn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
     
-    <div class="sub-card pro" onclick="purchaseSubscription('pro')">
-      <div class="sub-badge" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">Premium</div>
-      <h5>Pro</h5>
-      <div class="sub-price">$19.99<span>/mo</span></div>
-      <ul class="sub-features">
-        <li>✅ Unlimited coins</li>
-        <li>✅ Premium tools</li>
-        <li>✅ Priority support</li>
+    <div class="sub-card pro" onclick="purchaseSubscription('pro')" style="
+      background: linear-gradient(135deg, #fbbf2420, #f59e0b20);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    ">
+      <div class="sub-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Premium</div>
+      <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Pro</h5>
+      <div class="sub-price" style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 15px;">50,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
+      <ul class="sub-features" style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Unlimited coins</li>
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Premium tools</li>
+        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Priority support</li>
       </ul>
-      <button class="sub-btn">Subscribe</button>
+      <button class="sub-btn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
   `;
 }
 
-function purchaseCoinPackage(coins, price) {
-  const confirmed = confirm(`Purchase ${coins} coins for $${price}?\n\n⚠️ Demo mode - no real payment.`);
+// ============================================
+// PURCHASE COIN PACKAGE - TO'G'RILANGAN ✅
+// ============================================
+
+function purchaseCoinPackage(packageId, coins, price, bonus) {
+  console.log('📦 Purchasing coin package:', packageId);
   
-  if (confirmed && window.coinManager) {
-    window.coinManager.addCoins(coins, `Purchased ${coins} coin package ($${price})`);
-    showCoinEarnAnimation(coins);
-    showNotification(`✅ Successfully purchased ${coins} coins!`, 'success');
+  // ✅ Telegram payment modalni ochish
+  if (typeof window.openSubscriptionPaymentModal === 'function') {
     closeCoinShop();
+    window.openSubscriptionPaymentModal(packageId);
+  } else {
+    console.error('❌ openSubscriptionPaymentModal function not found!');
+    showNotification('❌ To\'lov tizimi topilmadi', 'error');
   }
 }
 
+// ============================================
+// PURCHASE SUBSCRIPTION - TO'G'RILANGAN ✅
+// ============================================
+
 function purchaseSubscription(plan) {
-  const config = COIN_CONFIG.SUBSCRIPTION[plan];
+  console.log('📱 Purchasing subscription:', plan);
   
-  const confirmed = confirm(`Subscribe to ${plan.toUpperCase()} for $${config.price}/month?\n\n⚠️ Demo mode.`);
-  
-  if (confirmed && window.coinManager) {
-    window.coinManager.data.subscription = plan;
-    window.coinManager.data.subscriptionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    
-    if (plan === 'standard') {
-      window.coinManager.addCoins(100, 'Standard subscription bonus');
-    } else if (plan === 'pro') {
-      window.coinManager.addCoins(500, 'Pro subscription bonus');
-    }
-    
-    window.coinManager.save();
-    
-    showNotification(`🎉 Welcome to ${plan.toUpperCase()}!`, 'success');
+  // ✅ Telegram payment orqali sotib olish
+  if (typeof window.openSubscriptionPaymentModal === 'function') {
+    const productKey = plan === 'standard' ? 'STANDARD_SUB' : 'PRO_SUB';
     closeCoinShop();
+    window.openSubscriptionPaymentModal(productKey);
+  } else {
+    console.error('❌ openSubscriptionPaymentModal function not found!');
+    showNotification('❌ To\'lov tizimi topilmadi', 'error');
   }
+}
+
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
 function showNotification(message, type = 'info') {
@@ -630,10 +660,9 @@ function showNotification(message, type = 'info') {
 }
 
 // ============================================
-// 5️⃣ AUTO-INITIALIZATION (FIXED)
+// 5️⃣ AUTO-INITIALIZATION
 // ============================================
 
-// ✅ CHANGE 3: Initialize immediately when Firebase auth is ready
 if (window.firebaseAuth) {
   window.firebaseAuth.onAuthStateChanged((user) => {
     if (user) {
@@ -642,7 +671,6 @@ if (window.firebaseAuth) {
     }
   });
 } else {
-  // Fallback: wait for auth to load
   window.addEventListener('load', () => {
     setTimeout(() => {
       if (window.firebaseAuth && window.firebaseAuth.currentUser) {

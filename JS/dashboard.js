@@ -322,6 +322,56 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
+// WAIT FOR COIN SYSTEM - ADD THIS BEFORE window.load
+// ============================================
+async function waitForCoinSystem() {
+  return new Promise((resolve) => {
+    if (window.coinManager) {
+      console.log('✅ Coin system already ready');
+      resolve(true);
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    const checkInterval = setInterval(() => {
+      attempts++;
+      
+      if (window.coinManager) {
+        clearInterval(checkInterval);
+        console.log('✅ Coin system loaded after', attempts * 100, 'ms');
+        resolve(true);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        console.error('❌ Coin system failed to load');
+        resolve(false);
+      }
+    }, 100);
+  });
+}
+
+/**
+ * Fallback: Coin systemni majburiy yuklash
+ */
+function initializeCoinSystemFallback() {
+  console.warn('⚠️ Attempting fallback coin system initialization...');
+  
+  // Check if initCoinSystem exists
+  if (typeof initCoinSystem === 'function') {
+    try {
+      initCoinSystem();
+      console.log('✅ Coin system initialized via fallback');
+    } catch (error) {
+      console.error('❌ Fallback initialization failed:', error);
+    }
+  } else {
+    console.error('❌ initCoinSystem function not found!');
+    console.error('Make sure coin.js is loaded before dashboard.js');
+  }
+}
+
+// ============================================
 // UPDATED WINDOW.LOAD EVENT ✅
 // Replace the existing window.addEventListener('load') section
 // ============================================
@@ -1890,7 +1940,7 @@ async function checkWriting() {
           <!-- Overall Score - BIG Display -->
           <div style="text-align: center; margin-bottom: 30px; padding: 25px; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px);">
             <div style="font-size: 72px; font-weight: 900; color: white; line-height: 1; margin-bottom: 5px;">
-              ${scores.overall || "7.5"}
+              ${scores.overall}
             </div>
             <div style="color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600; letter-spacing: 1px;">
               OVERALL BAND SCORE
@@ -2586,202 +2636,7 @@ function removeTopicImage() {
   console.log("✅ Topic image removed successfully");
 }
 
-// ============================================
-// CHECK WRITING - UPDATED WITH TOPIC IMAGE ✅
-// ============================================
-async function checkWriting() {
-  const text = document.getElementById("grammarInput").value;
-  const language = document.getElementById("grammar-language").value;
-  const resultBox = document.getElementById("grammarResult");
-  const output = document.getElementById("grammarOutput");
-  const topicInput = document.getElementById("essayTopic");
 
-  // ✅ GET TOPIC (from text input or image)
-  let topic = topicInput.value.trim();
-  let topicImageData = null;
-
-  // ✅ CHECK: If topic image is uploaded, convert to base64
-  if (uploadedTopicImage) {
-    console.log("🖼️ Topic image detected, converting to base64...");
-
-    const reader = new FileReader();
-    topicImageData = await new Promise((resolve, reject) => {
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error("Topic image read failed"));
-      reader.readAsDataURL(uploadedTopicImage);
-    });
-
-    // If topic text is empty, inform user
-    if (!topic) {
-      topic = "[Topic uploaded as image]";
-    }
-
-    console.log("✅ Topic image converted to base64");
-  }
-
-  // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
-  if (!topic && !topicImageData) {
-    alert(
-      "⚠️ Topic is required! / Topicni kiriting!\n\nPlease type the topic or upload it as an image."
-    );
-    topicInput.focus();
-    return;
-  }
-
-  // ✅ VALIDATION 2: Text check
-  if (!text.trim()) {
-    alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
-    return;
-  }
-
-  // ✅ VALIDATION 3: Word count
-  const wordCount = text
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w.length > 0).length;
-  if (wordCount < 150) {
-    alert(
-      `❌ Minimum 150 words required! (Currently ${wordCount} words)\n\nMinimum 150 so'z kerak! (Hozirda ${wordCount} so'z)`
-    );
-    return;
-  }
-
-  // Show loading
-  resultBox.style.display = "block";
-  output.innerHTML = `
-    <div style="text-align: center; padding: 40px;">
-      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-      <p style="margin-top: 20px; color: #6b7280; font-size: 16px;">
-        <i class="bi bi-hourglass-split"></i> Analyzing your writing...<br>
-        <small>This may take 30-60 seconds</small>
-      </p>
-    </div>
-  `;
-
-  try {
-    console.log("📤 Sending writing check request...");
-    console.log("Task Type:", selectedTaskType);
-    console.log("Word Count:", wordCount);
-    console.log("Language:", language);
-    console.log("Topic:", topic);
-    console.log("Has Writing Image:", !!uploadedWritingImage);
-    console.log("Has Topic Image:", !!topicImageData);
-
-    const API_URL = window.location.hostname.includes("onrender.com")
-      ? "https://zioai-backend.onrender.com/api"
-      : "http://localhost:3000/api";
-
-    // ✅ Prepare request data
-    let requestData = {
-      text,
-      taskType: selectedTaskType,
-      language,
-      topic,
-    };
-
-    // ✅ Add TOPIC image if uploaded
-    if (topicImageData) {
-      requestData.topicImage = topicImageData;
-      console.log("📊 Topic image added to request");
-    }
-
-    // ✅ Add CHART/DIAGRAM image if uploaded (Task 1)
-    if (uploadedWritingImage) {
-      console.log("🖼️ Converting chart image to base64...");
-      const reader = new FileReader();
-
-      const chartImageData = await new Promise((resolve, reject) => {
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => reject(new Error("Chart image read failed"));
-        reader.readAsDataURL(uploadedWritingImage);
-      });
-
-      requestData.chartImage = chartImageData;
-      console.log("✅ Chart image added to request");
-    }
-
-    // ✅ Send request
-    const response = await fetch(`${API_URL}/check-writing`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      console.log("✅ Writing analysis received");
-
-      // Display results
-      output.innerHTML = `
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
-                <i class="bi bi-file-text"></i> ${requestData.taskType} | 
-                <i class="bi bi-pencil-square"></i> ${wordCount} words
-                ${
-                  requestData.topicImage
-                    ? ' | <i class="bi bi-card-image"></i> Topic (Image)'
-                    : ""
-                }
-                ${
-                  requestData.chartImage
-                    ? ' | <i class="bi bi-image"></i> Chart (Image)'
-                    : ""
-                }
-              </div>
-              <div style="font-size: 32px; font-weight: 900;">
-                Writing Analysis Complete
-              </div>
-            </div>
-            
-            <button onclick="exportWritingToPDF()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
-              <i class="bi bi-download"></i> Export PDF
-            </button>
-          </div>
-        </div>
-        
-        ${data.result}
-        
-        <!-- Model Answer Section -->
-        <div id="modelAnswerSection" style="margin-top: 25px;">
-          <button onclick="showModelAnswer()" id="modelAnswerBtn" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;">
-            <i class="bi bi-book-fill"></i> Show Model Answer (Band 8-9)
-          </button>
-          
-          <div id="modelAnswerContent" style="display: none; margin-top: 20px; padding: 25px; background: #f9fafb; border-radius: 12px; border-left: 4px solid #10b981;">
-            <!-- Model answer will be loaded here -->
-          </div>
-        </div>
-      `;
-
-      // Smooth scroll to results
-      resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-      // Track usage
-      if (typeof trackToolUsage === "function") {
-        trackToolUsage("grammar");
-      }
-    } else {
-      throw new Error(data.error || "Analysis failed");
-    }
-  } catch (error) {
-    console.error("❌ Writing check error:", error);
-    output.innerHTML = `
-      <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
-        <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
-        <h5 style="color: #dc2626; margin-top: 15px;">Analysis Failed</h5>
-        <p style="color: #6b7280;">${error.message}</p>
-        <button onclick="checkWriting()" style="margin-top: 15px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          <i class="bi bi-arrow-clockwise"></i> Try Again
-        </button>
-      </div>
-    `;
-  }
-}
 
 // ============================================
 // EXPORT TO PDF - CLEAN & STRUCTURED VERSION ✅
@@ -2934,14 +2789,20 @@ async function exportWritingToPDF() {
 const cleanText = (text) => {
   if (!text) return "";
   return text
-    .replace(/<[^>]*>/g, "")
+    .replace(/<[^>]*>/g, "") // Remove HTML tags
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#\d+;/g, "")
-    // ✅ \n (0x0A) ni saqlab qolish, faqat boshqa control charlarni o'chirish
+    // ✅ FIX: Preserve spaces between words
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+    .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Space between letter and number
+    .replace(/(\d)([a-zA-Z])/g, '$1 $2') // Space between number and letter
+    // ✅ Keep only single newlines
+    .replace(/\n{3,}/g, '\n\n')
+    // ✅ Remove control chars EXCEPT newlines
     .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
     .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
     .replace(/[\u{2600}-\u{26FF}]/gu, "")
@@ -3035,156 +2896,234 @@ const cleanText = (text) => {
     // ============================================
     // PARSE ANALYSIS - SECTION 3, 4 REMOVED ✅
     // ============================================
-    const parseAnalysis = (text) => {
-      const parsed = {
-        vocabulary: { 
-          level: null, 
-          strong: [], 
-          repetitive: [], 
-          synonyms: [],
-          collocations: []
-        },
-        grammar: { 
-          total: null, 
-          types: [],
-          errors: [] 
-        },
-        patterns: {
-          recommended: [],
-          commonErrors: []
-        },
-        bandReasons: [],
-        nextBand: {
-          fix: [],
-          add: [],
-          improve: []
-        }
-      };
+const parseAnalysis = (text) => {
+  const parsed = {
+    vocabulary: { 
+      level: null, 
+      strong: [], 
+      repetitive: [], 
+      synonyms: [],
+      collocations: []
+    },
+    grammar: { 
+      total: null, 
+      types: [],
+      errors: [] // ✅ This will store individual errors properly
+    },
+    patterns: {
+      recommended: [],
+      commonErrors: []
+    },
+    bandReasons: [],
+    nextBand: {
+      fix: [],
+      add: [],
+      improve: []
+    }
+  };
 
-      if (!text) return parsed;
+  if (!text) return parsed;
 
-      // 1. VOCABULARY
-      const vocabSection = text.match(/(?:LUG'AT SIFATI|VOCABULARY QUALITY|KACHESTVO LEKSIKI)[:\s]*([\s\S]*?)(?:GRAMMATIKA|GRAMMAR|$)/i);
-      
-      if (vocabSection) {
-        const vocabText = vocabSection[1];
+  try {
+    // ============================================
+    // 1. VOCABULARY (existing code - keep as is)
+    // ============================================
+    const vocabSection = text.match(/(?:LUG'AT SIFATI|VOCABULARY QUALITY|KACHESTVO LEKSIKI)[:\s]*([\s\S]*?)(?:GRAMMATIKA|GRAMMAR|$)/i);
+    
+    if (vocabSection) {
+      const vocabText = vocabSection[1];
 
-        const levelMatch = vocabText.match(/(?:Daraja|Level|Uroven')[:\s]*([A-C][1-2])/i);
-        if (levelMatch) parsed.vocabulary.level = levelMatch[1];
+      const levelMatch = vocabText.match(/(?:Daraja|Level|Uroven')[:\s]*([A-C][1-2])/i);
+      if (levelMatch) parsed.vocabulary.level = levelMatch[1];
 
-        const strongMatch = vocabText.match(/(?:Kuchli So'zlar|Strong Words|Sil'nye Slova)[:\s]*([^\n]+)/i);
-        if (strongMatch) {
-          const wordsText = strongMatch[1].replace(/["']/g, '').trim();
-          parsed.vocabulary.strong = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
-        }
-
-        const repMatch = vocabText.match(/(?:Takrorlanuvchi|Repetitive|Povtoryayushchiesya)[:\s]*([^\n]+)/i);
-        if (repMatch) {
-          const wordsText = repMatch[1].replace(/["']/g, '').trim();
-          parsed.vocabulary.repetitive = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
-        }
-
-        const synMatch = vocabText.match(/(?:Sinonimlar Kerak|Suggested Synonyms|Sinonimy)[:\s]*([^\n]+)/i);
-        if (synMatch) parsed.vocabulary.synonyms.push(synMatch[1].trim());
-
-        const collMatch = vocabText.match(/(?:Ilg'or Kollokatsiyalar|Advanced Collocations|Kollokatsii)[:\s]*([^\n]+)/i);
-        if (collMatch) {
-          const collText = collMatch[1].replace(/["']/g, '').trim();
-          parsed.vocabulary.collocations = collText.split(/[,;]/).map(c => c.trim()).filter(c => c.length > 3);
-        }
+      const strongMatch = vocabText.match(/(?:Kuchli So'zlar|Strong Words|Sil'nye Slova)[:\s]*([^\n]+)/i);
+      if (strongMatch) {
+        const wordsText = strongMatch[1].replace(/["']/g, '').trim();
+        parsed.vocabulary.strong = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
       }
 
-      // 2. GRAMMAR - TASK 1 FIX (unicode probel muammosi) ✅
-// 2. GRAMMAR - Faqat individual xatolarni olish ✅
-const grammarSection = text.match(/(?:GRAMMATIKA TAHLILI|GRAMMAR ANALYSIS|ANALIZ GRAMMATIKI)[:\s]*([\s\S]*?)(?:GRAMMATIK|GRAMMAR PATTERNS|$)/i);
+      const repMatch = vocabText.match(/(?:Takrorlanuvchi|Repetitive|Povtoryayushchiesya)[:\s]*([^\n]+)/i);
+      if (repMatch) {
+        const wordsText = repMatch[1].replace(/["']/g, '').trim();
+        parsed.vocabulary.repetitive = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
+      }
 
-if (grammarSection) {
-  const grammarText = grammarSection[1];
+      const synMatch = vocabText.match(/(?:Sinonimlar Kerak|Suggested Synonyms|Sinonimy)[:\s]*([^\n]+)/i);
+      if (synMatch) parsed.vocabulary.synonyms.push(synMatch[1].trim());
 
-  // Total xatolar soni
-  const totalMatch = grammarText.match(/(?:Jami Xatolar|Total Errors|Vsego Oshibok)[:\s]*(\d+)/i);
-  if (totalMatch) parsed.grammar.total = totalMatch[1];
+      const collMatch = vocabText.match(/(?:Ilg'or Kollokatsiyalar|Advanced Collocations|Kollokatsii)[:\s]*([^\n]+)/i);
+      if (collMatch) {
+        const collText = collMatch[1].replace(/["']/g, '').trim();
+        parsed.vocabulary.collocations = collText.split(/[,;]/).map(c => c.trim()).filter(c => c.length > 3);
+      }
+    }
 
-  // ✅ FAQAT individual xatolarni olish (#1, #2, #3...)
-  const errorMatches = grammarText.matchAll(/#\d+[:\s]*([^\n]+)/gi);
-  for (const match of errorMatches) {
-    if (match[1] && match[1].length > 10) {
-      let cleanError = match[1].trim()
-        .replace(/\s+/g, ' ')
-        .replace(/([a-zA-Z])\s+([a-zA-Z])/g, '$1$2');
+    // ============================================
+    // 2. GRAMMAR ERRORS - COMPLETELY REWRITTEN ✅
+    // ============================================
+    const grammarSection = text.match(/(?:GRAMMATIKA TAHLILI|GRAMMAR ANALYSIS|ANALIZ GRAMMATIKI)[:\s]*([\s\S]*?)(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|$)/i);
+
+    if (grammarSection) {
+      const grammarText = grammarSection[1];
+      console.log('📋 Grammar section found:', grammarText.substring(0, 200));
+
+      // Total errors count
+      const totalMatch = grammarText.match(/(?:Jami Xatolar|Total Errors|Vsego Oshibok)[:\s]*(\d+)/i);
+      if (totalMatch) {
+        parsed.grammar.total = totalMatch[1];
+        console.log('✅ Total errors:', parsed.grammar.total);
+      }
+
+      // ✅ METHOD 1: Extract by numbered bullets (#1:, #2:, etc.)
+      const numberedErrors = grammarText.match(/#\d+[:\s]*([^\n#]+)/gi);
       
-      parsed.grammar.errors.push(cleanError);
+      if (numberedErrors && numberedErrors.length > 0) {
+        console.log('✅ Found', numberedErrors.length, 'numbered errors');
+        
+        parsed.grammar.errors = numberedErrors.map(error => {
+          // Remove the number prefix
+          let cleaned = error.replace(/#\d+[:\s]*/, '').trim();
+          
+          // ✅ FIX: Ensure proper spacing
+          cleaned = cleaned
+            .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase → camel Case
+            .replace(/([a-zA-Z])(\()/g, '$1 (') // word( → word (
+            .replace(/(\))([a-zA-Z])/g, '$1 $2') // )word → ) word
+            .replace(/([,.;:])([a-zA-Z])/g, '$1 $2') // punctuation + letter
+            .replace(/\s+/g, ' ') // Multiple spaces → single space
+            .trim();
+          
+          return cleaned;
+        }).filter(e => e.length > 10); // Ignore very short entries
+        
+        console.log('✅ Parsed errors:', parsed.grammar.errors);
+      } 
+      // ✅ METHOD 2: Fallback - split by bullet points
+      else {
+        console.log('⚠️ No numbered format, trying bullet points...');
+        
+        const bulletErrors = grammarText.match(/[•\-\*]\s*([^\n•\-\*]+)/g);
+        
+        if (bulletErrors && bulletErrors.length > 0) {
+          parsed.grammar.errors = bulletErrors
+            .map(bullet => {
+              let cleaned = bullet.replace(/^[•\-\*]\s*/, '').trim();
+              
+              // Apply same spacing fixes
+              cleaned = cleaned
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .replace(/([a-zA-Z])(\()/g, '$1 (')
+                .replace(/(\))([a-zA-Z])/g, '$1 $2')
+                .replace(/([,.;:])([a-zA-Z])/g, '$1 $2')
+                .replace(/\s+/g, ' ')
+                .trim();
+              
+              return cleaned;
+            })
+            .filter(e => e.length > 10);
+          
+          console.log('✅ Parsed from bullets:', parsed.grammar.errors.length);
+        }
+      }
+    }
+
+    // ============================================
+    // 3. GRAMMAR PATTERNS (keep existing code)
+    // ============================================
+    const patSection = text.match(/(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|GRAMMATICHESKIE PATTERNY)[:\s]*([\s\S]*?)(?:NEGA BU BAND|WHY THIS BAND|POCHEMU|$)/i);
+    
+    if (patSection) {
+      const patText = patSection[1];
+
+      const recMatch = patText.match(/(?:Tavsiya etilgan|Recommended|Rekomenduemye)[:\s]*([^\n]+)/i);
+      if (recMatch) {
+        parsed.patterns.recommended = recMatch[1].split(/[,;]/).map(r => r.trim()).filter(r => r.length > 5);
+      }
+
+      const errMatch = patText.match(/(?:Umumiy xatolar|Common errors|Obshchie oshibki)[:\s]*([^\n]+)/i);
+      if (errMatch) {
+        parsed.patterns.commonErrors = errMatch[1].split(/[,;]/).map(e => e.trim()).filter(e => e.length > 5);
+      }
+    }
+
+// ============================================
+// 4. BAND REASONS - FIXED TO CAPTURE ALL CONTENT ✅
+// ============================================
+const reasonSection = text.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
+
+if (reasonSection) {
+  const reasonText = reasonSection[1].trim();
+  console.log('📋 Band Reasons section found, length:', reasonText.length);
+  
+  // ✅ METHOD 1: Try bullet points first
+  const bullets = reasonText.match(/[•▸►\-\*]\s*([^\n•▸►\-\*]+)/g);
+  
+  if (bullets && bullets.length > 0) {
+    parsed.bandReasons = bullets
+      .map(b => b.replace(/^[•▸►\-\*]\s*/, '').trim())
+      .filter(item => item.length > 10) // Lower threshold
+      .slice(0, 8); // Increase limit to 8
+    
+    console.log('✅ Extracted', parsed.bandReasons.length, 'reasons from bullets');
+  } 
+  // ✅ METHOD 2: If no bullets, extract by numbered items or lines
+  else {
+    // Try numbered format (1., 2., etc.)
+    const numberedItems = reasonText.match(/\d+\.\s*([^\n]+)/g);
+    
+    if (numberedItems && numberedItems.length > 0) {
+      parsed.bandReasons = numberedItems
+        .map(item => item.replace(/^\d+\.\s*/, '').trim())
+        .filter(item => item.length > 10)
+        .slice(0, 8);
+      
+      console.log('✅ Extracted', parsed.bandReasons.length, 'reasons from numbered list');
+    } 
+    // ✅ METHOD 3: Split by double newlines (paragraphs)
+    else {
+      const paragraphs = reasonText
+        .split(/\n\n+/)
+        .map(p => p.replace(/\n/g, ' ').trim())
+        .filter(p => 
+          p.length > 20 && 
+          !p.match(/^(NEGA|WHY|KEYINGI|TO REACH|MODEL)/i)
+        )
+        .slice(0, 8);
+      
+      if (paragraphs.length > 0) {
+        parsed.bandReasons = paragraphs;
+        console.log('✅ Extracted', paragraphs.length, 'reasons from paragraphs');
+      }
     }
   }
+} else {
+  console.warn('⚠️ Band Reasons section not found in text');
 }
 
-      // 3. GRAMMAR PATTERNS
-      const patSection = text.match(/(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|GRAMMATICHESKIE PATTERNY)[:\s]*([\s\S]*?)(?:NEGA BU BAND|WHY THIS BAND|POCHEMU|$)/i);
-      
-      if (patSection) {
-        const patText = patSection[1];
+    // ============================================
+    // 5. NEXT BAND (keep existing code)
+    // ============================================
+    const nextSection = text.match(/(?:KEYINGI BANDGA YETISH|TO REACH THE NEXT BAND|DLYA SLEDUYUSHCHEGO BAND)[:\s]*([\s\S]*?)(?:YAKUNIY|$)/i);
+    
+    if (nextSection) {
+      const nextText = nextSection[1];
 
-        const recMatch = patText.match(/(?:Tavsiya etilgan|Recommended|Rekomenduemye)[:\s]*([^\n]+)/i);
-        if (recMatch) {
-          parsed.patterns.recommended = recMatch[1].split(/[,;]/).map(r => r.trim()).filter(r => r.length > 5);
-        }
+      const fixMatch = nextText.match(/(?:Tuzatish|Fix|Ispravit')[:\s]*([^\n]+)/i);
+      if (fixMatch) parsed.nextBand.fix.push(fixMatch[1].trim());
 
-        const errMatch = patText.match(/(?:Umumiy xatolar|Common errors|Obshchie oshibki)[:\s]*([^\n]+)/i);
-        if (errMatch) {
-          parsed.patterns.commonErrors = errMatch[1].split(/[,;]/).map(e => e.trim()).filter(e => e.length > 5);
-        }
-      }
+      const addMatch = nextText.match(/(?:Qo'shish|Add|Dobavit')[:\s]*([^\n]+)/i);
+      if (addMatch) parsed.nextBand.add.push(addMatch[1].trim());
 
-      // 4. BAND REASONS - KENGAYTIRILGAN REGEX ✅
-      const reasonSection = text.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|$)/i);
-      
-      if (reasonSection) {
-        const reasonText = reasonSection[1];
-        
-        // Bullet pointlarni topish
-        const bullets = reasonText.match(/[•\-\*]\s*([^\n]+)/g);
-        
-        if (bullets && bullets.length > 0) {
-          parsed.bandReasons = bullets
-            .map(b => b.replace(/^[•\-\*]\s*/, '').trim())
-            .filter(item => item.length > 15)
-            .slice(0, 6);
-        } else {
-          // Fallback: satrma-satr
-          const items = reasonText
-            .split(/\n/)
-            .map(line => line.trim())
-            .filter(line => 
-              line.length > 20 && 
-              (line.match(/(?:Grammatika|Grammar|Lug'at|Vocabulary|Izchillik|Coherence|Topshiriq|Task)/i) ||
-               line.match(/(?:band|ball|daraja|uroven)/i))
-            )
-            .slice(0, 6);
-          
-          parsed.bandReasons = items;
-        }
-        
-        console.log('  Band Reasons:', parsed.bandReasons.length);
-      }
+      const impMatch = nextText.match(/(?:Yaxshilash|Improve|Uluchshit')[:\s]*([^\n]+)/i);
+      if (impMatch) parsed.nextBand.improve.push(impMatch[1].trim());
+    }
 
-      // 5. NEXT BAND
-      const nextSection = text.match(/(?:KEYINGI BANDGA YETISH|TO REACH THE NEXT BAND|DLYA SLEDUYUSHCHEGO BAND)[:\s]*([\s\S]*?)(?:YAKUNIY|$)/i);
-      
-      if (nextSection) {
-        const nextText = nextSection[1];
+  } catch (error) {
+    console.error('❌ Parse error:', error);
+  }
 
-        const fixMatch = nextText.match(/(?:Tuzatish|Fix|Ispravit')[:\s]*([^\n]+)/i);
-        if (fixMatch) parsed.nextBand.fix.push(fixMatch[1].trim());
-
-        const addMatch = nextText.match(/(?:Qo'shish|Add|Dobavit')[:\s]*([^\n]+)/i);
-        if (addMatch) parsed.nextBand.add.push(addMatch[1].trim());
-
-        const impMatch = nextText.match(/(?:Yaxshilash|Improve|Uluchshit')[:\s]*([^\n]+)/i);
-        if (impMatch) parsed.nextBand.improve.push(impMatch[1].trim());
-      }
-
-      return parsed;
-    };
+  return parsed;
+};
 
     // ============================================
     // EXTRACT SCORES
@@ -3362,21 +3301,51 @@ if (grammarSection) {
         yPos += 3;
       }
 
-// 2. GRAMMAR - Faqat individual xatolar
+// 2. GRAMMAR ERRORS - with proper formatting
 if (analysis.grammar.total) {
   addSubSection(`2. ${t.grammarSection}`);
+  
+  // Show total count
   addText(`${t.totalErrors}: ${analysis.grammar.total}`, 9, true);
   yPos += 5;
   
-  // ✅ Faqat individual xatolarni ko'rsatish
+  // ✅ Display individual errors with proper spacing
   if (analysis.grammar.errors.length > 0) {
     analysis.grammar.errors.slice(0, 5).forEach((error, idx) => {
-      addBulletPoint(`#${idx + 1}: ${error}`, 8);
+      // Clean and format each error
+      const cleanError = error
+        .replace(/\s+/g, ' ') // Multiple spaces → single
+        .trim();
+      
+      // Add numbered bullet point
+      checkPageBreak(15);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(`#${idx + 1}:`, margin + 3, yPos);
+      
+      // Add error text with word wrap
+      doc.setFont("helvetica", "normal");
+      const errorLines = doc.splitTextToSize(cleanError, maxWidth - 12);
+      errorLines.forEach((line, lineIdx) => {
+        if (lineIdx === 0) {
+          doc.text(line, margin + 12, yPos);
+        } else {
+          yPos += 4.5;
+          checkPageBreak();
+          doc.text(line, margin + 12, yPos);
+        }
+      });
+      
+      yPos += 6; // Space after each error
     });
+  } else {
+    addText('Xatolar aniqlanmadi', 9);
   }
   
   yPos += 3;
 }
+
+console.log('✅ PDF Grammar Fix loaded!');
 
 
       // 3. GRAMMAR PATTERNS (eski 5-section)
@@ -3396,47 +3365,102 @@ if (analysis.grammar.total) {
         yPos += 3;
       }
 
-      // 4. BAND REASONS (eski 6-section) - YANGILANGAN ✅
-      if (analysis.bandReasons.length > 0) {
-        addSubSection(`4. ${t.bandReasons}`);
-        analysis.bandReasons.forEach(item => addBulletPoint(item, 9));
-        yPos += 3;
+ // 4. BAND REASONS (eski 6-section) - IMPROVED DISPLAY ✅
+if (analysis.bandReasons.length > 0) {
+  addSubSection(`4. ${t.bandReasons}`);
+  
+  // Display all reasons with proper formatting
+  analysis.bandReasons.forEach((reason, idx) => {
+    checkPageBreak(15);
+    
+    // Add numbered bullet
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${idx + 1}.`, margin + 3, yPos);
+    
+    // Add reason text with word wrap
+    doc.setFont("helvetica", "normal");
+    const reasonLines = doc.splitTextToSize(reason, maxWidth - 12);
+    
+    reasonLines.forEach((line, lineIdx) => {
+      if (lineIdx === 0) {
+        doc.text(line, margin + 12, yPos);
       } else {
-        // Fallback: agar bandReasons bo'sh bo'lsa, to'g'ridan-to'g'ri textdan qidirish
-        const reasonAlt = fullText.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
-        
-        if (reasonAlt) {
-          addSubSection(`4. ${t.bandReasons}`);
-          const reasonText = reasonAlt[1];
-          
-          // Bullet pointlarni topish
-          const bullets = reasonText.match(/[•\-\*]\s*([^\n]+)/g);
-          
-          if (bullets && bullets.length > 0) {
-            bullets.slice(0, 5).forEach(bullet => {
-              const cleanBullet = bullet.replace(/^[•\-\*]\s*/, '').trim();
-              if (cleanBullet.length > 15) {
-                addBulletPoint(cleanBullet, 9);
-              }
-            });
-          } else {
-            // Agar bullet yo'q bo'lsa, satrma-satr
-            const lines = reasonText
-              .split(/\n/)
-              .map(line => line.trim())
-              .filter(line => 
-                line.length > 20 && 
-                (line.match(/(?:band|ball|daraja|uroven)/i) || 
-                 line.match(/(?:grammar|lug'at|vocabulary|coherence|task)/i))
-              )
-              .slice(0, 5);
-            
-            lines.forEach(line => addBulletPoint(line, 9));
-          }
-          
-          yPos += 3;
+        yPos += 4.5;
+        checkPageBreak();
+        doc.text(line, margin + 12, yPos);
+      }
+    });
+    
+    yPos += 7; // More space between reasons
+  });
+  
+  yPos += 5;
+  console.log('✅ Displayed', analysis.bandReasons.length, 'band reasons in PDF');
+} else {
+  // Fallback: agar bandReasons bo'sh bo'lsa, to'g'ridan-to'g'ri textdan qidirish
+  const reasonAlt = fullText.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
+  
+  if (reasonAlt) {
+    addSubSection(`4. ${t.bandReasons}`);
+    const reasonText = reasonAlt[1].trim();
+    
+    console.log('⚠️ Using fallback - full reason text length:', reasonText.length);
+    
+    // Split into manageable chunks
+    const chunks = [];
+    let currentChunk = '';
+    const lines = reasonText.split(/\n+/);
+    
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.length > 0) {
+        // Start new chunk if current is too long
+        if (currentChunk.length > 200) {
+          chunks.push(currentChunk);
+          currentChunk = trimmed;
+        } else {
+          currentChunk += (currentChunk ? ' ' : '') + trimmed;
         }
       }
+    });
+    
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
+    
+    // Display chunks
+    chunks.slice(0, 8).forEach((chunk, idx) => {
+      if (chunk.length > 15) {
+        checkPageBreak(15);
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${idx + 1}.`, margin + 3, yPos);
+        
+        doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(chunk, maxWidth - 12);
+        
+        lines.forEach((line, lineIdx) => {
+          if (lineIdx === 0) {
+            doc.text(line, margin + 12, yPos);
+          } else {
+            yPos += 4.5;
+            checkPageBreak();
+            doc.text(line, margin + 12, yPos);
+          }
+        });
+        
+        yPos += 7;
+      }
+    });
+    
+    yPos += 5;
+    console.log('✅ Displayed', chunks.length, 'reasons from fallback');
+  } else {
+    console.warn('⚠️ No band reasons found in text');
+  }
+}
 
       // 5. NEXT BAND (eski 7-section)
       if (analysis.nextBand.fix.length > 0 || 
@@ -3942,6 +3966,32 @@ console.log("   Type window.debugDashboard() to see current state");
 // ADD THESE AT THE END OF dashboard.js FILE
 // ============================================
 
+function roundToIELTSBand(score) {
+  const num = parseFloat(score);
+  if (isNaN(num)) return null;
+  
+  // IELTS rounding: 0.25+ → round up, 0.24- → round down
+  const rounded = Math.round(num * 2) / 2;
+  
+  // Ensure within valid range (0-9)
+  return Math.max(0, Math.min(9, rounded)).toFixed(1);
+}
+
+/**
+ * Calculate IELTS overall band from 4 criteria
+ */
+function calculateIELTSOverall(task, coherence, lexical, grammar) {
+  const scores = [task, coherence, lexical, grammar].map(s => parseFloat(s)).filter(s => !isNaN(s));
+  
+  if (scores.length !== 4) {
+    console.warn('⚠️ Not all 4 scores available for overall calculation');
+    return null;
+  }
+  
+  const average = scores.reduce((sum, score) => sum + score, 0) / 4;
+  return roundToIELTSBand(average);
+}
+
 // Extract scores from AI response text
 function extractScoresFromResponse(resultText) {
   const scores = {
@@ -3952,40 +4002,95 @@ function extractScoresFromResponse(resultText) {
     grammar: null,
   };
 
-  try {
-    // Overall score
-    const overallMatch = resultText.match(
-      /(?:OVERALL|Band Score|Overall Band).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
-    );
-    if (overallMatch) scores.overall = overallMatch[1];
-
-    // Task Achievement
-    const taskMatch = resultText.match(
-      /Task Achievement.*?(\d+(?:\.\d+)?)\s*\/\s*9/is
-    );
-    if (taskMatch) scores.task = taskMatch[1];
-
-    // Coherence & Cohesion
-    const cohMatch = resultText.match(
-      /(?:Coherence|Cohesion).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
-    );
-    if (cohMatch) scores.coherence = cohMatch[1];
-
-    // Lexical Resource
-    const lexMatch = resultText.match(
-      /(?:Lexical Resource|Vocabulary).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
-    );
-    if (lexMatch) scores.lexical = lexMatch[1];
-
-    // Grammar
-    const gramMatch = resultText.match(
-      /(?:Grammatical Range|Grammar).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
-    );
-    if (gramMatch) scores.grammar = gramMatch[1];
-  } catch (error) {
-    console.error("Score extraction error:", error);
+  if (!resultText) {
+    console.warn('⚠️ No result text provided');
+    return scores;
   }
 
+  try {
+    // ============================================
+    // 1️⃣ INDIVIDUAL SCORES (extract first)
+    // ============================================
+    
+    // Task Achievement / Response
+    const taskMatch = resultText.match(/(?:Task\s+Achievement|Task\s+Response)[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    if (taskMatch) {
+      scores.task = roundToIELTSBand(taskMatch[1]);
+      console.log('✅ Task score:', taskMatch[1], '→', scores.task);
+    }
+    
+    // Coherence & Cohesion
+    const cohMatch = resultText.match(/Coherence\s*(?:and|&)?\s*Cohesion[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    if (cohMatch) {
+      scores.coherence = roundToIELTSBand(cohMatch[1]);
+      console.log('✅ Coherence score:', cohMatch[1], '→', scores.coherence);
+    }
+    
+    // Lexical Resource
+    const lexMatch = resultText.match(/Lexical\s+Resource[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    if (lexMatch) {
+      scores.lexical = roundToIELTSBand(lexMatch[1]);
+      console.log('✅ Lexical score:', lexMatch[1], '→', scores.lexical);
+    }
+    
+    // Grammar & Accuracy
+    const gramMatch = resultText.match(/Gramm(?:ar|atical)\s+(?:Range\s+(?:and|&)\s+)?Accuracy[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    if (gramMatch) {
+      scores.grammar = roundToIELTSBand(gramMatch[1]);
+      console.log('✅ Grammar score:', gramMatch[1], '→', scores.grammar);
+    }
+
+    // ============================================
+    // 2️⃣ OVERALL SCORE - PRIORITIZE EXTRACTION
+    // ============================================
+    
+    // Pattern 1: "OVERALL BAND SCORE: 8.0/9"
+    let overallMatch = resultText.match(/OVERALL\s+BAND\s+SCORE[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9?/i);
+    
+    // Pattern 2: "Band Score: 8.0/9.0"
+    if (!overallMatch) {
+      overallMatch = resultText.match(/Band\s+Score[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    }
+    
+    // Pattern 3: "Overall: 8.0/9"
+    if (!overallMatch) {
+      overallMatch = resultText.match(/Overall[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    }
+    
+    // Pattern 4: Just the number after "OVERALL"
+    if (!overallMatch) {
+      overallMatch = resultText.match(/OVERALL.*?(\d+\.\d+)/i);
+    }
+    
+    if (overallMatch) {
+      scores.overall = roundToIELTSBand(overallMatch[1]);
+      console.log('✅ Overall score extracted:', overallMatch[1], '→', scores.overall);
+    }
+    
+    // ============================================
+    // 3️⃣ FALLBACK: CALCULATE OVERALL IF MISSING
+    // ============================================
+    
+    if (!scores.overall && scores.task && scores.coherence && scores.lexical && scores.grammar) {
+      scores.overall = calculateIELTSOverall(scores.task, scores.coherence, scores.lexical, scores.grammar);
+      console.log('✅ Overall calculated from criteria:', scores.overall);
+    }
+    
+    // ============================================
+    // 4️⃣ FINAL VALIDATION
+    // ============================================
+    
+    if (!scores.overall) {
+      console.error('❌ Overall score still not found!');
+      console.log('First 500 chars of result:', resultText.substring(0, 500));
+      scores.overall = "N/A";
+    }
+
+  } catch (error) {
+    console.error('❌ Score extraction error:', error);
+  }
+
+  console.log('📊 Final IELTS scores (rounded):', scores);
   return scores;
 }
 

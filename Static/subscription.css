@@ -1,0 +1,409 @@
+/* ============================================
+   💳 PAYMENT MODAL STYLES - FIXED
+   ============================================ */
+
+
+
+.modal-overlay-inline.active {
+  opacity: 1;
+}
+
+/* Modal container - SCROLLABLE */
+.modal-inline {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh; /* ✅ Maksimal balandlik */
+  overflow-y: auto; /* ✅ Scroll qo'shish */
+  position: relative;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+/* ✅ SMOOTH SCROLLING */
+.modal-inline {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.modal-inline::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-inline::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 10px;
+}
+
+.modal-inline::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.modal-inline::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+.modal-overlay-inline.active .modal-inline {
+  transform: scale(1);
+}
+
+/* Modal header - STICKY */
+.modal-header-inline {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  padding: 20px;
+  border-bottom: 2px solid #e5e7eb;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header-inline h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Close button - FIXED */
+.modal-close-inline {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: #f3f4f6;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #6b7280;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  z-index: 11; /* ✅ Header ustida bo'lishi uchun */
+}
+
+.modal-close-inline:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+  transform: rotate(90deg);
+}
+
+/* Modal body */
+.modal-body-inline {
+  padding: 20px;
+}
+
+/* Coin packages */
+.coin-package {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.coin-package:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.coin-package.popular {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fbbf2405, #f59e0b05);
+}
+
+.package-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.package-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.package-coins {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 5px;
+}
+
+
+
+.package-price {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 15px;
+}
+
+.package-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.package-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Subscription cards */
+.sub-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.sub-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.sub-card.pro {
+  background: linear-gradient(135deg, #fbbf2420, #f59e0b20);
+  border-color: #f59e0b;
+}
+
+.sub-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.sub-price {
+  font-size: 28px;
+  font-weight: bold;
+  color: #10b981;
+  margin-bottom: 15px;
+}
+
+.sub-price span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.sub-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+  text-align: left;
+}
+
+.sub-features li {
+  padding: 5px 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.sub-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sub-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Buttons */
+.btn-inline {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary-inline {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn-primary-inline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary-inline {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.btn-secondary-inline:hover {
+  background: #e5e7eb;
+}
+
+/* Daily bonus notification */
+.daily-bonus-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  max-width: 350px;
+  z-index: 10000;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.daily-bonus-notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.daily-bonus-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.daily-bonus-icon {
+  font-size: 48px;
+}
+
+.daily-bonus-text h4 {
+  margin: 0 0 5px 0;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.daily-bonus-text p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.daily-bonus-btn {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.daily-bonus-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Flying coin animation */
+.flying-coin {
+  position: fixed;
+  font-size: 32px;
+  pointer-events: none;
+  z-index: 10001;
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .modal-inline {
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .modal-header-inline {
+    padding: 15px;
+  }
+  
+  .modal-body-inline {
+    padding: 15px;
+  }
+  
+  .package-icon {
+    font-size: 36px;
+  }
+  
+  .package-coins {
+    font-size: 20px;
+  }
+  
+  .daily-bonus-notification {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
