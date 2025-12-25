@@ -1,10 +1,7 @@
 // ============================================
-// 💳 TELEGRAM MANUAL PAYMENT SYSTEM - FIREBASE VERSION
+// 💳 TELEGRAM PAYMENT SYSTEM - MODULAR SDK
 // ============================================
 
-// ============================================
-// 1️⃣ PAYMENT CONFIG
-// ============================================
 const PAYMENT_CONFIG = {
   TELEGRAM: {
     username: 'muhammadali_100',
@@ -20,83 +17,52 @@ const PAYMENT_CONFIG = {
       nameUz: 'PRO Obuna',
       price: 50000,
       duration: '1 oy',
-      benefits: [
-        'Cheksiz coinlar',
-        'Barcha premium toollar',
-        'Reklama yo\'q',
-        'Birinchi qo\'llab-quvvatlash'
-      ]
+      benefits: ['Cheksiz coinlar', 'Barcha premium toollar', 'Reklama yo\'q', 'Birinchi qo\'llab-quvvatlash']
     },
-    
     STANDARD_SUB: {
       name: 'Standard Subscription',
       nameUz: 'Standard Obuna',
       price: 25000,
       duration: '1 oy',
-      benefits: [
-        '100 coin/kun',
-        'Barcha toollar',
-        'Reklama yo\'q'
-      ]
+      benefits: ['100 coin/kun', 'Barcha toollar', 'Reklama yo\'q']
     },
-    
     PRO_SUB: {
       name: 'PRO Subscription',
       nameUz: 'PRO Obuna',
       price: 50000,
       duration: '1 oy',
-      benefits: [
-        'Cheksiz coinlar',
-        'Barcha premium toollar',
-        'Reklama yo\'q',
-        'Birinchi qo\'llab-quvvatlash'
-      ]
+      benefits: ['Cheksiz coinlar', 'Barcha premium toollar', 'Reklama yo\'q', 'Birinchi qo\'llab-quvvatlash']
     },
-    
-    COINS_50: {
-      name: '50 Coins',
-      nameUz: '50 Coin',
-      price: 10000,
-      coins: 50
-    },
-    COINS_100: {
-      name: '100 Coins',
-      nameUz: '100 Coin',
-      price: 17000,
-      coins: 100,
-      bonus: 10
-    },
-    COINS_250: {
-      name: '250 Coins',
-      nameUz: '250 Coin',
-      price: 40000,
-      coins: 250,
-      bonus: 50
-    },
-    COINS_500: {
-      name: '500 Coins',
-      nameUz: '500 Coin',
-      price: 70000,
-      coins: 500,
-      bonus: 150
-    }
+    COINS_50: { name: '50 Coins', nameUz: '50 Coin', price: 10000, coins: 50 },
+    COINS_100: { name: '100 Coins', nameUz: '100 Coin', price: 17000, coins: 100, bonus: 10 },
+    COINS_250: { name: '250 Coins', nameUz: '250 Coin', price: 40000, coins: 250, bonus: 50 },
+    COINS_500: { name: '500 Coins', nameUz: '500 Coin', price: 70000, coins: 500, bonus: 150 }
   }
 };
 
 // ============================================
-// 2️⃣ FIREBASE HELPER
+// HELPER FUNCTIONS
 // ============================================
 
-function getFirebaseDB() {
-  if (!window.firebaseDB) {
+function getDatabase() {
+  if (!window.firebaseDatabase) {
     console.error('❌ Firebase Database not initialized!');
     return null;
   }
-  return window.firebaseDB;
+  return window.firebaseDatabase;
+}
+
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function isAdmin(userId) {
+  const adminIds = ['HYin7lK9AEZNHBnd8zbFVKp2Wc43'];
+  return adminIds.includes(userId);
 }
 
 // ============================================
-// 3️⃣ PAYMENT MODAL UI
+// PAYMENT MODAL
 // ============================================
 
 function openSubscriptionPaymentModal(productType) {
@@ -120,67 +86,43 @@ function openSubscriptionPaymentModal(productType) {
     <div class="modal-inline" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 2px solid #e5e7eb;">
         <h3 style="margin: 0;">💳 To'lov qilish</h3>
-        <button class="modal-close-inline" onclick="closeSubscriptionPaymentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #6b7280; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;">×</button>
+        <button class="modal-close-inline" onclick="closeSubscriptionPaymentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #6b7280;">×</button>
       </div>
       
       <div class="modal-body-inline" style="padding: 20px;">
         <div style="background: linear-gradient(135deg, #667eea20, #764ba220); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <h4 style="margin: 0 0 5px 0; color: #1f2937;">${product.nameUz}</h4>
+              <h4 style="margin: 0 0 5px 0;">${product.nameUz}</h4>
               <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 ${product.duration ? `📅 ${product.duration}` : `🪙 ${product.coins} ta coin`}
                 ${product.bonus ? ` + <strong style="color: #10b981;">${product.bonus} bonus!</strong>` : ''}
               </p>
             </div>
-            <div style="text-align: right;">
-              <div style="font-size: 24px; font-weight: bold; color: #10b981;">
-                ${formatPrice(product.price)} so'm
-              </div>
+            <div style="font-size: 24px; font-weight: bold; color: #10b981;">
+              ${formatPrice(product.price)} so'm
             </div>
           </div>
-          
-          ${product.benefits ? `
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 8px 0; font-weight: 600; color: #374151;">✨ Imkoniyatlar:</p>
-              <ul style="margin: 0; padding-left: 20px; color: #6b7280; font-size: 14px;">
-                ${product.benefits.map(b => `<li style="margin: 4px 0;">${b}</li>`).join('')}
-              </ul>
-            </div>
-          ` : ''}
         </div>
         
         <div style="background: #fef3c7; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
-          <p style="margin: 0 0 10px 0; font-weight: 600; color: #92400e;">
-            📋 To'lov qilish bo'yicha ko'rsatma:
-          </p>
+          <p style="margin: 0 0 10px 0; font-weight: 600; color: #92400e;">📋 To'lov qilish bo'yicha ko'rsatma:</p>
           <ol style="margin: 0; padding-left: 20px; color: #92400e; font-size: 14px;">
-            <li style="margin: 5px 0;">Karta raqamini nusxalang</li>
-            <li style="margin: 5px 0;">Pul o'tkazing</li>
-            <li style="margin: 5px 0;">"Telegramga yozish" tugmasini bosing</li>
-            <li style="margin: 5px 0;">Xabarni yuboring</li>
+            <li>Karta raqamini nusxalang</li>
+            <li>Pul o'tkazing</li>
+            <li>"Telegramga yozish" tugmasini bosing</li>
+            <li>Xabarni yuboring</li>
           </ol>
         </div>
         
         <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-          <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280; font-weight: 600;">
-            💳 Karta raqami:
-          </p>
+          <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280; font-weight: 600;">💳 Karta raqami:</p>
           <div style="display: flex; gap: 10px; align-items: center;">
-            <input 
-              type="text" 
-              id="cardNumberInput" 
-              value="${PAYMENT_CONFIG.CARD_NUMBER}" 
-              readonly
-              style="flex: 1; padding: 12px; font-size: 18px; font-weight: bold; border: 2px solid #e5e7eb; border-radius: 8px; font-family: monospace; letter-spacing: 2px;"
-            >
-            <button 
-              onclick="copySubscriptionCardNumber()" 
-              style="padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;"
-              onmouseover="this.style.background='#2563eb'"
-              onmouseout="this.style.background='#3b82f6'"
-            >
-              <i class="bi bi-copy"></i> Nusxalash
+            <input type="text" id="cardNumberInput" value="${PAYMENT_CONFIG.CARD_NUMBER}" readonly
+              style="flex: 1; padding: 12px; font-size: 18px; font-weight: bold; border: 2px solid #e5e7eb; border-radius: 8px; font-family: monospace;">
+            <button onclick="copySubscriptionCardNumber()" 
+              style="padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              📋 Nusxalash
             </button>
           </div>
           <p style="margin: 10px 0 0 0; font-size: 13px; color: #6b7280;">
@@ -188,21 +130,10 @@ function openSubscriptionPaymentModal(productType) {
           </p>
         </div>
         
-        <button 
-          onclick="openTelegram('${productType}', '${userName}', '${user.uid}', '${user.email}')" 
-          style="width: 100%; padding: 16px; background: linear-gradient(135deg, #0088cc, #006699); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;"
-          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,136,204,0.3)'"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.2-.04-.28-.02-.13.02-2.18 1.38-6.15 4.05-.58.41-1.1.61-1.57.6-.52-.01-1.52-.29-2.26-.53-.91-.29-1.63-.45-1.57-.95.03-.26.36-.53.98-.8 3.84-1.68 6.4-2.79 7.69-3.34 3.66-1.52 4.42-1.79 4.92-1.8.11 0 .35.03.51.17.13.12.17.28.19.39.01.11.03.35.01.54z"/>
-          </svg>
-          Telegramga yozish
+        <button onclick="openTelegram('${productType}', '${userName}', '${user.uid}', '${user.email}')" 
+          style="width: 100%; padding: 16px; background: linear-gradient(135deg, #0088cc, #006699); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">
+          📱 Telegramga yozish
         </button>
-        
-        <p style="margin: 15px 0 0 0; text-align: center; color: #6b7280; font-size: 13px;">
-          ℹ️ To'lovni tasdiqlash 5-10 daqiqa ichida amalga oshiriladi
-        </p>
       </div>
     </div>
   `;
@@ -221,40 +152,20 @@ function closeSubscriptionPaymentModal() {
   document.body.style.overflow = '';
 }
 
-// ============================================
-// 4️⃣ COPY CARD NUMBER
-// ============================================
-
 function copySubscriptionCardNumber() {
   const input = document.getElementById('cardNumberInput');
   if (!input) return;
   
-  input.select();
-  input.setSelectionRange(0, 99999);
-  
   try {
     navigator.clipboard.writeText(PAYMENT_CONFIG.CARD_NUMBER);
     showNotification('✅ Karta raqami nusxalandi!', 'success');
-    
-    const btn = event.target.closest('button');
-    if (btn) {
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi!';
-      btn.style.background = '#10b981';
-      
-      setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = '#3b82f6';
-      }, 2000);
-    }
   } catch (err) {
-    document.execCommand('copy');
-    showNotification('✅ Karta raqami nusxalandi!', 'success');
+    console.error('Copy error:', err);
   }
 }
 
 // ============================================
-// 5️⃣ TELEGRAM DEEP LINK (FIREBASE)
+// TELEGRAM
 // ============================================
 
 function openTelegram(productType, userName, userId, userEmail) {
@@ -281,21 +192,22 @@ Pul o'tkazdim. Iltimos tasdiqlang! 🙏`;
   window.open(telegramUrl, '_blank');
   showNotification('📱 Telegram ochilmoqda...', 'info');
   
-  // ✅ Firebase'ga saqlash
-  logPaymentAttemptToFirebase(productType, userName, userId, userEmail);
+  logPaymentAttempt(productType, userName, userId, userEmail);
 }
 
 // ============================================
-// 6️⃣ FIREBASE PAYMENT LOGGING
+// LOG PAYMENT (MODULAR SDK)
 // ============================================
 
-async function logPaymentAttemptToFirebase(productType, userName, userId, userEmail) {
-  const db = getFirebaseDB();
+async function logPaymentAttempt(productType, userName, userId, userEmail) {
+  const db = getDatabase();
   if (!db) return;
   
   try {
-    const paymentRef = db.ref('payment_attempts').push();
-    await paymentRef.set({
+    const paymentsRef = window.firebaseRef(db, 'payment_attempts');
+    const newPaymentRef = window.firebasePush(paymentsRef);
+    
+    await window.firebaseSet(newPaymentRef, {
       productType,
       userName,
       userId,
@@ -305,15 +217,15 @@ async function logPaymentAttemptToFirebase(productType, userName, userId, userEm
       product: PAYMENT_CONFIG.PRODUCTS[productType]
     });
     
-    console.log('💳 Payment logged to Firebase:', paymentRef.key);
+    console.log('💳 Payment logged:', newPaymentRef.key);
     showNotification('✅ To\'lov so\'rovi yuborildi', 'success');
   } catch (error) {
-    console.error('❌ Firebase logging error:', error);
+    console.error('❌ Payment log error:', error);
   }
 }
 
 // ============================================
-// 7️⃣ ADMIN PANEL (FIREBASE)
+// ADMIN PANEL
 // ============================================
 
 async function openAdminPanel() {
@@ -331,13 +243,9 @@ async function openAdminPanel() {
         <h3>👨‍💼 Admin Panel - To'lovlarni tasdiqlash</h3>
         <button class="modal-close-inline" onclick="closeAdminPanel()">×</button>
       </div>
-      
       <div class="modal-body-inline" style="padding: 20px;">
-        <div id="pendingPaymentsList" style="min-height: 200px;">
-          <div style="text-align: center; padding: 40px; color: #6b7280;">
-            <div class="spinner" style="margin: 0 auto 10px; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            Yuklanmoqda...
-          </div>
+        <div id="pendingPaymentsList">
+          <div style="text-align: center; padding: 40px; color: #6b7280;">Yuklanmoqda...</div>
         </div>
       </div>
     </div>
@@ -347,16 +255,22 @@ async function openAdminPanel() {
   setTimeout(() => modal.classList.add('active'), 10);
   document.body.style.overflow = 'hidden';
   
-  // Load pending payments from Firebase
   await loadPendingPayments();
 }
 
 async function loadPendingPayments() {
-  const db = getFirebaseDB();
+  const db = getDatabase();
   if (!db) return;
   
   try {
-    const snapshot = await db.ref('payment_attempts').orderByChild('status').equalTo('pending').once('value');
+    const paymentsRef = window.firebaseRef(db, 'payment_attempts');
+    const pendingQuery = window.firebaseQuery(
+      paymentsRef,
+      window.firebaseOrderByChild('status'),
+      window.firebaseEqualTo('pending')
+    );
+    
+    const snapshot = await window.firebaseGet(pendingQuery);
     const payments = [];
     
     snapshot.forEach((child) => {
@@ -366,7 +280,6 @@ async function loadPendingPayments() {
       });
     });
     
-    // Sort by timestamp (newest first)
     payments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     const container = document.getElementById('pendingPaymentsList');
@@ -381,7 +294,7 @@ async function loadPendingPayments() {
       <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 15px;">
           <div style="flex: 1; min-width: 250px;">
-            <h4 style="margin: 0 0 8px 0; color: #1f2937;">👤 ${payment.userName}</h4>
+            <h4 style="margin: 0 0 8px 0;">👤 ${payment.userName}</h4>
             <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
               📧 ${payment.userEmail}<br>
               🆔 ${payment.userId}<br>
@@ -390,21 +303,13 @@ async function loadPendingPayments() {
               📅 ${new Date(payment.timestamp).toLocaleString('uz-UZ')}
             </p>
           </div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button 
-              onclick="approvePaymentFirebase('${payment.key}', '${payment.userId}', '${payment.productType}')" 
-              style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;"
-              onmouseover="this.style.background='#059669'"
-              onmouseout="this.style.background='#10b981'"
-            >
+          <div style="display: flex; gap: 10px;">
+            <button onclick="approvePayment('${payment.key}', '${payment.userId}', '${payment.productType}')" 
+              style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
               ✅ Tasdiqlash
             </button>
-            <button 
-              onclick="rejectPaymentFirebase('${payment.key}')" 
-              style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;"
-              onmouseover="this.style.background='#dc2626'"
-              onmouseout="this.style.background='#ef4444'"
-            >
+            <button onclick="rejectPayment('${payment.key}')" 
+              style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
               ❌ Rad etish
             </button>
           </div>
@@ -413,11 +318,7 @@ async function loadPendingPayments() {
     `).join('');
     
   } catch (error) {
-    console.error('❌ Error loading payments:', error);
-    const container = document.getElementById('pendingPaymentsList');
-    if (container) {
-      container.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px;">❌ Xatolik yuz berdi</p>';
-    }
+    console.error('❌ Load payments error:', error);
   }
 }
 
@@ -431,34 +332,34 @@ function closeAdminPanel() {
 }
 
 // ============================================
-// 8️⃣ APPROVE/REJECT PAYMENTS (FIREBASE)
+// APPROVE/REJECT (MODULAR SDK)
 // ============================================
 
-async function approvePaymentFirebase(paymentKey, userId, productType) {
-  const db = getFirebaseDB();
+async function approvePayment(paymentKey, userId, productType) {
+  const db = getDatabase();
   if (!db) return;
   
   try {
-    // Update payment status
-    await db.ref(`payment_attempts/${paymentKey}`).update({
+    const paymentRef = window.firebaseRef(db, `payment_attempts/${paymentKey}`);
+    await window.firebaseUpdate(paymentRef, {
       status: 'approved',
       approvedAt: new Date().toISOString(),
       approvedBy: window.firebaseAuth?.currentUser?.uid
     });
     
-    // Get product info
     const product = PAYMENT_CONFIG.PRODUCTS[productType];
     
-    // Update user's subscription or coins
     if (productType === 'PRO' || productType === 'PRO_SUB') {
-      await db.ref(`users/${userId}/subscription`).set({
+      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
+      await window.firebaseSet(subRef, {
         type: 'pro',
         expiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         activatedAt: new Date().toISOString()
       });
       showNotification('✅ PRO obuna faollashtirildi!', 'success');
     } else if (productType === 'STANDARD_SUB') {
-      await db.ref(`users/${userId}/subscription`).set({
+      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
+      await window.firebaseSet(subRef, {
         type: 'standard',
         expiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         activatedAt: new Date().toISOString()
@@ -466,14 +367,13 @@ async function approvePaymentFirebase(paymentKey, userId, productType) {
       showNotification('✅ Standard obuna faollashtirildi!', 'success');
     } else if (product.coins) {
       const coinsToAdd = product.coins + (product.bonus || 0);
-      const userCoinsRef = db.ref(`users/${userId}/coins`);
-      const snapshot = await userCoinsRef.once('value');
+      const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+      const snapshot = await window.firebaseGet(coinsRef);
       const currentCoins = snapshot.val() || 0;
-      await userCoinsRef.set(currentCoins + coinsToAdd);
+      await window.firebaseSet(coinsRef, currentCoins + coinsToAdd);
       showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
     }
     
-    // Reload admin panel
     closeAdminPanel();
     setTimeout(() => openAdminPanel(), 300);
     
@@ -483,20 +383,19 @@ async function approvePaymentFirebase(paymentKey, userId, productType) {
   }
 }
 
-async function rejectPaymentFirebase(paymentKey) {
-  const db = getFirebaseDB();
+async function rejectPayment(paymentKey) {
+  const db = getDatabase();
   if (!db) return;
   
   try {
-    await db.ref(`payment_attempts/${paymentKey}`).update({
+    const paymentRef = window.firebaseRef(db, `payment_attempts/${paymentKey}`);
+    await window.firebaseUpdate(paymentRef, {
       status: 'rejected',
       rejectedAt: new Date().toISOString(),
       rejectedBy: window.firebaseAuth?.currentUser?.uid
     });
     
     showNotification('❌ To\'lov rad etildi', 'info');
-    
-    // Reload admin panel
     closeAdminPanel();
     setTimeout(() => openAdminPanel(), 300);
     
@@ -507,36 +406,7 @@ async function rejectPaymentFirebase(paymentKey) {
 }
 
 // ============================================
-// 9️⃣ ADMIN CHECK
-// ============================================
-
-function isAdmin(userId) {
-  const adminIds = ['HYin7lK9AEZNHBnd8zbFVKp2Wc43']; // ✅ Sizning UID
-  return adminIds.includes(userId);
-}
-
-// ============================================
-// 🔟 HELPER FUNCTIONS
-// ============================================
-
-function formatPrice(price) {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-}
-
-// ============================================
-// 1️⃣1️⃣ ANIMATIONS
-// ============================================
-
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
-
-// ============================================
-// 1️⃣2️⃣ GLOBAL EXPORTS
+// GLOBAL EXPORTS
 // ============================================
 
 window.openSubscriptionPaymentModal = openSubscriptionPaymentModal;
@@ -545,7 +415,7 @@ window.copySubscriptionCardNumber = copySubscriptionCardNumber;
 window.openTelegram = openTelegram;
 window.openAdminPanel = openAdminPanel;
 window.closeAdminPanel = closeAdminPanel;
-window.approvePaymentFirebase = approvePaymentFirebase;
-window.rejectPaymentFirebase = rejectPaymentFirebase;
+window.approvePayment = approvePayment;
+window.rejectPayment = rejectPayment;
 
-console.log('✅ Telegram Payment System (Firebase Version) loaded!');
+console.log('✅ Subscription.js (Modular SDK) loaded!');

@@ -1,42 +1,43 @@
 // ============================================
-// 👨‍💼 ADMIN PANEL BUTTON - FIREBASE VERSION
+// 👨‍💼 ADMIN PANEL BUTTON - MODULAR SDK
 // ============================================
 
 (function() {
   'use strict';
   
-  // ============================================
-  // 1️⃣ ADMIN CONFIG
-  // ============================================
-  
   const ADMIN_CONFIG = {
-    ADMIN_UIDS: [
-      'HYin7lK9AEZNHBnd8zbFVKp2Wc43',  // Sizning UID
-    ],
-    
-    POSITION: {
-      bottom: '20px',
-      left: '20px'
-    },
-    
+    ADMIN_UIDS: ['HYin7lK9AEZNHBnd8zbFVKp2Wc43'],
+    POSITION: { bottom: '20px', left: '20px' },
     STYLE: {
       background: 'linear-gradient(135deg, #ef4444, #dc2626)',
       hoverBackground: 'linear-gradient(135deg, #dc2626, #b91c1c)'
-    }
+    },
+    MAX_RETRIES: 15,
+    RETRY_DELAY: 1000
   };
   
+  let retryCount = 0;
+  let paymentListener = null;
+  
   // ============================================
-  // 2️⃣ CHECK IF USER IS ADMIN
+  // CHECK ADMIN ACCESS
   // ============================================
   
   function checkAdminAccess() {
     const auth = window.firebaseAuth;
     
     if (!auth) {
-      console.warn('⚠️ Firebase Auth not loaded yet, retrying...');
-      setTimeout(checkAdminAccess, 1000);
+      retryCount++;
+      if (retryCount < ADMIN_CONFIG.MAX_RETRIES) {
+        console.warn(`⚠️ [${retryCount}/${ADMIN_CONFIG.MAX_RETRIES}] Waiting for Firebase Auth...`);
+        setTimeout(checkAdminAccess, ADMIN_CONFIG.RETRY_DELAY);
+      } else {
+        console.error('❌ Firebase Auth not loaded after 15 attempts');
+      }
       return;
     }
+    
+    console.log('✅ Firebase Auth detected');
     
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -44,6 +45,7 @@
         
         if (isAdmin) {
           console.log('👨‍💼 Admin user detected:', user.email);
+          console.log('🆔 Admin UID:', user.uid);
           createAdminButton();
           startListeningForPayments();
         } else {
@@ -54,35 +56,71 @@
   }
   
   // ============================================
-  // 3️⃣ LISTEN FOR NEW PAYMENTS (FIREBASE)
+  // LISTEN FOR PAYMENTS (MODULAR SDK)
   // ============================================
   
   function startListeningForPayments() {
-    const db = window.firebaseDB;
+    const db = window.firebaseDatabase;
+    
     if (!db) {
-      console.warn('⚠️ Firebase Database not loaded yet, retrying...');
-      setTimeout(startListeningForPayments, 1000);
+      retryCount++;
+      if (retryCount < ADMIN_CONFIG.MAX_RETRIES) {
+        console.warn(`⚠️ [${retryCount}/${ADMIN_CONFIG.MAX_RETRIES}] Waiting for Firebase Database...`);
+        setTimeout(startListeningForPayments, ADMIN_CONFIG.RETRY_DELAY);
+      } else {
+        console.error('❌ Firebase Database not loaded after 15 attempts');
+        console.error('💡 Check if databaseURL is set in Firebase config');
+      }
       return;
     }
     
-    // Listen for pending payments
-    db.ref('payment_attempts')
-      .orderByChild('status')
-      .equalTo('pending')
-      .on('value', (snapshot) => {
-        const count = snapshot.numChildren();
-        updateNotificationBadge(count);
-      });
+    console.log('✅ Firebase Database detected');
     
-    console.log('✅ Started listening for payments');
+    try {
+      // Stop previous listener
+      if (paymentListener) {
+        paymentListener();
+      }
+      
+      // Create query reference
+      const paymentsRef = window.firebaseRef(db, 'payment_attempts');
+      const pendingQuery = window.firebaseQuery(
+        paymentsRef,
+        window.firebaseOrderByChild('status'),
+        window.firebaseEqualTo('pending')
+      );
+      
+      // Listen for changes
+      paymentListener = window.firebaseOnValue(pendingQuery, 
+        (snapshot) => {
+          const count = snapshot.size;
+          updateNotificationBadge(count);
+          
+          if (count > 0) {
+            console.log(`🔔 ${count} pending payment(s)`);
+          }
+        },
+        (error) => {
+          console.error('❌ Payment listener error:', error);
+          console.error('💡 Check Firebase Database Rules!');
+          console.error('💡 Rules should allow read access to payment_attempts for admins');
+        }
+      );
+      
+      console.log('✅ Payment listener started');
+      
+    } catch (error) {
+      console.error('❌ Error setting up listener:', error);
+    }
   }
   
   // ============================================
-  // 4️⃣ CREATE ADMIN BUTTON
+  // CREATE ADMIN BUTTON
   // ============================================
   
   function createAdminButton() {
     if (document.getElementById('adminPanelButton')) {
+      console.log('ℹ️ Admin button already exists');
       return;
     }
     
@@ -106,7 +144,7 @@
         <path d="M2 12l10 5 10-5"></path>
       </svg>
       Admin Panel
-      <span id="adminNotificationBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
+      <span id="adminNotificationBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
     `;
     
     button.style.cssText = `
@@ -146,7 +184,7 @@
   }
   
   // ============================================
-  // 5️⃣ UPDATE NOTIFICATION BADGE
+  // UPDATE BADGE
   // ============================================
   
   function updateNotificationBadge(count) {
@@ -157,10 +195,17 @@
       badge.textContent = count;
       badge.style.display = 'flex';
       
-      // Optional: Play notification sound
       if (window.lastNotificationCount !== count) {
         console.log(`🔔 ${count} pending payment(s)`);
         window.lastNotificationCount = count;
+        
+        // Desktop notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Yangi to\'lov so\'rovi', {
+            body: `${count} ta yangi to'lov kutilmoqda`,
+            icon: '/favicon.ico'
+          });
+        }
       }
     } else {
       badge.style.display = 'none';
@@ -168,44 +213,33 @@
   }
   
   // ============================================
-  // 6️⃣ OPEN ADMIN PANEL WITH CHECK
+  // OPEN PANEL
   // ============================================
   
   function openAdminPanelWithCheck() {
     if (typeof window.openAdminPanel === 'function') {
+      console.log('📊 Opening admin panel...');
       window.openAdminPanel();
     } else {
       console.error('❌ openAdminPanel function not found!');
-      alert('Admin panel funksiyasi topilmadi. Iltimos subscription.js yuklanganini tekshiring.');
+      alert('Admin panel funksiyasi topilmadi. subscription.js yuklanganini tekshiring.');
     }
   }
   
   // ============================================
-  // 7️⃣ ADD ANIMATIONS
+  // ANIMATIONS
   // ============================================
   
   const style = document.createElement('style');
   style.textContent = `
     @keyframes slideInFromLeft {
-      from {
-        transform: translateX(-100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
     
     @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-      }
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
     }
     
     @media (max-width: 768px) {
@@ -213,7 +247,6 @@
         bottom: 80px !important;
         left: 10px !important;
       }
-      
       #adminPanelBtn {
         padding: 12px 20px !important;
         font-size: 13px !important;
@@ -223,7 +256,7 @@
   document.head.appendChild(style);
   
   // ============================================
-  // 8️⃣ INITIALIZE
+  // INITIALIZE
   // ============================================
   
   if (document.readyState === 'loading') {
@@ -232,32 +265,47 @@
     checkAdminAccess();
   }
   
-  console.log('✅ Admin button script (Firebase) loaded');
+  console.log('✅ Admin button script (Modular SDK) loaded');
   
 })();
 
 // ============================================
-// 9️⃣ HELPER: GET YOUR UID
+// HELPERS
 // ============================================
 
 function getMyUID() {
   const user = window.firebaseAuth?.currentUser;
   if (user) {
-    console.log('👤 Your Firebase UID:', user.uid);
+    console.log('👤 Your UID:', user.uid);
     console.log('📧 Your email:', user.email);
-    console.log('📋 Copy this UID and paste it in ADMIN_CONFIG.ADMIN_UIDS');
-    
     if (navigator.clipboard) {
       navigator.clipboard.writeText(user.uid);
-      console.log('✅ UID copied to clipboard!');
+      console.log('✅ UID copied!');
     }
-    
     return user.uid;
   } else {
-    console.error('❌ No user logged in. Please sign in first.');
+    console.error('❌ Not logged in');
     return null;
   }
 }
 
+function debugFirebase() {
+  console.log('=== 🔥 FIREBASE DEBUG ===');
+  console.log('Auth:', window.firebaseAuth ? '✅' : '❌');
+  console.log('Database:', window.firebaseDatabase ? '✅' : '❌');
+  console.log('Current User:', window.firebaseAuth?.currentUser?.email || '❌');
+  
+  if (window.firebaseDatabase) {
+    const connectedRef = window.firebaseRef(window.firebaseDatabase, '.info/connected');
+    window.firebaseOnValue(connectedRef, (snapshot) => {
+      console.log('DB Connected:', snapshot.val() ? '✅' : '❌');
+    });
+  }
+  console.log('======================');
+}
+
 window.getMyUID = getMyUID;
-console.log('💡 Tip: Run "getMyUID()" in console to get your Firebase UID');
+window.debugFirebase = debugFirebase;
+
+console.log('💡 Run "getMyUID()" to get your UID');
+console.log('💡 Run "debugFirebase()" to check connection');

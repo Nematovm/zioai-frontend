@@ -23,6 +23,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- PDF Library - jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- 1️⃣ Firebase SDK'lari -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
 <!-- ============================================ -->
 <!-- MATH RENDERING LIBRARIES -->
 <!-- ============================================ -->
@@ -1325,8 +1331,10 @@
 
 
 
-    <!-- Firebase Auth -->
 <script type="module">
+  // ============================================
+  // 1️⃣ FIREBASE IMPORTS
+  // ============================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { 
     getAuth, 
@@ -1339,21 +1347,54 @@
     reauthenticateWithCredential,
     EmailAuthProvider
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  
+  // ✅ REALTIME DATABASE IMPORT (YANGI!)
+  import { 
+    getDatabase, 
+    ref, 
+    set, 
+    get, 
+    update, 
+    remove, 
+    onValue,
+    push,
+    query,
+    orderByChild,
+    equalTo
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+  // ============================================
+  // 2️⃣ FIREBASE CONFIG
+  // ============================================
   const firebaseConfig = {
     apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
     authDomain: "zioai-96e9f.firebaseapp.com",
+    databaseURL: "https://zioai-96e9f-default-rtdb.firebaseio.com",  // ✅ QOSHILDI!
     projectId: "zioai-96e9f",
     storageBucket: "zioai-96e9f.firebasestorage.app",
     messagingSenderId: "766076125152",
     appId: "1:766076125152:web:9cd609efb7895386547585"
   };
 
+  // ============================================
+  // 3️⃣ FIREBASE INITIALIZATION
+  // ============================================
+  console.log('🔥 Initializing Firebase...');
+  
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const database = getDatabase(app);  // ✅ DATABASE YANGI!
 
-  // Global variables uchun
+  // ============================================
+  // 4️⃣ GLOBAL VARIABLES (MODULAR SDK VERSION)
+  // ============================================
+  
+  // Auth
+  window.firebaseApp = app;
   window.firebaseAuth = auth;
+  window.firebaseDatabase = database;  // ✅ YANGI!
+  
+  // Auth functions
   window.updateProfile = updateProfile;
   window.updateEmail = updateEmail;
   window.updatePassword = updatePassword;
@@ -1361,23 +1402,36 @@
   window.reauthenticateWithCredential = reauthenticateWithCredential;
   window.EmailAuthProvider = EmailAuthProvider;
   window.getAuth = getAuth;
+  
+  // Database functions (✅ YANGI!)
+  window.firebaseRef = ref;
+  window.firebaseSet = set;
+  window.firebaseGet = get;
+  window.firebaseUpdate = update;
+  window.firebaseRemove = remove;
+  window.firebaseOnValue = onValue;
+  window.firebasePush = push;
+  window.firebaseQuery = query;
+  window.firebaseOrderByChild = orderByChild;
+  window.firebaseEqualTo = equalTo;
+
+  console.log('✅ Firebase Auth initialized');
+  console.log('✅ Firebase Database initialized');
 
   // ============================================
-  // USERNAME EXTRACTION HELPER - YANGILANGAN ✅
+  // 5️⃣ USERNAME EXTRACTION HELPER
   // ============================================
   function extractUsername(displayName, email) {
     if (!displayName) {
       return email ? email.split('@')[0] : 'User';
     }
     
-    // Barcha emoji-larni olib tashlash (kengaytirilgan Unicode range)
     let username = displayName
-      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')  // Emoji range 1
-      .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc Symbols
-      .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
       .trim();
     
-    // Agar bo'sh string qolsa yoki faqat probel bo'lsa
     if (!username || username.length === 0 || /^\s*$/.test(username)) {
       username = email ? email.split('@')[0] : 'User';
     }
@@ -1386,7 +1440,7 @@
   }
 
   // ============================================
-  // UPDATE USERNAME IN UI - YANGILANGAN ✅
+  // 6️⃣ UPDATE USERNAME IN UI
   // ============================================
   function updateUserName(user) {
     if (!user) return;
@@ -1397,17 +1451,14 @@
     const username = extractUsername(user.displayName, user.email);
     console.log("✅ Extracted username:", username);
     
-    // Sidebar username
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
       userNameElement.textContent = username;
       console.log("✅ Sidebar username updated");
     }
     
-    // Dashboard header title
     const headerTitle = document.getElementById('headerTitle');
     if (headerTitle) {
-      // Agar "Welcome back" bo'lsa, username qo'shish
       if (headerTitle.textContent.includes('Welcome back') || 
           headerTitle.textContent === 'Welcome back, Student!') {
         headerTitle.textContent = `Welcome back, ${username}!`;
@@ -1417,7 +1468,7 @@
   }
 
   // ============================================
-  // AUTH STATE CHANGED - YANGILANGAN ✅
+  // 7️⃣ AUTH STATE CHANGED
   // ============================================
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -1425,14 +1476,16 @@
       console.log("📝 Display Name:", user.displayName);
       console.log("👤 UID:", user.uid);
       
-      // USERNAME NI YANGILASH
       updateUserName(user);
       
-      // Spinner ni yashirish
       const spinner = document.querySelector(".spinner-wrapper");
       if (spinner) {
         spinner.style.display = "none";
       }
+      
+      // ✅ Test database connection
+      testDatabaseConnection(user);
+      
     } else {
       console.log("❌ No user logged in");
       window.location.href = "./login.html";
@@ -1440,7 +1493,57 @@
   });
 
   // ============================================
-  // LOGOUT FUNCTIONALITY
+  // 8️⃣ TEST DATABASE CONNECTION (YANGI!)
+  // ============================================
+  async function testDatabaseConnection(user) {
+    try {
+      const connectedRef = ref(database, '.info/connected');
+      onValue(connectedRef, (snapshot) => {
+        if (snapshot.val() === true) {
+          console.log('✅ Connected to Firebase Realtime Database');
+          
+          // Initialize user in database if needed
+          initializeUserInDatabase(user);
+        } else {
+          console.log('❌ Disconnected from Firebase Realtime Database');
+        }
+      });
+    } catch (error) {
+      console.error('❌ Database connection test error:', error);
+    }
+  }
+
+  // ============================================
+  // 9️⃣ INITIALIZE USER IN DATABASE (YANGI!)
+  // ============================================
+  async function initializeUserInDatabase(user) {
+    try {
+      const userRef = ref(database, `users/${user.uid}`);
+      const snapshot = await get(userRef);
+      
+      if (!snapshot.exists()) {
+        // Create new user
+        await set(userRef, {
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          coins: 0,
+          createdAt: new Date().toISOString(),
+          subscription: {
+            type: 'free',
+            expiry: null
+          }
+        });
+        console.log('✅ User initialized in database');
+      } else {
+        console.log('✅ User exists in database');
+      }
+    } catch (error) {
+      console.error('❌ Error initializing user:', error);
+    }
+  }
+
+  // ============================================
+  // 🔟 LOGOUT FUNCTIONALITY
   // ============================================
   const logoutBtn = document.getElementById("logoutBtn");
   const logoutModal = document.getElementById("logoutModal");
@@ -1449,11 +1552,11 @@
 
   logoutBtn?.addEventListener("click", (e) => {
     e.preventDefault();
-    logoutModal.classList.add("active");
+    logoutModal?.classList.add("active");
   });
 
   cancelLogout?.addEventListener("click", () => {
-    logoutModal.classList.remove("active");
+    logoutModal?.classList.remove("active");
   });
 
   confirmLogout?.addEventListener("click", async () => {
@@ -1468,16 +1571,44 @@
   });
 
   // ============================================
-  // GLOBAL USERNAME UPDATE FUNCTION
+  // 1️⃣1️⃣ DEBUG HELPER (CONSOLE'DA TEKSHIRISH)
   // ============================================
-  // Bu funksiyani profile.js dan chaqirish mumkin
-  window.refreshUsername = function() {
-    const user = auth.currentUser;
-    if (user) {
-      updateUserName(user);
+  window.testFirebase = async function() {
+    console.log('=== 🔥 FIREBASE TEST ===');
+    console.log('Auth:', auth ? '✅' : '❌');
+    console.log('Database:', database ? '✅' : '❌');
+    console.log('Current User:', auth.currentUser?.email || '❌ Not logged in');
+    
+    if (auth.currentUser) {
+      try {
+        // Test write
+        const testRef = ref(database, `test/${auth.currentUser.uid}`);
+        await set(testRef, {
+          message: 'Test successful!',
+          timestamp: new Date().toISOString()
+        });
+        console.log('✅ Database WRITE test: SUCCESS');
+        
+        // Test read
+        const snapshot = await get(testRef);
+        console.log('✅ Database READ test: SUCCESS', snapshot.val());
+        
+        // Clean up
+        await remove(testRef);
+        console.log('✅ Database DELETE test: SUCCESS');
+        
+      } catch (error) {
+        console.error('❌ Database test FAILED:', error);
+        console.error('💡 Check Firebase Database Rules!');
+      }
     }
+    console.log('======================');
   };
+
+  console.log('💡 Run "testFirebase()" in console to test database connection');
+
 </script>
+
 <style>
 @keyframes slideIn {
   from {
