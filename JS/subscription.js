@@ -377,9 +377,15 @@ function closeAdminPanel() {
 
 async function approvePayment(paymentKey, userId, productType) {
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
+  
+  console.log('🔄 Approving payment:', { paymentKey, userId, productType });
   
   try {
+    // 1. Update payment status
     const paymentRef = window.firebaseRef(db, `payment_attempts/${paymentKey}`);
     await window.firebaseUpdate(paymentRef, {
       status: 'approved',
@@ -387,39 +393,145 @@ async function approvePayment(paymentKey, userId, productType) {
       approvedBy: window.firebaseAuth?.currentUser?.uid
     });
     
-    const product = PAYMENT_CONFIG.PRODUCTS[productType];
+    console.log('✅ Payment status updated');
     
-    if (productType === 'PRO' || productType === 'PRO_SUB') {
-      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
-      await window.firebaseSet(subRef, {
-        type: 'pro',
-        expiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        activatedAt: new Date().toISOString()
-      });
-      showNotification('✅ PRO obuna faollashtirildi!', 'success');
-    } else if (productType === 'STANDARD_SUB') {
-      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
-      await window.firebaseSet(subRef, {
-        type: 'standard',
-        expiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        activatedAt: new Date().toISOString()
-      });
-      showNotification('✅ Standard obuna faollashtirildi!', 'success');
-    } else if (product.coins) {
-      const coinsToAdd = product.coins + (product.bonus || 0);
-      const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
-      const snapshot = await window.firebaseGet(coinsRef);
-      const currentCoins = snapshot.val() || 0;
-      await window.firebaseSet(coinsRef, currentCoins + coinsToAdd);
-      showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
+    // 2. Get product info
+    const product = PAYMENT_CONFIG.PRODUCTS[productType];
+    if (!product) {
+      throw new Error('Product not found: ' + productType);
     }
     
+    console.log('📦 Product:', product);
+    
+    // 3. Process based on product type
+    if (productType === 'PRO' || productType === 'PRO_SUB') {
+      // PRO Subscription
+      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
+      
+      await window.firebaseSet(subRef, {
+        type: 'pro',
+        expiry: expiryDate.toISOString(),
+        activatedAt: new Date().toISOString(),
+        status: 'active'
+      });
+      
+      console.log('✅ PRO subscription activated');
+      showNotification('✅ PRO obuna faollashtirildi!', 'success');
+      
+    } else if (productType === 'STANDARD_SUB') {
+      // Standard Subscription
+      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
+      
+      await window.firebaseSet(subRef, {
+        type: 'standard',
+        expiry: expiryDate.toISOString(),
+        activatedAt: new Date().toISOString(),
+        status: 'active'
+      });
+      
+      console.log('✅ Standard subscription activated');
+      showNotification('✅ Standard obuna faollashtirildi!', 'success');
+      
+    } else if (product.coins) {
+      // Coins purchase
+      const coinsToAdd = product.coins + (product.bonus || 0);
+      
+      // Get current coins using transaction to avoid race conditions
+      const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+      
+      // Read current value
+      const snapshot = await window.firebaseGet(coinsRef);
+      const currentCoins = snapshot.val() || 0;
+      const newCoins = currentCoins + coinsToAdd;
+      
+      // Write new value
+      await window.firebaseSet(coinsRef, newCoins);
+      
+      console.log(`✅ Coins added: ${currentCoins} + ${coinsToAdd} = ${newCoins}`);
+      showNotification(`✅ ${coinsToAdd} coin qo'shildi! (${currentCoins} → ${newCoins})`, 'success');
+      
+      // Also log the transaction
+      const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+      const newTransactionRef = window.firebasePush(transactionRef);
+      await window.firebaseSet(newTransactionRef, {
+        type: 'purchase',
+        amount: coinsToAdd,
+        productType: productType,
+        timestamp: new Date().toISOString(),
+        paymentKey: paymentKey
+      });
+      
+    } else {
+      throw new Error('Unknown product type: ' + productType);
+    }
+    
+    // 4. Reload admin panel
+    console.log('✅ Payment approved successfully!');
     closeAdminPanel();
-    setTimeout(() => openAdminPanel(), 300);
+    setTimeout(() => openAdminPanel(), 500);
     
   } catch (error) {
     console.error('❌ Approve error:', error);
-    showNotification('❌ Xatolik yuz berdi', 'error');
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    if (error.code === 'PERMISSION_DENIED') {
+      showNotification('❌ Ruxsat yo\'q! Rules tekshiring.', 'error');
+      alert(`❌ Permission Denied!
+      
+User ID: ${userId}
+Product: ${productType}
+
+Firebase Rules'da users/${userId} ga yozish huquqi yo'q.
+
+Tekshiring:
+1. Firebase Console > Database > Rules
+2. "users" qismida admin ruxsati borligini tasdiqlang
+3. Rule to'g'ri bo'lishi kerak:
+   "users": {
+     "$uid": {
+       ".write": "$uid === auth.uid || root.child('admins').child(auth.uid).val() === true"
+     }
+   }`);
+    } else {
+      showNotification('❌ Xatolik: ' + error.message, 'error');
+    }
+  }
+}
+
+async function rejectPayment(paymentKey) {
+  const db = getDatabase();
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
+  
+  console.log('❌ Rejecting payment:', paymentKey);
+  
+  try {
+    const paymentRef = window.firebaseRef(db, `payment_attempts/${paymentKey}`);
+    await window.firebaseUpdate(paymentRef, {
+      status: 'rejected',
+      rejectedAt: new Date().toISOString(),
+      rejectedBy: window.firebaseAuth?.currentUser?.uid
+    });
+    
+    console.log('✅ Payment rejected');
+    showNotification('❌ To\'lov rad etildi', 'info');
+    
+    closeAdminPanel();
+    setTimeout(() => openAdminPanel(), 500);
+    
+  } catch (error) {
+    console.error('❌ Reject error:', error);
+    showNotification('❌ Xatolik: ' + error.message, 'error');
   }
 }
 
