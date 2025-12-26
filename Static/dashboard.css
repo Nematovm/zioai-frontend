@@ -2409,6 +2409,7 @@ input:checked + .slider:before {
   color: #1f2937;
 }
 
+
 .activity-score {
   font-weight: 700;
   font-size: 0.875rem;
@@ -3573,3 +3574,5 @@ input:checked + .slider:before {
   transition: width 1s ease;
   border-radius: 10px;
 }
+
+

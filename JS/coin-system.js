@@ -233,23 +233,33 @@ async function canUseTool(toolName) {
 }
 
 // ============================================
-// 9️⃣ USE TOOL
+// 9️⃣ USE TOOL - FIXED TO STOP EXECUTION ✅
 // ============================================
 async function useTool(toolName) {
   const check = await canUseTool(toolName);
   
   if (!check.canUse) {
     console.error(`❌ Cannot use ${toolName}: ${check.reason}`);
+    
+    // ✅ SHOW MODAL IMMEDIATELY
+    const currentCoins = await getUserCoins();
     if (typeof showInsufficientCoinsModal === 'function') {
-      const currentCoins = await getUserCoins();
       showInsufficientCoinsModal(check.cost, currentCoins);
     }
+    
+    // ✅ CRITICAL: Return false to stop execution
     return false;
   }
   
   if (check.cost > 0) {
     const success = await spendCoins(check.cost, `Used ${toolName} tool`);
-    return success;
+    
+    if (!success) {
+      console.error(`❌ Failed to deduct ${check.cost} coins`);
+      return false;
+    }
+    
+    return true;
   }
   
   return true;

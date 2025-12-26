@@ -137,9 +137,16 @@ function switchTool(toolName) {
       showArticlesTool();
     }
 
-    if (toolName === "profile" && typeof showProfileTool === "function") {
-      showProfileTool();
-    }
+// ✅ UPDATE PROFILE WHEN SWITCHING TO PROFILE
+if (toolName === "profile") {
+  if (typeof showProfileTool === "function") {
+    showProfileTool();
+  }
+  // Update profile data
+  if (typeof updateProfileCoinDisplay === "function") {
+    updateProfileCoinDisplay();
+  }
+}
   }
 
   // Update header
@@ -640,7 +647,6 @@ document.addEventListener("paste", (e) => {
 
 // ============================================
 // COIN CHECK FUNCTION - FIREBASE VERSION ✅
-// REPLACE EXISTING checkAndSpendCoins FUNCTION
 // ============================================
 async function checkAndSpendCoins(toolName) {
   console.log(`🪙 Checking coins for tool: ${toolName}`);
@@ -661,40 +667,23 @@ async function checkAndSpendCoins(toolName) {
   }
   
   try {
-    // ✅ Check if user can use tool
-    const check = await canUseTool(toolName);
+    // ✅ CRITICAL: Use useTool which checks AND deducts
+    const success = await useTool(toolName);
     
-    console.log(`💰 Tool: ${toolName}`);
-    console.log(`   Cost: ${check.cost} coins`);
-    console.log(`   Can use: ${check.canUse}`);
-    console.log(`   Reason: ${check.reason}`);
-    
-    if (!check.canUse) {
-      // Show insufficient coins modal
-      const currentCoins = await getUserCoins();
-      if (typeof showInsufficientCoinsModal === 'function') {
-        showInsufficientCoinsModal(check.cost, currentCoins);
-      } else {
-        alert(`⚠️ Not enough coins!\n\nRequired: ${check.cost} coins\nYour balance: ${currentCoins} coins`);
-      }
+    if (!success) {
+      console.error(`❌ Cannot use tool: ${toolName}`);
+      // Modal is already shown by useTool()
       return false;
     }
     
-    // ✅ Spend coins
-    const success = await useTool(toolName);
+    console.log(`✅ Tool ${toolName} authorized and coins deducted`);
     
-    if (success) {
-      console.log(`✅ Successfully spent ${check.cost} coins for ${toolName}`);
-      
-      // Update display
-      if (typeof updateCoinDisplay === 'function') {
-        await updateCoinDisplay();
-      }
-    } else {
-      console.error(`❌ Failed to spend coins for ${toolName}`);
+    // Update display
+    if (typeof updateCoinDisplay === 'function') {
+      await updateCoinDisplay();
     }
     
-    return success;
+    return true;
     
   } catch (error) {
     console.error(`❌ Coin check error for ${toolName}:`, error);
@@ -936,16 +925,16 @@ if (window.coinManager && window.coinManager.data.subscription === 'pro') {
 async function fixHomework() {
   console.log('🎯 fixHomework() called');
   
-  // 🪙 COIN CHECK - MUST BE FIRST
+  // 🪙 COIN CHECK - MUST BE FIRST AND BLOCK EXECUTION
   console.log('💰 Checking coins...');
-  const canProceed = checkAndSpendCoins('homework');
+  const canProceed = await checkAndSpendCoins('homework');
   
   if (!canProceed) {
-    console.error('❌ Cannot proceed: insufficient coins or coin check failed');
-    return;
+    console.error('❌ BLOCKED: insufficient coins or coin check failed');
+    return; // ✅ STOP HERE - DO NOT CONTINUE
   }
   
-  console.log('✅ Coins deducted successfully');
+  console.log('✅ Coins deducted successfully, proceeding...');
 
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
@@ -1707,13 +1696,16 @@ if (grammarInput && wordCounter) {
 // CHECK WRITING - WITH COIN REFUND ✅
 // ============================================
 async function checkWriting() {
-  // 🪙 COIN CHECK - MUST BE FIRST
+  // 🪙 COIN CHECK - MUST BE FIRST AND BLOCK EXECUTION
   console.log('💰 Checking coins for Writing Checker...');
-  if (!checkAndSpendCoins('grammar')) {
-    console.error('❌ Insufficient coins for Writing Checker');
-    return;
+  const canProceed = await checkAndSpendCoins('grammar');
+  
+  if (!canProceed) {
+    console.error('❌ BLOCKED: Insufficient coins for Writing Checker');
+    return; // ✅ STOP HERE
   }
-  console.log('✅ Coins deducted for Writing Checker');
+  
+  console.log('✅ Coins deducted for Writing Checker, proceeding...');
   
   const text = document.getElementById("grammarInput").value;
   const language = document.getElementById("grammar-language").value;
@@ -3614,10 +3606,17 @@ function detectWordLanguage(word) {
 let isVocabProcessing = false;
 
 async function buildVocab() {
-    // 🪙 COIN CHECK
-  if (!checkAndSpendCoins('vocabulary')) {
-    return;
+  // 🪙 COIN CHECK - MUST BLOCK EXECUTION
+  console.log('💰 Checking coins for Vocabulary...');
+  const canProceed = await checkAndSpendCoins('vocabulary');
+  
+  if (!canProceed) {
+    console.error('❌ BLOCKED: Insufficient coins for Vocabulary');
+    return; // ✅ STOP HERE
   }
+  
+  console.log('✅ Coins deducted for Vocabulary, proceeding...');
+  
   // ✅ Prevent duplicate calls
   if (isVocabProcessing) {
     console.log("⚠️ Vocabulary already processing, skipping...");
@@ -4369,10 +4368,17 @@ let quizTimerInterval = null;
 
 // Generate Quiz Questions - SERVER ORQALI
 async function generateQuizQuestions() {
-    // 🪙 COIN CHECK
-  if (!checkAndSpendCoins('quiz')) {
-    return;
+  // 🪙 COIN CHECK - MUST BLOCK EXECUTION
+  console.log('💰 Checking coins for Quiz...');
+  const canProceed = await checkAndSpendCoins('quiz');
+  
+  if (!canProceed) {
+    console.error('❌ BLOCKED: Insufficient coins for Quiz');
+    return; // ✅ STOP HERE
   }
+  
+  console.log('✅ Coins deducted for Quiz, proceeding...');
+  
   const article = document.getElementById("quizArticleInput").value.trim();
   const questionCount = parseInt(
     document.getElementById("quizQuestionCount").value
@@ -5108,18 +5114,17 @@ function showFeedbackButton() {
 // SPEAKING FEEDBACK - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
 async function submitRecordedAudio() {
-    // 🪙 COIN CHECK
-  if (!checkAndSpendCoins('speaking')) {
-    return;
+  // 🪙 COIN CHECK - MUST BLOCK EXECUTION
+  console.log('💰 Checking coins for Speaking...');
+  const canProceed = await checkAndSpendCoins('speaking');
+  
+  if (!canProceed) {
+    console.error('❌ BLOCKED: Insufficient coins for Speaking');
+    return; // ✅ STOP HERE
   }
-  if (!recordedAudioBlob) {
-    // ⚠️ REFUND COINS
-    if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: No audio recorded');
-    }
-    alert("❌ Audio yozilmagan!");
-    return;
-  }
+  
+  console.log('✅ Coins deducted for Speaking, proceeding...');
+  
   if (!recordedAudioBlob) {
     alert("❌ Audio yozilmagan!");
     return;
@@ -5284,95 +5289,199 @@ function showLoading(element) {
 }
 
 // ============================================
-// UPDATE PROFILE COIN DISPLAY
+// UPDATE PROFILE COIN DISPLAY - FINAL FIX ✅
 // ============================================
-function updateProfileCoinDisplay() {
-  if (!window.coinManager) return;
+async function updateProfileCoinDisplay() {
+  console.log('🔄 Updating profile display...');
   
-  const coinBalance = document.getElementById('profileCoinBalance');
-  if (coinBalance) {
-    coinBalance.textContent = window.coinManager.getCoins();
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.log('❌ No user logged in');
+    return;
   }
   
-  // Update subscription info
-  const subInfo = window.coinManager.getSubscriptionInfo();
-  
-  const subBadge = document.getElementById('subscriptionBadge');
-  if (subBadge) {
-    subBadge.textContent = subInfo.type.toUpperCase();
-    subBadge.className = 'subscription-badge';
-    if (subInfo.type === 'pro') {
-      subBadge.classList.add('pro');
+  // ✅ 1. UPDATE COINS
+  if (typeof getUserCoins === 'function') {
+    try {
+      const coins = await getUserCoins();
+      const coinBalance = document.getElementById('profileCoinBalance');
+      if (coinBalance) {
+        coinBalance.textContent = coins;
+        console.log('💰 Profile coins updated:', coins);
+      }
+    } catch (error) {
+      console.error('❌ Error getting coins:', error);
     }
   }
   
-  const subExpiry = document.getElementById('subscriptionExpiry');
-  if (subExpiry) {
-    if (subInfo.type === 'free') {
-      subExpiry.textContent = 'No expiry';
-    } else if (subInfo.expiry) {
-      const expiryDate = new Date(subInfo.expiry).toLocaleDateString();
-      subExpiry.textContent = `Expires: ${expiryDate}`;
+  // ✅ 2. UPDATE SUBSCRIPTION FROM FIREBASE
+  try {
+    const db = window.firebaseDatabase;
+    if (!db) {
+      console.error('❌ Database not initialized');
+      return;
     }
+    
+    const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
+    const snapshot = await window.firebaseGet(subRef);
+    
+    console.log('📊 Firebase subscription data:', snapshot.val());
+    
+    let subType = 'free';
+    let subExpiry = null;
+    
+    if (snapshot.exists()) {
+      const subData = snapshot.val();
+      subType = (subData.type || 'free').toLowerCase();
+      subExpiry = subData.expiry;
+      
+      console.log('✅ Subscription type:', subType);
+      console.log('✅ Expiry:', subExpiry);
+    } else {
+      console.log('ℹ️ No subscription data - defaulting to free');
+    }
+    
+    // ✅ 3. UPDATE BADGE
+    const subBadge = document.getElementById('subscriptionBadgeProfile');
+    if (subBadge) {
+      subBadge.textContent = subType.toUpperCase();
+      
+      // Apply styling based on type
+      if (subType === 'pro') {
+        subBadge.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+        subBadge.style.color = 'white';
+        console.log('✅ Badge set to: PRO (gold)');
+      } else if (subType === 'standard') {
+        subBadge.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        subBadge.style.color = 'white';
+        console.log('✅ Badge set to: STANDARD (green)');
+      } else {
+        subBadge.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+        subBadge.style.color = 'white';
+        console.log('✅ Badge set to: FREE (gray)');
+      }
+    }
+    
+    // ✅ 4. UPDATE EXPIRY
+    const subExpiryElement = document.getElementById('subscriptionExpiry');
+    if (subExpiryElement) {
+      if (subType === 'free' || !subExpiry) {
+        subExpiryElement.textContent = 'No expiry';
+      } else {
+        const expiryDate = new Date(subExpiry);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        subExpiryElement.textContent = `Expires: ${expiryDate.toLocaleDateString('en-US', options)}`;
+      }
+      console.log('✅ Expiry updated');
+    }
+    
+    // ✅ 5. UPDATE DAILY LIMIT
+    const dailyLimit = document.getElementById('dailyCoinLimit');
+    if (dailyLimit) {
+      if (subType === 'free') {
+        dailyLimit.textContent = '5 coins/day';
+      } else if (subType === 'standard') {
+        dailyLimit.textContent = '100 coins/day';
+      } else if (subType === 'pro') {
+        dailyLimit.textContent = 'Unlimited coins';
+      }
+      console.log('✅ Daily limit updated');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error updating subscription:', error);
   }
   
-  const dailyLimit = document.getElementById('dailyCoinLimit');
-  if (dailyLimit) {
-    if (subInfo.type === 'free') {
-      dailyLimit.textContent = '5 coins/day';
-    } else if (subInfo.type === 'standard') {
-      dailyLimit.textContent = '100 coins/day';
-    } else if (subInfo.type === 'pro') {
-      dailyLimit.textContent = 'Unlimited coins';
-    }
+  // ✅ 6. Load transaction history
+  if (typeof loadTransactionHistory === 'function') {
+    loadTransactionHistory();
   }
   
-  // Load transaction history
-  loadTransactionHistory();
+  console.log('✅ Profile display update complete');
 }
 
 // ============================================
-// LOAD TRANSACTION HISTORY
+// LOAD TRANSACTION HISTORY - FIREBASE VERSION ✅
 // ============================================
-function loadTransactionHistory() {
-  if (!window.coinManager) return;
-  
+async function loadTransactionHistory() {
   const transactionList = document.getElementById('transactionList');
   if (!transactionList) return;
   
-  const history = window.coinManager.data.purchaseHistory || [];
-  
-  if (history.length === 0) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
     transactionList.innerHTML = `
       <div style="text-align: center; padding: 20px; color: #9ca3af;">
-        No transactions yet
+        Please log in to view transactions
       </div>
     `;
     return;
   }
   
-  // Show last 10 transactions
-  const recentTransactions = history.slice(-10).reverse();
+  const db = window.firebaseDatabase;
+  if (!db) return;
   
-  transactionList.innerHTML = recentTransactions.map(tx => {
-    const icon = tx.type === 'earn' ? '💰' : '🪙';
-    const amountClass = tx.type === 'earn' ? 'earn' : 'spend';
-    const amountPrefix = tx.type === 'earn' ? '+' : '-';
-    const date = new Date(tx.timestamp).toLocaleString();
+  try {
+    // Get transactions from Firebase
+    const transRef = window.firebaseRef(db, `users/${user.uid}/coin_transactions`);
+    const snapshot = await window.firebaseGet(transRef);
     
-    return `
-      <div class="transaction-item">
-        <span class="transaction-icon">${icon}</span>
-        <div class="transaction-info">
-          <div class="transaction-reason">${tx.reason}</div>
-          <div class="transaction-date">${date}</div>
+    if (!snapshot.exists()) {
+      transactionList.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: #9ca3af;">
+          No transactions yet
         </div>
-        <div class="transaction-amount ${amountClass}">
-          ${amountPrefix}${tx.amount}
+      `;
+      return;
+    }
+    
+    const transactions = [];
+    snapshot.forEach((childSnapshot) => {
+      transactions.push({
+        id: childSnapshot.key,
+        ...childSnapshot.val()
+      });
+    });
+    
+    // Sort by timestamp (newest first)
+    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Show last 10 transactions
+    const recentTransactions = transactions.slice(0, 10);
+    
+    transactionList.innerHTML = recentTransactions.map(tx => {
+      const icon = tx.type === 'earn' ? '💰' : '🪙';
+      const amountClass = tx.type === 'earn' ? 'earn' : 'spend';
+      const amountPrefix = tx.type === 'earn' ? '+' : '-';
+      const date = new Date(tx.timestamp).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      return `
+        <div class="transaction-item">
+          <span class="transaction-icon">${icon}</span>
+          <div class="transaction-info">
+            <div class="transaction-reason">${tx.reason}</div>
+            <div class="transaction-date">${date}</div>
+          </div>
+          <div class="transaction-amount ${amountClass}">
+            ${amountPrefix}${tx.amount}
+          </div>
         </div>
+      `;
+    }).join('');
+    
+    console.log('✅ Loaded', recentTransactions.length, 'transactions');
+  } catch (error) {
+    console.error('❌ Error loading transactions:', error);
+    transactionList.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: #ef4444;">
+        Error loading transactions
       </div>
     `;
-  }).join('');
+  }
 }
 
 function showError(element, message) {

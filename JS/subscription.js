@@ -570,10 +570,10 @@ async function rejectPayment(paymentKey) {
   }
 }
 
-// ============================================
-// 💰 RESET ALL COINS (ADMIN ONLY)
-// ============================================
 
+// ============================================
+// RESET ALL COINS + SUBSCRIPTION - FIXED ✅
+// ============================================
 async function resetAllCoins() {
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
@@ -589,18 +589,30 @@ async function resetAllCoins() {
   
   const confirmation = confirm(`⚠️ DIQQAT!
 
-Barcha userlarning coinlari 0 ga qaytariladi!
+Barcha userlarning:
+- Coinlari 0 ga qaytariladi
+- Subscription (PRO/Standard) bekor qilinadi
 
 Davom etasizmi?`);
   
   if (!confirmation) return;
   
+  // Double confirmation
+  const doubleCheck = prompt('Tasdiqlash uchun "RESET ALL" deb yozing:', '');
+  if (doubleCheck !== 'RESET ALL') {
+    showNotification('❌ Bekor qilindi', 'info');
+    return;
+  }
+  
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
   
   try {
     showNotification('🔄 Reset boshlanmoqda...', 'info');
-    console.log('🔄 Starting coin reset for all users...');
+    console.log('🔄 Starting full reset for all users...');
     
     // Get all users
     const usersRef = window.firebaseRef(db, 'users');
@@ -616,7 +628,13 @@ Davom etasizmi?`);
     
     snapshot.forEach((child) => {
       const userId = child.key;
+      // Reset coins
       updates[`users/${userId}/coins`] = 0;
+      // Reset subscription to free
+      updates[`users/${userId}/subscription/type`] = 'free';
+      updates[`users/${userId}/subscription/status`] = 'inactive';
+      updates[`users/${userId}/subscription/expiry`] = null;
+      updates[`users/${userId}/subscription/activatedAt`] = null;
       userCount++;
     });
     
@@ -626,19 +644,23 @@ Davom etasizmi?`);
     const rootRef = window.firebaseRef(db, '/');
     await window.firebaseUpdate(rootRef, updates);
     
-    console.log('✅ All coins reset to 0');
-    showNotification(`✅ ${userCount} ta user coinlari 0 ga qaytarildi!`, 'success');
+    console.log('✅ All users reset to free');
+    showNotification(`✅ ${userCount} ta user reset qilindi (coins + subscription)!`, 'success');
     
     // Log the action
     const logRef = window.firebaseRef(db, 'admin_logs');
     const newLogRef = window.firebasePush(logRef);
     await window.firebaseSet(newLogRef, {
-      action: 'reset_all_coins',
+      action: 'reset_all_users',
       adminId: user.uid,
       adminEmail: user.email,
       affectedUsers: userCount,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      details: 'Coins and subscriptions reset'
     });
+    
+    // Reload users
+    await loadUsersCoins();
     
   } catch (error) {
     console.error('❌ Reset error:', error);
@@ -647,44 +669,48 @@ Davom etasizmi?`);
 }
 
 // ============================================
-// 🎯 RESET SPECIFIC USER COINS
+// RESET USER COINS + SUBSCRIPTION - FIXED ✅
 // ============================================
-
 async function resetUserCoins(userId, userName) {
-  const user = window.firebaseAuth?.currentUser;
-  if (!user) {
-    showNotification('❌ Tizimga kiring', 'error');
-    return;
-  }
-  
-  const adminStatus = await isAdmin(user.uid);
-  if (!adminStatus) {
-    showNotification('❌ Ruxsat yo\'q', 'error');
-    return;
-  }
-  
-  const confirmation = confirm(`⚠️ ${userName} ning coinlari 0 ga qaytarilsinmi?`);
+  const confirmation = confirm(`⚠️ ${userName} ning:
+- Coinlari 0 ga qaytarilsinmi?
+- Subscription bekor qilinsinmi?`);
   if (!confirmation) return;
   
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
   
   try {
-    const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
-    await window.firebaseSet(coinsRef, 0);
+    // Reset coins and subscription
+    const updates = {};
+    updates[`users/${userId}/coins`] = 0;
+    updates[`users/${userId}/subscription/type`] = 'free';
+    updates[`users/${userId}/subscription/status`] = 'inactive';
+    updates[`users/${userId}/subscription/expiry`] = null;
+    updates[`users/${userId}/subscription/activatedAt`] = null;
     
-    console.log(`✅ Coins reset for user: ${userId}`);
-    showNotification(`✅ ${userName} coinlari 0 ga qaytarildi`, 'success');
+    const rootRef = window.firebaseRef(db, '/');
+    await window.firebaseUpdate(rootRef, updates);
+    
+    console.log(`✅ User reset: ${userId}`);
+    showNotification(`✅ ${userName} reset qilindi (coins + subscription)`, 'success');
     
     // Log
     const logRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
     const newLogRef = window.firebasePush(logRef);
     await window.firebaseSet(newLogRef, {
-      type: 'admin_reset',
+      type: 'admin_full_reset',
       amount: 0,
-      adminId: user.uid,
-      timestamp: new Date().toISOString()
+      adminId: window.firebaseAuth?.currentUser?.uid,
+      timestamp: new Date().toISOString(),
+      details: 'Coins and subscription reset'
     });
+    
+    // Reload users
+    await loadUsersCoins();
     
   } catch (error) {
     console.error('❌ Reset error:', error);
@@ -692,10 +718,10 @@ async function resetUserCoins(userId, userName) {
   }
 }
 
-// ============================================
-// 📊 VIEW ALL USERS WITH COINS
-// ============================================
 
+// ============================================
+// 📊 VIEW ALL USERS WITH COINS - FIXED ✅
+// ============================================
 async function viewAllUsersCoins() {
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
@@ -710,26 +736,44 @@ async function viewAllUsersCoins() {
   }
   
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
   
   try {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay-inline coins-management-modal';
     modal.innerHTML = `
-      <div class="modal-inline" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
-        <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10;">
-          <h3>💰 Coinlarni Boshqarish</h3>
+      <div class="modal-inline" style="max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 2px solid #e5e7eb;">
+          <h3 style="margin: 0;">💰 Coinlarni Boshqarish</h3>
           <button class="modal-close-inline" onclick="closeCoinsManagementModal()">×</button>
         </div>
         <div class="modal-body-inline" style="padding: 20px;">
-          <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button onclick="resetAllCoins()" style="flex: 1; padding: 12px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-              🔄 Barcha coinlarni reset
+          <!-- Search & Actions -->
+          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <input 
+              type="text" 
+              id="userSearchInput" 
+              placeholder="🔍 Qidirish (ism, email, UID)..." 
+              style="flex: 1; min-width: 250px; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px;"
+              oninput="filterUsers()"
+            />
+            <button onclick="resetAllCoins()" style="padding: 12px 24px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+              🔄 Reset All
             </button>
-            <button onclick="viewAllUsersCoins()" style="flex: 1; padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <button onclick="loadUsersCoins()" style="padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
               🔄 Yangilash
             </button>
           </div>
+          
+          <!-- Stats Summary -->
+          <div id="coinsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <!-- Will be filled by JS -->
+          </div>
+          
+          <!-- Users List -->
           <div id="usersCoinsContainer">
             <div style="text-align: center; padding: 40px; color: #6b7280;">
               <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -755,11 +799,19 @@ async function viewAllUsersCoins() {
   }
 }
 
+// ============================================
+// LOAD USERS COINS - FIXED ✅
+// ============================================
 async function loadUsersCoins() {
   const db = getDatabase();
-  if (!db) return;
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
   
   const container = document.getElementById('usersCoinsContainer');
+  const summary = document.getElementById('coinsSummary');
+  
   if (!container) return;
   
   try {
@@ -779,54 +831,47 @@ async function loadUsersCoins() {
         email: data.email || 'Unknown',
         displayName: data.displayName || 'Unknown',
         coins: data.coins || 0,
-        subscription: data.subscription?.type || 'free'
+        subscription: data.subscription?.type || 'free',
+        createdAt: data.createdAt || null
       });
     });
     
     // Sort by coins (highest first)
     users.sort((a, b) => b.coins - a.coins);
     
-    let totalCoins = users.reduce((sum, user) => sum + user.coins, 0);
+    // Store globally for search
+    window.allUsers = users;
     
-    container.innerHTML = `
-      <div style="background: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <p style="margin: 0; color: #6b7280; font-size: 14px;">Jami userlar</p>
-          <p style="margin: 0; font-size: 24px; font-weight: 700;">${users.length}</p>
+    // Calculate stats
+    const totalCoins = users.reduce((sum, user) => sum + user.coins, 0);
+    const usersWithCoins = users.filter(u => u.coins > 0).length;
+    const avgCoins = users.length > 0 ? Math.round(totalCoins / users.length) : 0;
+    const maxCoins = users.length > 0 ? Math.max(...users.map(u => u.coins)) : 0;
+    
+    // Display summary
+    if (summary) {
+      summary.innerHTML = `
+        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 15px; border-radius: 12px; color: white;">
+          <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${users.length}</div>
+          <div style="font-size: 13px; opacity: 0.9;">Jami Userlar</div>
         </div>
-        <div>
-          <p style="margin: 0; color: #6b7280; font-size: 14px;">Jami coinlar</p>
-          <p style="margin: 0; font-size: 24px; font-weight: 700; color: #f59e0b;">${totalCoins.toLocaleString()}</p>
+        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 15px; border-radius: 12px; color: white;">
+          <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${totalCoins.toLocaleString()}</div>
+          <div style="font-size: 13px; opacity: 0.9;">Jami Coinlar</div>
         </div>
-      </div>
-      
-      ${users.map(user => `
-        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <div style="flex: 1; min-width: 200px;">
-              <h4 style="margin: 0 0 5px 0;">${user.displayName}</h4>
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                📧 ${user.email}<br>
-                🆔 ${user.uid.substring(0, 20)}...<br>
-                💎 Obuna: <strong>${user.subscription.toUpperCase()}</strong>
-              </p>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <div style="text-align: center;">
-                <p style="margin: 0; color: #6b7280; font-size: 14px;">Coinlar</p>
-                <p style="margin: 0; font-size: 32px; font-weight: 700; color: ${user.coins > 0 ? '#10b981' : '#6b7280'};">
-                  ${user.coins}
-                </p>
-              </div>
-              <button onclick="resetUserCoins('${user.uid}', '${user.displayName}')" 
-                style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                🔄 Reset
-              </button>
-            </div>
-          </div>
+        <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 15px; border-radius: 12px; color: white;">
+          <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${usersWithCoins}</div>
+          <div style="font-size: 13px; opacity: 0.9;">Coinli Userlar</div>
         </div>
-      `).join('')}
-    `;
+        <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 15px; border-radius: 12px; color: white;">
+          <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${avgCoins}</div>
+          <div style="font-size: 13px; opacity: 0.9;">O'rtacha Coin</div>
+        </div>
+      `;
+    }
+    
+    // Display users
+    displayUsers(users);
     
   } catch (error) {
     console.error('❌ Load error:', error);
@@ -839,6 +884,141 @@ async function loadUsersCoins() {
   }
 }
 
+
+
+// ============================================
+// DISPLAY USERS - NEW FUNCTION ✅
+// ============================================
+function displayUsers(users) {
+  const container = document.getElementById('usersCoinsContainer');
+  if (!container) return;
+  
+  if (users.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">Foydalanuvchilar topilmadi</p>';
+    return;
+  }
+  
+  container.innerHTML = users.map(user => `
+    <div class="user-coin-card" data-email="${user.email.toLowerCase()}" data-name="${user.displayName.toLowerCase()}" data-uid="${user.uid.toLowerCase()}" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px; transition: all 0.3s;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div style="flex: 1; min-width: 200px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <h4 style="margin: 0;">${user.displayName}</h4>
+            ${user.subscription === 'pro' ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">PRO</span>' : user.subscription === 'standard' ? '<span style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">STANDARD</span>' : '<span style="background: #6b7280; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">FREE</span>'}
+          </div>
+          <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+            📧 ${user.email}<br>
+            🆔 ${user.uid.substring(0, 20)}...<br>
+            ${user.createdAt ? `📅 ${new Date(user.createdAt).toLocaleDateString('uz-UZ')}` : ''}
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="text-align: center;">
+            <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Coinlar</div>
+            <div style="font-size: 36px; font-weight: 700; color: ${user.coins > 0 ? '#10b981' : '#6b7280'};">
+              ${user.coins}
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button onclick="addCoinsToUser('${user.uid}', '${user.displayName}')" style="padding: 8px 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+              ➕ Qo'shish
+            </button>
+            <button onclick="resetUserCoins('${user.uid}', '${user.displayName}')" style="padding: 8px 16px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+              🔄 Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// ============================================
+// FILTER USERS - NEW FUNCTION ✅
+// ============================================
+function filterUsers() {
+  const searchInput = document.getElementById('userSearchInput');
+  if (!searchInput) return;
+  
+  const query = searchInput.value.toLowerCase().trim();
+  
+  if (!window.allUsers) {
+    console.warn('⚠️ No users data available');
+    return;
+  }
+  
+  if (!query) {
+    // Show all users
+    displayUsers(window.allUsers);
+    return;
+  }
+  
+  // Filter users
+  const filtered = window.allUsers.filter(user => 
+    user.email.toLowerCase().includes(query) ||
+    user.displayName.toLowerCase().includes(query) ||
+    user.uid.toLowerCase().includes(query)
+  );
+  
+  console.log(`🔍 Found ${filtered.length} users matching "${query}"`);
+  displayUsers(filtered);
+}
+
+// ============================================
+// ADD COINS TO USER - FIXED ✅
+// ============================================
+async function addCoinsToUser(userId, userName) {
+  const amount = prompt(`${userName} ga nechta coin qo'shmoqchisiz?`, '50');
+  
+  if (!amount || isNaN(amount) || parseInt(amount) <= 0) {
+    return;
+  }
+  
+  const coinsToAdd = parseInt(amount);
+  
+  const db = getDatabase();
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
+  
+  try {
+    // Get current coins
+    const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+    const snapshot = await window.firebaseGet(coinsRef);
+    const currentCoins = snapshot.val() || 0;
+    const newCoins = currentCoins + coinsToAdd;
+    
+    // Update
+    await window.firebaseSet(coinsRef, newCoins);
+    
+    console.log(`✅ Added ${coinsToAdd} coins to ${userName}: ${currentCoins} → ${newCoins}`);
+    showNotification(`✅ ${userName} ga ${coinsToAdd} coin qo'shildi!`, 'success');
+    
+    // Log transaction
+    const logRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+    const newLogRef = window.firebasePush(logRef);
+    await window.firebaseSet(newLogRef, {
+      type: 'admin_add',
+      amount: coinsToAdd,
+      adminId: window.firebaseAuth?.currentUser?.uid,
+      timestamp: new Date().toISOString(),
+      reason: 'Admin added coins'
+    });
+    
+    // Reload users
+    await loadUsersCoins();
+    
+  } catch (error) {
+    console.error('❌ Add coins error:', error);
+    showNotification('❌ Xatolik: ' + error.message, 'error');
+  }
+}
+
+// ============================================
+// CLOSE MODAL
+// ============================================
 function closeCoinsManagementModal() {
   const modal = document.querySelector('.coins-management-modal');
   if (modal) {
@@ -847,6 +1027,7 @@ function closeCoinsManagementModal() {
   }
   document.body.style.overflow = '';
 }
+
 
 // ============================================
 // GLOBAL EXPORTS
@@ -866,6 +1047,9 @@ window.loadPendingPayments = loadPendingPayments;
 window.resetAllCoins = resetAllCoins;
 window.resetUserCoins = resetUserCoins;
 window.viewAllUsersCoins = viewAllUsersCoins;
+window.displayUsers = displayUsers;
+window.filterUsers = filterUsers;
+window.addCoinsToUser = addCoinsToUser;
 window.loadUsersCoins = loadUsersCoins;
 window.closeCoinsManagementModal = closeCoinsManagementModal;
 
