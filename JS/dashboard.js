@@ -34,51 +34,7 @@ window.addEventListener('load', () => {
   }, 1000);
 });
 
-// Wait for coin system to be ready - IMPROVED
-function initCoinSystemIntegration() {
-  console.log('🔄 Checking coin system...');
-  
-  if (window.coinManager) {
-    coinSystemReady = true;
-    console.log('✅ Coin system ready!');
-    updateProfileCoinDisplay();
-    
-    // Update coin display immediately
-    const coinElement = document.getElementById('userCoins');
-    if (coinElement && window.coinManager) {
-      coinElement.textContent = window.coinManager.getCoins();
-    }
-    
-    return true;
-  } else {
-    console.warn('⚠️ Coin system not ready yet, retrying...');
-    
-    // Retry after 500ms
-    setTimeout(() => {
-      if (window.coinManager) {
-        coinSystemReady = true;
-        console.log('✅ Coin system ready (delayed)!');
-        updateProfileCoinDisplay();
-        
-        const coinElement = document.getElementById('userCoins');
-        if (coinElement) {
-          coinElement.textContent = window.coinManager.getCoins();
-        }
-      } else {
-        console.error('❌ Coin system failed to initialize');
-      }
-    }, 500);
-    
-    return false;
-  }
-}
 
-// Initialize when page loads
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    initCoinSystemIntegration();
-  }, 1000);
-});
 
 
 // ============================================
@@ -379,42 +335,50 @@ window.addEventListener('load', async () => {
   console.log('🪟 Window loaded - starting initialization');
   
   // ============================================
-  // 1️⃣ WAIT FOR COIN SYSTEM (NEW!)
+  // 1️⃣ WAIT FOR FIREBASE AUTH
   // ============================================
-  await waitForCoinSystem();
-  
-  // ============================================
-  // 2️⃣ UPDATE COIN DISPLAY
-  // ============================================
-  if (window.coinManager) {
-    console.log('💰 Current coin balance:', window.coinManager.getCoins());
-    
-    if (typeof updateCoinDisplay === 'function') {
-      updateCoinDisplay();
-    }
-    
-    // Update profile display if on profile page
-    if (typeof updateProfileCoinDisplay === 'function') {
-      updateProfileCoinDisplay();
-    }
-  } else {
-    console.warn('⚠️ Coin manager still not available');
+  const auth = window.firebaseAuth;
+  if (auth) {
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        console.log('👤 User authenticated:', user.email);
+        
+        // ✅ Initialize coin system
+        if (typeof initCoinSystem === 'function') {
+          const success = await initCoinSystem();
+          if (success) {
+            console.log('✅ Coin system initialized');
+            
+            // Update display
+            if (typeof updateCoinDisplay === 'function') {
+              await updateCoinDisplay();
+            }
+          } else {
+            console.error('❌ Coin system initialization failed');
+          }
+        }
+        
+        // Update username
+        const username = getUsernameFromDisplayName(user.displayName, user.email);
+        updateWelcomeMessage(username);
+        
+        const userNameElement = document.getElementById('userName');
+        if (userNameElement) {
+          userNameElement.textContent = username;
+        }
+      }
+    });
   }
   
   // ============================================
-  // 3️⃣ INITIALIZE DEFAULT TOOL
+  // 2️⃣ INITIALIZE DEFAULT TOOL
   // ============================================
   setTimeout(() => {
     if (!window.hasInitialized) {
       console.warn('⚠️ Backup initialization');
       initializeDefaultTool();
     }
-
-    // Mini timer
-    if (typeof updateMiniTimerDisplay === 'function') {
-      updateMiniTimerDisplay();
-    }
-
+    
     // Stats system
     try {
       if (typeof window.loadUserStats === 'function') {
@@ -424,48 +388,24 @@ window.addEventListener('load', async () => {
     } catch (error) {
       console.warn('⚠️ Stats error (non-critical):', error.message);
     }
-
+    
     // Motivation system
     if (typeof startMotivationSystem === 'function') {
       startMotivationSystem();
       console.log('✅ Motivation system started');
     }
-
+    
     console.log('✅ All systems ready');
   }, 200);
-
+  
   // ============================================
-  // 4️⃣ FIREBASE AUTH & USERNAME
-  // ============================================
-  const auth = window.firebaseAuth;
-  if (auth) {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        const username = getUsernameFromDisplayName(
-          user.displayName,
-          user.email
-        );
-        updateWelcomeMessage(username);
-
-        const userNameElement = document.getElementById("userName");
-        if (userNameElement) {
-          userNameElement.textContent = username;
-        }
-        
-        console.log('✅ User authenticated:', username);
-      }
-      unsubscribe();
-    });
-  }
-
-  // ============================================
-  // 5️⃣ HIDE SPINNER
+  // 3️⃣ HIDE SPINNER
   // ============================================
   setTimeout(() => {
-    const spinner = document.querySelector(".spinner-wrapper");
-    if (spinner) spinner.style.display = "none";
+    const spinner = document.querySelector('.spinner-wrapper');
+    if (spinner) spinner.style.display = 'none';
   }, 500);
-
+  
   console.log('✅ Page load initialization complete!');
 });
 
@@ -699,63 +639,68 @@ document.addEventListener("paste", (e) => {
 });
 
 // ============================================
-// COIN CHECK FUNCTION - FIXED VERSION ✅
-// Replace the existing checkAndSpendCoins function in dashboard.js
+// COIN CHECK FUNCTION - FIREBASE VERSION ✅
+// REPLACE EXISTING checkAndSpendCoins FUNCTION
 // ============================================
-
-function checkAndSpendCoins(toolName) {
+async function checkAndSpendCoins(toolName) {
   console.log(`🪙 Checking coins for tool: ${toolName}`);
   
-  // ✅ CRITICAL FIX: Never allow if coin manager not ready
-  if (!window.coinManager) {
-    console.error('❌ Coin manager NOT initialized - blocking tool usage!');
-    
-    // Show error message
-    alert('⚠️ Coin system is loading...\n\nPlease wait a moment and try again.');
-    
-    // Try to initialize
-    if (typeof initCoinSystem === 'function') {
-      initCoinSystem();
-    }
-    
-    return false; // ✅ BLOCK USAGE
-  }
-  
-  // ✅ Get tool cost and check balance
-  const check = window.coinManager.canUseTool(toolName);
-  
-  console.log(`💰 Tool: ${toolName}`);
-  console.log(`   Cost: ${check.cost} coins`);
-  console.log(`   Balance: ${window.coinManager.getCoins()} coins`);
-  console.log(`   Can use: ${check.canUse}`);
-  console.log(`   Reason: ${check.reason}`);
-  
-  if (!check.canUse) {
-    // Show insufficient coins modal
-    if (typeof window.showInsufficientCoinsModal === 'function') {
-      window.showInsufficientCoinsModal(check.cost, window.coinManager.getCoins());
-    } else {
-      alert(`⚠️ Not enough coins!\n\nRequired: ${check.cost} coins\nYour balance: ${window.coinManager.getCoins()} coins`);
-    }
+  // ✅ Get current user
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.error('❌ User not logged in');
+    alert('Please log in first!');
     return false;
   }
   
-  // ✅ Spend coins
-  const success = window.coinManager.useTool(toolName);
-  
-  if (success) {
-    console.log(`✅ Successfully spent ${check.cost} coins for ${toolName}`);
-    console.log(`💰 New balance: ${window.coinManager.getCoins()} coins`);
-    
-    // Update display
-    if (typeof updateCoinDisplay === 'function') {
-      updateCoinDisplay();
-    }
-  } else {
-    console.error(`❌ Failed to spend coins for ${toolName}`);
+  // ✅ Check if Firebase coin functions exist
+  if (typeof canUseTool !== 'function' || typeof useTool !== 'function') {
+    console.error('❌ Coin system not loaded!');
+    alert('⚠️ Coin system loading... Please wait and try again.');
+    return false;
   }
   
-  return success;
+  try {
+    // ✅ Check if user can use tool
+    const check = await canUseTool(toolName);
+    
+    console.log(`💰 Tool: ${toolName}`);
+    console.log(`   Cost: ${check.cost} coins`);
+    console.log(`   Can use: ${check.canUse}`);
+    console.log(`   Reason: ${check.reason}`);
+    
+    if (!check.canUse) {
+      // Show insufficient coins modal
+      const currentCoins = await getUserCoins();
+      if (typeof showInsufficientCoinsModal === 'function') {
+        showInsufficientCoinsModal(check.cost, currentCoins);
+      } else {
+        alert(`⚠️ Not enough coins!\n\nRequired: ${check.cost} coins\nYour balance: ${currentCoins} coins`);
+      }
+      return false;
+    }
+    
+    // ✅ Spend coins
+    const success = await useTool(toolName);
+    
+    if (success) {
+      console.log(`✅ Successfully spent ${check.cost} coins for ${toolName}`);
+      
+      // Update display
+      if (typeof updateCoinDisplay === 'function') {
+        await updateCoinDisplay();
+      }
+    } else {
+      console.error(`❌ Failed to spend coins for ${toolName}`);
+    }
+    
+    return success;
+    
+  } catch (error) {
+    console.error(`❌ Coin check error for ${toolName}:`, error);
+    alert('⚠️ Coin system error. Please try again.');
+    return false;
+  }
 }
 
 // ============================================
@@ -1345,28 +1290,42 @@ function detectSubject(text) {
 }
 
 // ============================================
-// 4️⃣ COIN DISPLAY UPDATE
+// UPDATE COIN DISPLAY - FIREBASE VERSION ✅
+// REPLACE EXISTING updateCoinDisplay FUNCTION
 // ============================================
-function updateCoinDisplay() {
-  if (!window.coinManager) return;
-  
-  const currentCoins = window.coinManager.getCoins();
-  
-  // Update all coin displays
-  const coinElements = document.querySelectorAll('[id*="Coin"], [id*="coin"]');
-  coinElements.forEach(el => {
-    if (el.id && el.textContent && !isNaN(parseInt(el.textContent))) {
-      el.textContent = currentCoins;
-      console.log(`💰 Updated ${el.id}: ${currentCoins} coins`);
-    }
-  });
-  
-  // Update profile
-  if (typeof updateProfileCoinDisplay === 'function') {
-    updateProfileCoinDisplay();
+async function updateCoinDisplay() {
+  if (typeof getUserCoins !== 'function') {
+    console.warn('⚠️ getUserCoins function not available');
+    return;
   }
   
-  console.log(`💰 Coin display updated: ${currentCoins} coins`);
+  try {
+    const coins = await getUserCoins();
+    
+    console.log('💰 Updating coin display:', coins);
+    
+    // Update all coin displays
+    const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
+    coinElements.forEach(el => {
+      if (el) {
+        el.textContent = coins;
+        
+        // Animation
+        el.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          el.style.transform = 'scale(1)';
+        }, 200);
+      }
+    });
+    
+    // Update profile if needed
+    if (typeof updateProfileCoinDisplay === 'function') {
+      updateProfileCoinDisplay();
+    }
+    
+  } catch (error) {
+    console.error('❌ Update coin display error:', error);
+  }
 }
 
 // ============================================

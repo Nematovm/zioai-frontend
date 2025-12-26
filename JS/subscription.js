@@ -404,52 +404,65 @@ async function approvePayment(paymentKey, userId, productType) {
     console.log('📦 Product:', product);
     
     // 3. Process based on product type
-    if (productType === 'PRO' || productType === 'PRO_SUB') {
+if (productType === 'PRO' || productType === 'PRO_SUB') {
       // PRO Subscription
-      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
       
-      await window.firebaseSet(subRef, {
-        type: 'pro',
-        expiry: expiryDate.toISOString(),
-        activatedAt: new Date().toISOString(),
-        status: 'active'
-      });
+      // MUHIM: To'liq path bilan yozish
+      const updates = {};
+      updates[`users/${userId}/subscription/type`] = 'pro';
+      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+      updates[`users/${userId}/subscription/status`] = 'active';
       
-      console.log('✅ PRO subscription activated');
+      // Atomic update
+      const rootRef = window.firebaseRef(db, '/');
+      await window.firebaseUpdate(rootRef, updates);
+      
+      console.log('✅ PRO subscription activated for:', userId);
+      console.log('Expiry:', expiryDate.toISOString());
       showNotification('✅ PRO obuna faollashtirildi!', 'success');
       
     } else if (productType === 'STANDARD_SUB') {
       // Standard Subscription
-      const subRef = window.firebaseRef(db, `users/${userId}/subscription`);
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
       
-      await window.firebaseSet(subRef, {
-        type: 'standard',
-        expiry: expiryDate.toISOString(),
-        activatedAt: new Date().toISOString(),
-        status: 'active'
-      });
+      // MUHIM: To'liq path bilan yozish
+      const updates = {};
+      updates[`users/${userId}/subscription/type`] = 'standard';
+      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+      updates[`users/${userId}/subscription/status`] = 'active';
       
-      console.log('✅ Standard subscription activated');
+      // Atomic update
+      const rootRef = window.firebaseRef(db, '/');
+      await window.firebaseUpdate(rootRef, updates);
+      
+      console.log('✅ Standard subscription activated for:', userId);
+      console.log('Expiry:', expiryDate.toISOString());
       showNotification('✅ Standard obuna faollashtirildi!', 'success');
       
     } else if (product.coins) {
-      // Coins purchase
+      // Coins purchase - FIXED WITH PROPER PATH
       const coinsToAdd = product.coins + (product.bonus || 0);
       
-      // Get current coins using transaction to avoid race conditions
-      const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+      // Use full path in updates object (CRITICAL!)
+      const updates = {};
       
-      // Read current value
+      // Get current coins first
+      const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
       const snapshot = await window.firebaseGet(coinsRef);
       const currentCoins = snapshot.val() || 0;
       const newCoins = currentCoins + coinsToAdd;
       
-      // Write new value
-      await window.firebaseSet(coinsRef, newCoins);
+      // Set new coins value in updates object
+      updates[`users/${userId}/coins`] = newCoins;
+      
+      // Apply atomic update to root
+      const rootRef = window.firebaseRef(db, '/');
+      await window.firebaseUpdate(rootRef, updates);
       
       console.log(`✅ Coins added: ${currentCoins} + ${coinsToAdd} = ${newCoins}`);
       showNotification(`✅ ${coinsToAdd} coin qo'shildi! (${currentCoins} → ${newCoins})`, 'success');
@@ -558,6 +571,284 @@ async function rejectPayment(paymentKey) {
 }
 
 // ============================================
+// 💰 RESET ALL COINS (ADMIN ONLY)
+// ============================================
+
+async function resetAllCoins() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Tizimga kiring', 'error');
+    return;
+  }
+  
+  const adminStatus = await isAdmin(user.uid);
+  if (!adminStatus) {
+    showNotification('❌ Faqat admin reset qilishi mumkin', 'error');
+    return;
+  }
+  
+  const confirmation = confirm(`⚠️ DIQQAT!
+
+Barcha userlarning coinlari 0 ga qaytariladi!
+
+Davom etasizmi?`);
+  
+  if (!confirmation) return;
+  
+  const db = getDatabase();
+  if (!db) return;
+  
+  try {
+    showNotification('🔄 Reset boshlanmoqda...', 'info');
+    console.log('🔄 Starting coin reset for all users...');
+    
+    // Get all users
+    const usersRef = window.firebaseRef(db, 'users');
+    const snapshot = await window.firebaseGet(usersRef);
+    
+    if (!snapshot.exists()) {
+      showNotification('❌ Userlar topilmadi', 'error');
+      return;
+    }
+    
+    const updates = {};
+    let userCount = 0;
+    
+    snapshot.forEach((child) => {
+      const userId = child.key;
+      updates[`users/${userId}/coins`] = 0;
+      userCount++;
+    });
+    
+    console.log(`📊 Found ${userCount} users`);
+    
+    // Apply all updates at once (atomic)
+    const rootRef = window.firebaseRef(db, '/');
+    await window.firebaseUpdate(rootRef, updates);
+    
+    console.log('✅ All coins reset to 0');
+    showNotification(`✅ ${userCount} ta user coinlari 0 ga qaytarildi!`, 'success');
+    
+    // Log the action
+    const logRef = window.firebaseRef(db, 'admin_logs');
+    const newLogRef = window.firebasePush(logRef);
+    await window.firebaseSet(newLogRef, {
+      action: 'reset_all_coins',
+      adminId: user.uid,
+      adminEmail: user.email,
+      affectedUsers: userCount,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Reset error:', error);
+    showNotification('❌ Xatolik: ' + error.message, 'error');
+  }
+}
+
+// ============================================
+// 🎯 RESET SPECIFIC USER COINS
+// ============================================
+
+async function resetUserCoins(userId, userName) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Tizimga kiring', 'error');
+    return;
+  }
+  
+  const adminStatus = await isAdmin(user.uid);
+  if (!adminStatus) {
+    showNotification('❌ Ruxsat yo\'q', 'error');
+    return;
+  }
+  
+  const confirmation = confirm(`⚠️ ${userName} ning coinlari 0 ga qaytarilsinmi?`);
+  if (!confirmation) return;
+  
+  const db = getDatabase();
+  if (!db) return;
+  
+  try {
+    const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+    await window.firebaseSet(coinsRef, 0);
+    
+    console.log(`✅ Coins reset for user: ${userId}`);
+    showNotification(`✅ ${userName} coinlari 0 ga qaytarildi`, 'success');
+    
+    // Log
+    const logRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+    const newLogRef = window.firebasePush(logRef);
+    await window.firebaseSet(newLogRef, {
+      type: 'admin_reset',
+      amount: 0,
+      adminId: user.uid,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Reset error:', error);
+    showNotification('❌ Xatolik: ' + error.message, 'error');
+  }
+}
+
+// ============================================
+// 📊 VIEW ALL USERS WITH COINS
+// ============================================
+
+async function viewAllUsersCoins() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Tizimga kiring', 'error');
+    return;
+  }
+  
+  const adminStatus = await isAdmin(user.uid);
+  if (!adminStatus) {
+    showNotification('❌ Ruxsat yo\'q', 'error');
+    return;
+  }
+  
+  const db = getDatabase();
+  if (!db) return;
+  
+  try {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay-inline coins-management-modal';
+    modal.innerHTML = `
+      <div class="modal-inline" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10;">
+          <h3>💰 Coinlarni Boshqarish</h3>
+          <button class="modal-close-inline" onclick="closeCoinsManagementModal()">×</button>
+        </div>
+        <div class="modal-body-inline" style="padding: 20px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="resetAllCoins()" style="flex: 1; padding: 12px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              🔄 Barcha coinlarni reset
+            </button>
+            <button onclick="viewAllUsersCoins()" style="flex: 1; padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              🔄 Yangilash
+            </button>
+          </div>
+          <div id="usersCoinsContainer">
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+              <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p style="margin-top: 15px;">Yuklanmoqda...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+    document.body.style.overflow = 'hidden';
+    
+    // Load users
+    await loadUsersCoins();
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    showNotification('❌ Xatolik yuz berdi', 'error');
+  }
+}
+
+async function loadUsersCoins() {
+  const db = getDatabase();
+  if (!db) return;
+  
+  const container = document.getElementById('usersCoinsContainer');
+  if (!container) return;
+  
+  try {
+    const usersRef = window.firebaseRef(db, 'users');
+    const snapshot = await window.firebaseGet(usersRef);
+    
+    if (!snapshot.exists()) {
+      container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">Userlar topilmadi</p>';
+      return;
+    }
+    
+    const users = [];
+    snapshot.forEach((child) => {
+      const data = child.val();
+      users.push({
+        uid: child.key,
+        email: data.email || 'Unknown',
+        displayName: data.displayName || 'Unknown',
+        coins: data.coins || 0,
+        subscription: data.subscription?.type || 'free'
+      });
+    });
+    
+    // Sort by coins (highest first)
+    users.sort((a, b) => b.coins - a.coins);
+    
+    let totalCoins = users.reduce((sum, user) => sum + user.coins, 0);
+    
+    container.innerHTML = `
+      <div style="background: #f3f4f6; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <p style="margin: 0; color: #6b7280; font-size: 14px;">Jami userlar</p>
+          <p style="margin: 0; font-size: 24px; font-weight: 700;">${users.length}</p>
+        </div>
+        <div>
+          <p style="margin: 0; color: #6b7280; font-size: 14px;">Jami coinlar</p>
+          <p style="margin: 0; font-size: 24px; font-weight: 700; color: #f59e0b;">${totalCoins.toLocaleString()}</p>
+        </div>
+      </div>
+      
+      ${users.map(user => `
+        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="flex: 1; min-width: 200px;">
+              <h4 style="margin: 0 0 5px 0;">${user.displayName}</h4>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                📧 ${user.email}<br>
+                🆔 ${user.uid.substring(0, 20)}...<br>
+                💎 Obuna: <strong>${user.subscription.toUpperCase()}</strong>
+              </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div style="text-align: center;">
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">Coinlar</p>
+                <p style="margin: 0; font-size: 32px; font-weight: 700; color: ${user.coins > 0 ? '#10b981' : '#6b7280'};">
+                  ${user.coins}
+                </p>
+              </div>
+              <button onclick="resetUserCoins('${user.uid}', '${user.displayName}')" 
+                style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    `;
+    
+  } catch (error) {
+    console.error('❌ Load error:', error);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px;">
+        <p style="color: #ef4444;">❌ Xatolik yuz berdi</p>
+        <p style="color: #6b7280; font-size: 14px;">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+function closeCoinsManagementModal() {
+  const modal = document.querySelector('.coins-management-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => modal.remove(), 300);
+  }
+  document.body.style.overflow = '';
+}
+
+// ============================================
 // GLOBAL EXPORTS
 // ============================================
 
@@ -570,5 +861,12 @@ window.closeAdminPanel = closeAdminPanel;
 window.approvePayment = approvePayment;
 window.rejectPayment = rejectPayment;
 window.loadPendingPayments = loadPendingPayments;
+
+// ✅ YANGI EXPORTS
+window.resetAllCoins = resetAllCoins;
+window.resetUserCoins = resetUserCoins;
+window.viewAllUsersCoins = viewAllUsersCoins;
+window.loadUsersCoins = loadUsersCoins;
+window.closeCoinsManagementModal = closeCoinsManagementModal;
 
 console.log('✅ Subscription.js (FIXED) loaded!');

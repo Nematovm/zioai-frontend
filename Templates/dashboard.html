@@ -50,6 +50,162 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 
+<!-- ============================================ -->
+<!-- 📊 SUBSCRIPTION CHECK & UI UPDATE -->
+<!-- ============================================ -->
+<script>
+  // ============================================
+  // SUBSCRIPTION CHECK
+  // ============================================
+  async function checkUserSubscription() {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user) {
+      console.log('❌ No user logged in');
+      return { type: 'free', status: 'active' };
+    }
+    
+    const db = window.firebaseDatabase;
+    if (!db) {
+      console.log('❌ Database not initialized');
+      return { type: 'free', status: 'active' };
+    }
+    
+    try {
+      const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
+      const snapshot = await window.firebaseGet(subRef);
+      
+      console.log('📊 Subscription check for:', user.uid);
+      console.log('📦 Subscription data:', snapshot.val());
+      
+      if (!snapshot.exists()) {
+        console.log('ℹ️ No subscription found - Free user');
+        return { type: 'free', status: 'active' };
+      }
+      
+      const subData = snapshot.val();
+      
+      // Expiry check
+      if (subData.expiry && subData.expiry !== null) {
+        const expiryDate = new Date(subData.expiry);
+        const now = new Date();
+        
+        if (expiryDate < now) {
+          console.log('⚠️ Subscription expired:', expiryDate.toLocaleString());
+          return { type: 'free', status: 'expired', expiredAt: subData.expiry };
+        }
+        
+        console.log('✅ Subscription valid until:', expiryDate.toLocaleString());
+      }
+      
+      console.log('✅ Active subscription:', subData.type?.toUpperCase());
+      return subData;
+      
+    } catch (error) {
+      console.error('❌ Subscription check error:', error);
+      return { type: 'free', status: 'active' };
+    }
+  }
+
+  // ============================================
+  // UPDATE UI
+  // ============================================
+  async function updateSubscriptionUI() {
+    const subscription = await checkUserSubscription();
+    
+    console.log('🔄 Updating UI with subscription:', subscription);
+    
+    // Find UI elements
+    const badge = document.getElementById('subscriptionBadge');
+    const statusText = document.getElementById('subscriptionStatus');
+    
+    if (!subscription || subscription.type === 'free') {
+      console.log('ℹ️ Setting UI to FREE');
+      if (badge) {
+        badge.textContent = 'FREE';
+        badge.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+        badge.style.display = 'inline-block';
+      }
+      if (statusText) {
+        statusText.textContent = 'Free Obuna';
+      }
+      
+    } else if (subscription.type === 'pro') {
+      console.log('✅ Setting UI to PRO');
+      if (badge) {
+        badge.textContent = 'PRO';
+        badge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+        badge.style.display = 'inline-block';
+      }
+      if (statusText) {
+        statusText.textContent = 'PRO Obuna';
+      }
+      
+    } else if (subscription.type === 'standard') {
+      console.log('✅ Setting UI to STANDARD');
+      if (badge) {
+        badge.textContent = 'STANDARD';
+        badge.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+        badge.style.display = 'inline-block';
+      }
+      if (statusText) {
+        statusText.textContent = 'Standard Obuna';
+      }
+    }
+    
+    console.log('✅ UI update complete');
+  }
+
+  // ============================================
+  // REAL-TIME LISTENER (optional but recommended)
+  // ============================================
+  function listenToSubscriptionChanges() {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user) return;
+    
+    const db = window.firebaseDatabase;
+    if (!db) return;
+    
+    const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
+    
+    window.firebaseOnValue(subRef, (snapshot) => {
+      console.log('🔔 Subscription changed in real-time:', snapshot.val());
+      updateSubscriptionUI();
+    });
+    
+    console.log('✅ Real-time subscription listener active');
+  }
+
+  // ============================================
+  // INITIALIZE
+  // ============================================
+  
+  // Wait for auth state
+  window.firebaseAuth?.onAuthStateChanged((user) => {
+    if (user) {
+      console.log('👤 Auth ready, checking subscription...');
+      
+      // Initial check
+      setTimeout(() => {
+        updateSubscriptionUI();
+        listenToSubscriptionChanges();
+      }, 1500);
+    }
+  });
+
+  // Also check on page load (backup)
+  window.addEventListener('load', () => {
+    setTimeout(updateSubscriptionUI, 2000);
+  });
+
+  // Global exports
+  window.checkUserSubscription = checkUserSubscription;
+  window.updateSubscriptionUI = updateSubscriptionUI;
+  window.listenToSubscriptionChanges = listenToSubscriptionChanges;
+  
+  console.log('✅ Subscription checker loaded');
+  console.log('💡 Run updateSubscriptionUI() to manually refresh');
+</script>
+
 <!-- Option 2: KaTeX (faster, fallback) -->
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -286,6 +442,19 @@
         </div>
       </div>
     </div>
+    <div class="user-info">
+  <p id="subscriptionStatus">Free Obuna</p>
+  <span id="subscriptionBadge" style="
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    margin-top: 5px;
+  ">FREE</span>
+</div>
   </div>
 </section>
 

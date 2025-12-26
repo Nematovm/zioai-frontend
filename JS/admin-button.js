@@ -218,7 +218,7 @@ Please:
     }
   }
   
-  // ============================================
+// ============================================
   // CREATE ADMIN BUTTON
   // ============================================
   
@@ -236,12 +236,16 @@ Please:
       left: ${ADMIN_CONFIG.POSITION.left};
       z-index: 9998;
       animation: slideInFromLeft 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     `;
     
-    const button = document.createElement('button');
-    button.id = 'adminPanelBtn';
-    button.onclick = openAdminPanelWithCheck;
-    button.innerHTML = `
+    // ADMIN PANEL BUTTON
+    const adminButton = document.createElement('button');
+    adminButton.id = 'adminPanelBtn';
+    adminButton.onclick = openAdminPanelWithCheck;
+    adminButton.innerHTML = `
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
         <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
         <path d="M2 17l10 5 10-5"></path>
@@ -251,7 +255,7 @@ Please:
       <span id="adminNotificationBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
     `;
     
-    button.style.cssText = `
+    adminButton.style.cssText = `
       padding: 15px 25px;
       background: ${ADMIN_CONFIG.STYLE.background};
       color: white;
@@ -269,22 +273,57 @@ Please:
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
     
-    button.onmouseover = () => {
-      button.style.background = ADMIN_CONFIG.STYLE.hoverBackground;
-      button.style.transform = 'translateY(-2px)';
-      button.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+    adminButton.onmouseover = () => {
+      adminButton.style.background = ADMIN_CONFIG.STYLE.hoverBackground;
+      adminButton.style.transform = 'translateY(-2px)';
+      adminButton.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
     };
     
-    button.onmouseout = () => {
-      button.style.background = ADMIN_CONFIG.STYLE.background;
-      button.style.transform = 'translateY(0)';
-      button.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+    adminButton.onmouseout = () => {
+      adminButton.style.background = ADMIN_CONFIG.STYLE.background;
+      adminButton.style.transform = 'translateY(0)';
+      adminButton.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
     };
     
-    buttonContainer.appendChild(button);
+    buttonContainer.appendChild(adminButton);
+    
+    // COINS MANAGEMENT BUTTON
+    const coinsButton = document.createElement('button');
+    coinsButton.innerHTML = '💰 Coinlar';
+    coinsButton.onclick = () => {
+      if (typeof window.viewAllUsersCoins === 'function') {
+        window.viewAllUsersCoins();
+      } else {
+        alert('viewAllUsersCoins funksiyasi topilmadi!');
+        console.error('❌ viewAllUsersCoins is not defined. Is subscription.js loaded?');
+      }
+    };
+    coinsButton.style.cssText = `
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    coinsButton.onmouseover = () => {
+      coinsButton.style.background = 'linear-gradient(135deg, #059669, #047857)';
+      coinsButton.style.transform = 'translateY(-2px)';
+    };
+    
+    coinsButton.onmouseout = () => {
+      coinsButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      coinsButton.style.transform = 'translateY(0)';
+    };
+    
+    buttonContainer.appendChild(coinsButton);
     document.body.appendChild(buttonContainer);
     
-    console.log('✅ Admin button created');
+    console.log('✅ Admin buttons created');
   }
   
   // ============================================

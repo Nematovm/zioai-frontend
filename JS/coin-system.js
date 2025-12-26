@@ -1,10 +1,7 @@
 // ============================================
-// 🪙 COIN SYSTEM - ZIYOAI (FIXED VERSION)
+// 🪙 COIN SYSTEM - FIREBASE DATABASE VERSION
 // ============================================
 
-// ============================================
-// 1️⃣ CONSTANTS & CONFIG
-// ============================================
 const COIN_CONFIG = {
   INITIAL_COINS: 10,
   DAILY_BONUS: 5,
@@ -19,27 +16,6 @@ const COIN_CONFIG = {
     speaking: 3
   },
   
-  SUBSCRIPTION: {
-    free: {
-      dailyCoins: 5,
-      maxCoins: 50,
-      toolAccess: 'limited'
-    },
-    standard: {
-      dailyCoins: 100,
-      maxCoins: null,
-      toolAccess: 'all',
-      price: 25000
-    },
-    pro: {
-      dailyCoins: null,
-      maxCoins: null,
-      toolAccess: 'premium',
-      price: 50000
-    }
-  },
-  
-  // ✅ YANGILANGAN: Real prices (so'mda)
   COIN_PACKAGES: [
     { id: 'COINS_50', coins: 50, price: 10000, bonus: 0, popular: false },
     { id: 'COINS_100', coins: 100, price: 17000, bonus: 10, popular: true },
@@ -49,320 +25,342 @@ const COIN_CONFIG = {
 };
 
 // ============================================
-// 2️⃣ USER COIN DATA CLASS
+// 1️⃣ GET CURRENT USER COINS FROM FIREBASE
 // ============================================
-class UserCoinData {
-  constructor(userId) {
-    this.userId = userId;
-    this.storageKey = `ziyoai_coins_${userId}`;
-    this.load();
+async function getUserCoins() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.warn('⚠️ No user logged in');
+    return 0;
   }
   
-  getDefaultData() {
-    return {
-      coins: COIN_CONFIG.INITIAL_COINS,
-      totalEarned: COIN_CONFIG.INITIAL_COINS,
-      totalSpent: 0,
-      lastDailyBonus: null,
-      lastDailyBonusDate: null,
-      subscription: 'free',
-      subscriptionExpiry: null,
-      toolUsageCount: {},
-      purchaseHistory: [],
-      createdAt: new Date().toISOString()
-    };
+  const db = window.firebaseDatabase;
+  if (!db) {
+    console.error('❌ Firebase Database not initialized');
+    return 0;
   }
   
-  load() {
-    try {
-      const data = localStorage.getItem(this.storageKey);
-      this.data = data ? JSON.parse(data) : this.getDefaultData();
-      
-      if (!this.data.toolUsageCount) this.data.toolUsageCount = {};
-      if (!this.data.purchaseHistory) this.data.purchaseHistory = [];
-      
-      console.log('✅ Coin data loaded:', this.data);
-    } catch (error) {
-      console.error('❌ Coin data load error:', error);
-      this.data = this.getDefaultData();
-    }
-  }
-  
-  save() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-      console.log('💾 Coin data saved:', this.data.coins, 'coins');
-      return true;
-    } catch (error) {
-      console.error('❌ Coin data save error:', error);
-      return false;
-    }
-  }
-  
-  getCoins() {
-    return this.data.coins || 0;
-  }
-  
-  addCoins(amount, reason = 'unknown') {
-    if (amount <= 0) return false;
+  try {
+    const coinsRef = window.firebaseRef(db, `users/${user.uid}/coins`);
+    const snapshot = await window.firebaseGet(coinsRef);
+    const coins = snapshot.val() || 0;
     
-    this.data.coins += amount;
-    this.data.totalEarned += amount;
+    console.log('💰 User coins from Firebase:', coins);
+    return coins;
+  } catch (error) {
+    console.error('❌ Error getting coins:', error);
+    return 0;
+  }
+}
+
+// ============================================
+// 2️⃣ SET USER COINS IN FIREBASE
+// ============================================
+async function setUserCoins(amount) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.error('❌ No user logged in');
+    return false;
+  }
+  
+  const db = window.firebaseDatabase;
+  if (!db) {
+    console.error('❌ Firebase Database not initialized');
+    return false;
+  }
+  
+  try {
+    const updates = {};
+    updates[`users/${user.uid}/coins`] = amount;
     
-    this.logTransaction('earn', amount, reason);
-    this.save();
+    const rootRef = window.firebaseRef(db, '/');
+    await window.firebaseUpdate(rootRef, updates);
     
-    if (typeof updateCoinDisplay === 'function') {
-      updateCoinDisplay();
-    }
-    
-    console.log(`✅ Added ${amount} coins. Total: ${this.data.coins}`);
+    console.log('✅ Coins updated in Firebase:', amount);
     return true;
+  } catch (error) {
+    console.error('❌ Error setting coins:', error);
+    return false;
+  }
+}
+
+// ============================================
+// 3️⃣ ADD COINS
+// ============================================
+async function addCoins(amount, reason = 'unknown') {
+  if (amount <= 0) return false;
+  
+  const currentCoins = await getUserCoins();
+  const newCoins = currentCoins + amount;
+  
+  const success = await setUserCoins(newCoins);
+  
+  if (success) {
+    console.log(`✅ Added ${amount} coins. Total: ${newCoins}`);
+    await updateCoinDisplay();
+    
+    // Log transaction
+    await logTransaction('earn', amount, reason, newCoins);
   }
   
-  spendCoins(amount, reason = 'unknown') {
-    if (amount <= 0) return false;
-    if (this.data.coins < amount) {
-      console.warn(`⚠️ Not enough coins! Need: ${amount}, Have: ${this.data.coins}`);
-      return false;
-    }
-    
-    this.data.coins -= amount;
-    this.data.totalSpent += amount;
-    
-    this.logTransaction('spend', amount, reason);
-    this.save();
-    
-    if (typeof updateCoinDisplay === 'function') {
-      updateCoinDisplay();
-    }
-    
-    console.log(`✅ Spent ${amount} coins. Remaining: ${this.data.coins}`);
-    return true;
+  return success;
+}
+
+// ============================================
+// 4️⃣ SPEND COINS
+// ============================================
+async function spendCoins(amount, reason = 'unknown') {
+  if (amount <= 0) return false;
+  
+  const currentCoins = await getUserCoins();
+  
+  if (currentCoins < amount) {
+    console.warn(`⚠️ Not enough coins! Need: ${amount}, Have: ${currentCoins}`);
+    return false;
   }
   
-  logTransaction(type, amount, reason) {
-    if (!this.data.purchaseHistory) this.data.purchaseHistory = [];
+  const newCoins = currentCoins - amount;
+  const success = await setUserCoins(newCoins);
+  
+  if (success) {
+    console.log(`✅ Spent ${amount} coins. Remaining: ${newCoins}`);
+    await updateCoinDisplay();
     
-    this.data.purchaseHistory.push({
+    // Log transaction
+    await logTransaction('spend', amount, reason, newCoins);
+  }
+  
+  return success;
+}
+
+// ============================================
+// 5️⃣ LOG TRANSACTION
+// ============================================
+async function logTransaction(type, amount, reason, balance) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return;
+  
+  const db = window.firebaseDatabase;
+  if (!db) return;
+  
+  try {
+    const transactionRef = window.firebaseRef(db, `users/${user.uid}/coin_transactions`);
+    const newTransactionRef = window.firebasePush(transactionRef);
+    
+    await window.firebaseSet(newTransactionRef, {
       type: type,
       amount: amount,
       reason: reason,
-      timestamp: new Date().toISOString(),
-      balance: this.data.coins
+      balance: balance,
+      timestamp: new Date().toISOString()
     });
     
-    if (this.data.purchaseHistory.length > 100) {
-      this.data.purchaseHistory = this.data.purchaseHistory.slice(-100);
+    console.log('📝 Transaction logged:', type, amount);
+  } catch (error) {
+    console.error('❌ Error logging transaction:', error);
+  }
+}
+
+// ============================================
+// 6️⃣ UPDATE COIN DISPLAY (REAL-TIME)
+// ============================================
+async function updateCoinDisplay() {
+  const coins = await getUserCoins();
+  
+  // Update all coin displays
+  const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
+  coinElements.forEach(el => {
+    if (el) {
+      el.textContent = coins;
+      
+      // Animation
+      el.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        el.style.transform = 'scale(1)';
+      }, 200);
     }
+  });
+  
+  console.log('🔄 Coin display updated:', coins);
+}
+
+// ============================================
+// 7️⃣ REAL-TIME COIN LISTENER
+// ============================================
+function listenToCoins() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return;
+  
+  const db = window.firebaseDatabase;
+  if (!db) return;
+  
+  const coinsRef = window.firebaseRef(db, `users/${user.uid}/coins`);
+  
+  window.firebaseOnValue(coinsRef, (snapshot) => {
+    const coins = snapshot.val() || 0;
+    console.log('🔔 Coins changed in real-time:', coins);
+    
+    // Update all displays
+    const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
+    coinElements.forEach(el => {
+      if (el) el.textContent = coins;
+    });
+  });
+  
+  console.log('✅ Real-time coin listener started');
+}
+
+// ============================================
+// 8️⃣ CHECK IF USER CAN USE TOOL
+// ============================================
+async function canUseTool(toolName) {
+  const cost = COIN_CONFIG.TOOL_COSTS[toolName] || 0;
+  
+  // Check subscription
+  const subscription = await checkUserSubscription();
+  
+  if (subscription.type === 'pro') {
+    return { canUse: true, cost: 0, reason: 'Pro subscription' };
   }
   
-  canUseTool(toolName) {
-    const cost = COIN_CONFIG.TOOL_COSTS[toolName] || 0;
-    
-    if (this.data.subscription === 'pro') {
-      return { canUse: true, cost: 0, reason: 'Pro subscription' };
-    }
-    
-    if (this.data.coins >= cost) {
-      return { canUse: true, cost: cost, reason: 'Sufficient coins' };
-    }
-    
-    return { canUse: false, cost: cost, reason: 'Not enough coins' };
+  const coins = await getUserCoins();
+  
+  if (coins >= cost) {
+    return { canUse: true, cost: cost, reason: 'Sufficient coins' };
   }
   
-  useTool(toolName) {
-    const check = this.canUseTool(toolName);
+  return { canUse: false, cost: cost, reason: 'Not enough coins' };
+}
+
+// ============================================
+// 9️⃣ USE TOOL
+// ============================================
+async function useTool(toolName) {
+  const check = await canUseTool(toolName);
+  
+  if (!check.canUse) {
+    console.error(`❌ Cannot use ${toolName}: ${check.reason}`);
+    if (typeof showInsufficientCoinsModal === 'function') {
+      const currentCoins = await getUserCoins();
+      showInsufficientCoinsModal(check.cost, currentCoins);
+    }
+    return false;
+  }
+  
+  if (check.cost > 0) {
+    const success = await spendCoins(check.cost, `Used ${toolName} tool`);
+    return success;
+  }
+  
+  return true;
+}
+
+// ============================================
+// 🔟 CHECK USER SUBSCRIPTION
+// ============================================
+async function checkUserSubscription() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    return { type: 'free', status: 'active' };
+  }
+  
+  const db = window.firebaseDatabase;
+  if (!db) {
+    return { type: 'free', status: 'active' };
+  }
+  
+  try {
+    const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
+    const snapshot = await window.firebaseGet(subRef);
     
-    if (!check.canUse) {
-      console.error(`❌ Cannot use ${toolName}: ${check.reason}`);
-      if (typeof showInsufficientCoinsModal === 'function') {
-        showInsufficientCoinsModal(check.cost, this.data.coins);
+    if (!snapshot.exists()) {
+      return { type: 'free', status: 'active' };
+    }
+    
+    const subData = snapshot.val();
+    
+    // Check expiry
+    if (subData.expiry && subData.expiry !== null) {
+      const expiryDate = new Date(subData.expiry);
+      const now = new Date();
+      
+      if (expiryDate < now) {
+        return { type: 'free', status: 'expired', expiredAt: subData.expiry };
       }
-      return false;
     }
     
-    if (check.cost > 0) {
-      const success = this.spendCoins(check.cost, `Used ${toolName} tool`);
-      if (success) {
-        if (!this.data.toolUsageCount[toolName]) {
-          this.data.toolUsageCount[toolName] = 0;
-        }
-        this.data.toolUsageCount[toolName]++;
-        this.save();
-      }
-      return success;
-    }
-    
-    return true;
+    return subData;
+  } catch (error) {
+    console.error('❌ Subscription check error:', error);
+    return { type: 'free', status: 'active' };
   }
+}
+
+// ============================================
+// 1️⃣1️⃣ DAILY BONUS
+// ============================================
+async function canClaimDailyBonus() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return false;
   
-  canClaimDailyBonus() {
-    if (!this.data.lastDailyBonus) return true;
+  const db = window.firebaseDatabase;
+  if (!db) return false;
+  
+  try {
+    const bonusRef = window.firebaseRef(db, `users/${user.uid}/lastDailyBonus`);
+    const snapshot = await window.firebaseGet(bonusRef);
     
+    if (!snapshot.exists()) return true;
+    
+    const lastBonus = new Date(snapshot.val()).getTime();
     const now = Date.now();
-    const lastBonus = new Date(this.data.lastDailyBonus).getTime();
     const timeDiff = now - lastBonus;
     
     return timeDiff >= COIN_CONFIG.DAILY_BONUS_COOLDOWN;
+  } catch (error) {
+    console.error('❌ Error checking daily bonus:', error);
+    return false;
+  }
+}
+
+async function claimDailyBonus() {
+  if (!(await canClaimDailyBonus())) {
+    showNotification('⏰ Daily bonus already claimed today!', 'info');
+    return false;
   }
   
-  claimDailyBonus() {
-    if (!this.canClaimDailyBonus()) {
-      const timeLeft = this.getTimeUntilNextBonus();
-      if (typeof showNotification === 'function') {
-        showNotification(`⏰ Daily bonus available in ${timeLeft}`, 'info');
-      }
-      return false;
-    }
+  const subscription = await checkUserSubscription();
+  
+  let bonusAmount = 5;
+  if (subscription.type === 'standard') bonusAmount = 10;
+  if (subscription.type === 'pro') bonusAmount = 20;
+  
+  const success = await addCoins(bonusAmount, 'Daily login bonus');
+  
+  if (success) {
+    // Save last bonus time
+    const user = window.firebaseAuth?.currentUser;
+    const db = window.firebaseDatabase;
     
-    let bonusAmount = 5;
-    if (this.data.subscription === 'standard') bonusAmount = 10;
-    if (this.data.subscription === 'pro') bonusAmount = 20;
+    const bonusRef = window.firebaseRef(db, `users/${user.uid}/lastDailyBonus`);
+    await window.firebaseSet(bonusRef, new Date().toISOString());
     
-    this.addCoins(bonusAmount, 'Daily login bonus');
-    this.data.lastDailyBonus = new Date().toISOString();
-    this.data.lastDailyBonusDate = new Date().toLocaleDateString();
-    this.save();
-    
+    showNotification(`🎉 You earned ${bonusAmount} coins! Daily bonus claimed!`, 'success');
     if (typeof showCoinEarnAnimation === 'function') {
       showCoinEarnAnimation(bonusAmount);
     }
-    if (typeof showNotification === 'function') {
-      showNotification(`🎉 You earned ${bonusAmount} coins! Daily bonus claimed!`, 'success');
-    }
-    
-    return true;
   }
   
-  getTimeUntilNextBonus() {
-    if (!this.data.lastDailyBonus) return '0h 0m';
-    
-    const now = Date.now();
-    const lastBonus = new Date(this.data.lastDailyBonus).getTime();
-    const nextBonus = lastBonus + COIN_CONFIG.DAILY_BONUS_COOLDOWN;
-    const timeLeft = nextBonus - now;
-    
-    if (timeLeft <= 0) return '0h 0m';
-    
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m`;
-  }
-  
-  getSubscriptionInfo() {
-    return {
-      type: this.data.subscription,
-      expiry: this.data.subscriptionExpiry,
-      isActive: this.isSubscriptionActive(),
-      config: COIN_CONFIG.SUBSCRIPTION[this.data.subscription]
-    };
-  }
-  
-  isSubscriptionActive() {
-    if (this.data.subscription === 'free') return true;
-    if (!this.data.subscriptionExpiry) return false;
-    
-    return new Date(this.data.subscriptionExpiry) > new Date();
-  }
-  
-  reset() {
-    this.data = this.getDefaultData();
-    this.save();
-    if (typeof updateCoinDisplay === 'function') {
-      updateCoinDisplay();
-    }
-    console.log('🔄 Coin data reset');
-  }
+  return success;
 }
 
 // ============================================
-// 3️⃣ GLOBAL INITIALIZATION
+// 1️⃣2️⃣ UI FUNCTIONS
 // ============================================
 
-function initCoinSystem() {
-  const auth = window.firebaseAuth;
-  if (!auth || !auth.currentUser) {
-    console.warn('⚠️ User not logged in, coin system delayed');
-    return null;
-  }
-  
-  const userId = auth.currentUser.uid;
-  const manager = new UserCoinData(userId);
-  
-  window.coinManager = manager;
-  
-  if (typeof updateCoinDisplay === 'function') {
-    updateCoinDisplay();
-  }
-  if (typeof checkDailyBonus === 'function') {
-    checkDailyBonus();
-  }
-  
-  console.log('✅ Coin system initialized for user:', userId);
-  console.log('💰 Current balance:', manager.getCoins(), 'coins');
-  
-  return manager;
-}
-
-// ============================================
-// 4️⃣ UI FUNCTIONS
-// ============================================
-
-function updateCoinDisplay() {
-  const coinElement = document.getElementById('userCoins');
-  if (!coinElement) return;
-  
-  if (!window.coinManager) {
-    coinElement.textContent = '0';
-    return;
-  }
-  
-  const coins = window.coinManager.getCoins();
-  coinElement.textContent = coins;
-  
-  coinElement.style.transform = 'scale(1.2)';
-  setTimeout(() => {
-    coinElement.style.transform = 'scale(1)';
-  }, 200);
-}
-
-function checkDailyBonus() {
-  if (!window.coinManager) return;
-  
-  if (window.coinManager.canClaimDailyBonus()) {
-    setTimeout(() => {
-      showDailyBonusNotification();
-    }, 2000);
-  }
-}
-
-function showDailyBonusNotification() {
-  const notification = document.createElement('div');
-  notification.className = 'daily-bonus-notification';
-  notification.innerHTML = `
-    <div class="daily-bonus-content">
-      <div class="daily-bonus-icon">🎁</div>
-      <div class="daily-bonus-text">
-        <h4>Daily Bonus Available!</h4>
-        <p>Claim your free coins now</p>
-      </div>
-      <button onclick="claimDailyBonusFromUI()" class="daily-bonus-btn">
-        Claim
-      </button>
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.classList.add('show');
-  }, 100);
-  
-  setTimeout(() => {
-    closeDailyBonusNotification();
-  }, 10000);
+function claimDailyBonusFromUI() {
+  claimDailyBonus();
+  closeDailyBonusNotification();
 }
 
 function closeDailyBonusNotification() {
@@ -370,22 +368,6 @@ function closeDailyBonusNotification() {
   if (notification) {
     notification.classList.remove('show');
     setTimeout(() => notification.remove(), 300);
-  }
-  
-  if (typeof window.preventToolSwitch !== 'undefined') {
-    window.preventToolSwitch = false;
-    console.log('🔓 Tool switching unlocked after daily bonus');
-  }
-}
-
-function claimDailyBonusFromUI() {
-  if (window.coinManager) {
-    window.coinManager.claimDailyBonus();
-    closeDailyBonusNotification();
-    
-    if (typeof window.preventToolSwitch !== 'undefined') {
-      window.preventToolSwitch = false;
-    }
   }
 }
 
@@ -398,6 +380,13 @@ function showCoinEarnAnimation(amount) {
       const coin = document.createElement('div');
       coin.className = 'flying-coin';
       coin.textContent = '🪙';
+      coin.style.cssText = `
+        position: fixed;
+        font-size: 32px;
+        pointer-events: none;
+        z-index: 9999;
+        transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      `;
       
       const startX = Math.random() * window.innerWidth;
       const startY = window.innerHeight;
@@ -449,12 +438,6 @@ function showInsufficientCoinsModal(required, current) {
             <i class="bi bi-gift"></i> Daily Bonus
           </button>
         </div>
-        
-        <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 10px; border-left: 4px solid #f59e0b;">
-          <p style="margin: 0; color: #92400e; font-size: 14px;">
-            💡 <strong>Tip:</strong> Upgrade to <strong>Standard</strong> (25,000 so'm/oy) for 100 coins/day!
-          </p>
-        </div>
       </div>
     </div>
   `;
@@ -471,8 +454,34 @@ function closeInsufficientCoinsModal() {
   }
 }
 
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background: ${type === 'success' ? '#10b981' : 
+                  type === 'error' ? '#ef4444' : 
+                  type === 'info' ? '#3b82f6' : '#6b7280'};
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    font-weight: 600;
+    animation: slideIn 0.3s ease;
+  `;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
 // ============================================
-// COIN SHOP - TO'G'RILANGAN ✅
+// COIN SHOP
 // ============================================
 
 function openCoinShop() {
@@ -503,8 +512,6 @@ function openCoinShop() {
   
   document.body.appendChild(modal);
   setTimeout(() => modal.classList.add('active'), 10);
-  
-  // ✅ Prevent body scroll
   document.body.style.overflow = 'hidden';
 }
 
@@ -514,8 +521,6 @@ function closeCoinShop() {
     modal.classList.remove('active');
     setTimeout(() => modal.remove(), 300);
   }
-  
-  // ✅ Re-enable body scroll
   document.body.style.overflow = '';
 }
 
@@ -523,7 +528,7 @@ function generateCoinPackagesHTML() {
   return `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px;">
       ${COIN_CONFIG.COIN_PACKAGES.map(pkg => `
-        <div class="coin-package ${pkg.popular ? 'popular' : ''}" onclick="purchaseCoinPackage('${pkg.id}', ${pkg.coins}, ${pkg.price}, ${pkg.bonus})" style="
+        <div class="coin-package ${pkg.popular ? 'popular' : ''}" onclick="purchaseCoinPackage('${pkg.id}')" style="
           background: white;
           border: 2px solid ${pkg.popular ? '#f59e0b' : '#e5e7eb'};
           border-radius: 12px;
@@ -533,17 +538,12 @@ function generateCoinPackagesHTML() {
           transition: all 0.3s;
           position: relative;
         ">
-          ${pkg.popular ? '<div class="package-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Popular</div>' : ''}
-          <div class="package-icon" style="font-size: 48px; margin-bottom: 10px;">🪙</div>
-          <div class="package-coins" style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 5px;">${pkg.coins} Coins</div>
-          ${pkg.bonus > 0 ? `<div class="package-bonus" style="color: #ffffffff; font-size: 14px; font-weight: 600; margin-bottom: 10px;">+${pkg.bonus} Bonus!</div>` : '<div style="height: 24px;"></div>'}
-          <div class="package-price" style="font-size: 18px; color: #6b7280; margin-bottom: 15px;">${formatPrice(pkg.price)} so'm</div>
-          <button class="package-btn" style="width: 100%; padding: 10px; background: linear-gradient(
-    151deg,
-    rgba(93, 156, 245, 1) 0%,
-    rgba(44, 170, 154, 1) 60%,
-    rgba(35, 195, 101, 1) 100%
-  ); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Buy Now</button>
+          ${pkg.popular ? '<div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Popular</div>' : ''}
+          <div style="font-size: 48px; margin-bottom: 10px;">🪙</div>
+          <div style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 5px;">${pkg.coins} Coins</div>
+          ${pkg.bonus > 0 ? `<div style="color: #10b981; font-size: 14px; font-weight: 600; margin-bottom: 10px;">+${pkg.bonus} Bonus!</div>` : '<div style="height: 24px;"></div>'}
+          <div style="font-size: 18px; color: #6b7280; margin-bottom: 15px;">${formatPrice(pkg.price)} so'm</div>
+          <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Buy Now</button>
         </div>
       `).join('')}
     </div>
@@ -552,80 +552,48 @@ function generateCoinPackagesHTML() {
 
 function generateSubscriptionCardsHTML() {
   return `
-    <div class="sub-card" onclick="purchaseSubscription('standard')" style="
-      background: white;
-      border: 2px solid #10b981;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-    ">
-      <div class="sub-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Best Value</div>
+    <div onclick="purchaseSubscription('standard')" style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative;">
+      <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Best Value</div>
       <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Standard</h5>
-      <div class="sub-price" style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">25,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
-      <ul class="sub-features" style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
+      <div style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">25,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
+      <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 100 coins/day</li>
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ All tools</li>
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ No ads</li>
       </ul>
-      <button class="sub-btn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
+      <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
     
-    <div class="sub-card pro" onclick="purchaseSubscription('pro')" style="
-      background: linear-gradient(135deg, #fbbf2420, #f59e0b20);
-      border: 2px solid #f59e0b;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-    ">
-      <div class="sub-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Premium</div>
+    <div onclick="purchaseSubscription('pro')" style="background: linear-gradient(135deg, #fbbf2420, #f59e0b20); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative;">
+      <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Premium</div>
       <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Pro</h5>
-      <div class="sub-price" style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 15px;">50,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
-      <ul class="sub-features" style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
+      <div style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 15px;">50,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
+      <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Unlimited coins</li>
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Premium tools</li>
         <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Priority support</li>
       </ul>
-      <button class="sub-btn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
+      <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
   `;
 }
 
-// ============================================
-// PURCHASE COIN PACKAGE - TO'G'RILANGAN ✅
-// ============================================
-
-function purchaseCoinPackage(packageId, coins, price, bonus) {
-  console.log('📦 Purchasing coin package:', packageId);
-  
-  // ✅ Telegram payment modalni ochish
+function purchaseCoinPackage(packageId) {
   if (typeof window.openSubscriptionPaymentModal === 'function') {
     closeCoinShop();
     window.openSubscriptionPaymentModal(packageId);
   } else {
-    console.error('❌ openSubscriptionPaymentModal function not found!');
-    showNotification('❌ To\'lov tizimi topilmadi', 'error');
+    showNotification('❌ Payment system not found', 'error');
   }
 }
 
-// ============================================
-// PURCHASE SUBSCRIPTION - TO'G'RILANGAN ✅
-// ============================================
-
 function purchaseSubscription(plan) {
-  console.log('📱 Purchasing subscription:', plan);
-  
-  // ✅ Telegram payment orqali sotib olish
+  const productKey = plan === 'standard' ? 'STANDARD_SUB' : 'PRO_SUB';
   if (typeof window.openSubscriptionPaymentModal === 'function') {
-    const productKey = plan === 'standard' ? 'STANDARD_SUB' : 'PRO_SUB';
     closeCoinShop();
     window.openSubscriptionPaymentModal(productKey);
   } else {
-    console.error('❌ openSubscriptionPaymentModal function not found!');
-    showNotification('❌ To\'lov tizimi topilmadi', 'error');
+    showNotification('❌ Payment system not found', 'error');
   }
 }
 
@@ -633,67 +601,63 @@ function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    background: ${type === 'success' ? '#10b981' : 
-                  type === 'error' ? '#ef4444' : 
-                  type === 'info' ? '#3b82f6' : '#6b7280'};
-    color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10000;
-    font-weight: 600;
-    animation: slideIn 0.3s ease;
-  `;
-  notification.textContent = message;
-  document.body.appendChild(notification);
+// ============================================
+// INITIALIZE COIN SYSTEM
+// ============================================
+async function initCoinSystem() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.warn('⚠️ User not logged in');
+    return false;
+  }
   
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
+  const db = window.firebaseDatabase;
+  if (!db) {
+    console.error('❌ Database not initialized');
+    return false;
+  }
+  
+  console.log('✅ Coin system ready for:', user.uid);
+  
+  // Start real-time listener
+  listenToCoins();
+  
+  // Initial display update
+  await updateCoinDisplay();
+  
+  return true;
 }
 
-// ============================================
-// 5️⃣ AUTO-INITIALIZATION
-// ============================================
-
+// Auto-initialize when auth state changes
 if (window.firebaseAuth) {
   window.firebaseAuth.onAuthStateChanged((user) => {
     if (user) {
-      console.log('🔐 User authenticated, initializing coin system...');
-      initCoinSystem();
+      console.log('👤 User authenticated, initializing coin system...');
+      setTimeout(() => initCoinSystem(), 1000);
     }
-  });
-} else {
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      if (window.firebaseAuth && window.firebaseAuth.currentUser) {
-        initCoinSystem();
-      }
-    }, 1000);
   });
 }
 
 // ============================================
-// 6️⃣ GLOBAL EXPORTS
+// 1️⃣4️⃣ GLOBAL EXPORTS
 // ============================================
-window.initCoinSystem = initCoinSystem;
+window.getUserCoins = getUserCoins;
+window.setUserCoins = setUserCoins;
+window.addCoins = addCoins;
+window.spendCoins = spendCoins;
+window.canUseTool = canUseTool;
+window.useTool = useTool;
 window.updateCoinDisplay = updateCoinDisplay;
-window.checkDailyBonus = checkDailyBonus;
+window.listenToCoins = listenToCoins;
+window.canClaimDailyBonus = canClaimDailyBonus;
+window.claimDailyBonus = claimDailyBonus;
 window.claimDailyBonusFromUI = claimDailyBonusFromUI;
+window.checkUserSubscription = checkUserSubscription;
 window.showInsufficientCoinsModal = showInsufficientCoinsModal;
 window.closeInsufficientCoinsModal = closeInsufficientCoinsModal;
 window.openCoinShop = openCoinShop;
 window.closeCoinShop = closeCoinShop;
-window.purchaseCoinPackage = purchaseCoinPackage;
-window.purchaseSubscription = purchaseSubscription;
 window.showNotification = showNotification;
-window.showCoinEarnAnimation = showCoinEarnAnimation;
+window.initCoinSystem = initCoinSystem;
 
-console.log('✅ Coin System (FIXED) loaded successfully!');
+console.log('✅ Firebase Coin System loaded successfully!');
