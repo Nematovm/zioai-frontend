@@ -34,9 +34,9 @@ const PAYMENT_CONFIG = {
       benefits: ['Cheksiz coinlar', 'Barcha premium toollar', 'Reklama yo\'q', 'Birinchi qo\'llab-quvvatlash']
     },
     COINS_50: { name: '50 Coins', nameUz: '50 Coin', price: 10000, coins: 50 },
-    COINS_100: { name: '100 Coins', nameUz: '100 Coin', price: 17000, coins: 100, bonus: 10 },
-    COINS_250: { name: '250 Coins', nameUz: '250 Coin', price: 40000, coins: 250, bonus: 50 },
-    COINS_500: { name: '500 Coins', nameUz: '500 Coin', price: 70000, coins: 500, bonus: 150 }
+    COINS_100: { name: '120 Coins', nameUz: '120 Coin', price: 20000, coins: 120, bonus: 20 },
+    COINS_250: { name: '300 Coins', nameUz: '300 Coin', price: 45000, coins: 300, bonus: 50 },
+    COINS_500: { name: '400 Coins', nameUz: '400 Coin', price: 70000, coins: 400, bonus: 100 }
   }
 };
 
@@ -71,7 +71,7 @@ async function isAdmin(userId) {
 }
 
 // ============================================
-// PAYMENT MODAL
+// IMPROVED PAYMENT MODAL - MODERN UI DESIGN
 // ============================================
 
 function openSubscriptionPaymentModal(productType) {
@@ -92,57 +92,378 @@ function openSubscriptionPaymentModal(productType) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline payment-modal';
   modal.innerHTML = `
-    <div class="modal-inline" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
-      <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 2px solid #e5e7eb;">
-        <h3 style="margin: 0;">💳 To'lov qilish</h3>
-        <button class="modal-close-inline" onclick="closeSubscriptionPaymentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #6b7280;">×</button>
-      </div>
-      
-      <div class="modal-body-inline" style="padding: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea20, #764ba220); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="modal-inline payment-modal-content" style="
+      max-width: 720px; 
+      width: 95vw;
+      max-height: 92vh; 
+      overflow-y: auto;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    ">
+      <!-- Header with Decorative Elements -->
+      <div class="modal-header-inline" style="
+        position: sticky; 
+        top: 0; 
+        background: linear-gradient(
+    151deg,
+    rgba(93, 156, 245, 1) 0%,
+    rgba(44, 170, 154, 1) 60%,
+    rgba(35, 195, 101, 1) 100%
+  );;
+        z-index: 10; 
+        padding: 32px 36px;
+        border-radius: 24px 0px 0 0;
+        position: relative;
+        overflow: hidden;
+      ">
+        <!-- Decorative Background Pattern -->
+        <div style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: 
+            radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.15) 0%, transparent 50%);
+          opacity: 0.6;
+        "></div>
+        
+        <div style="position: relative; z-index: 1;">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+            <div style="
+              width: 56px;
+              height: 56px;
+              background: rgba(255,255,255,0.2);
+              backdrop-filter: blur(10px);
+              border-radius: 16px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 28px;
+              box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            ">💳</div>
             <div>
-              <h4 style="margin: 0 0 5px 0;">${product.nameUz}</h4>
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                ${product.duration ? `📅 ${product.duration}` : `🪙 ${product.coins} ta coin`}
-                ${product.bonus ? ` + <strong style="color: #10b981;">${product.bonus} bonus!</strong>` : ''}
-              </p>
-            </div>
-            <div style="font-size: 24px; font-weight: bold; color: #10b981;">
-              ${formatPrice(product.price)} so'm
+              <h3 style="
+                margin: 0; 
+                color: white; 
+                font-size: 28px; 
+                font-weight: 700;
+                letter-spacing: -0.5px;
+                text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              ">To'lov qilish</h3>
+              <p style="
+                margin: 4px 0 0 0;
+                color: rgba(255,255,255,0.9);
+                font-size: 14px;
+                font-weight: 500;
+              ">Xavfsiz va tez to'lov tizimi</p>
             </div>
           </div>
         </div>
         
-        <div style="background: #fef3c7; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
-          <p style="margin: 0 0 10px 0; font-weight: 600; color: #92400e;">📋 To'lov qilish bo'yicha ko'rsatma:</p>
-          <ol style="margin: 0; padding-left: 20px; color: #92400e; font-size: 14px;">
-            <li>Karta raqamini nusxalang</li>
-            <li>Pul o'tkazing</li>
-            <li>"Telegramga yozish" tugmasini bosing</li>
-            <li>Xabarni yuboring</li>
+        <button class="modal-close-inline" onclick="closeSubscriptionPaymentModal()" style="
+          position: absolute; 
+          right: 24px; 
+          top: 24px; 
+          background: rgba(255,255,255,0.15);
+          backdrop-filter: blur(10px);
+          border: 2px solid rgba(255,255,255,0.2);
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          font-size: 24px; 
+          cursor: pointer; 
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          font-weight: 300;
+        " onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='rotate(90deg) scale(1.1)';" 
+           onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg) scale(1)';">×</button>
+      </div>
+      
+      <div class="modal-body-inline" style="padding: 36px;">
+        <!-- Product Card with Modern Design -->
+        <div style="
+          background: linear-gradient(135deg, #667eea15, #764ba215);
+          padding: 32px;
+          border-radius: 20px;
+          margin-bottom: 28px;
+          border: 2px solid #e0e7ff;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px rgba(102, 126, 234, 0.15)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+          <!-- Decorative Corner -->
+          <div style="
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea30, #764ba230);
+            border-radius: 50%;
+            filter: blur(30px);
+          "></div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; position: relative;">
+            <div style="flex: 1;">
+              <div style="
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 6px 14px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 12px;
+              ">Premium</div>
+              
+              <h4 style="
+                margin: 0 0 8px 0;
+                font-size: 26px;
+                font-weight: 700;
+                color: #1e293b;
+                letter-spacing: -0.5px;
+              ">${product.nameUz}</h4>
+              
+              <p style="
+                margin: 0; 
+                color: #64748b; 
+                font-size: 15px;
+                line-height: 1.6;
+                font-weight: 500;
+              ">
+                ${product.duration ? `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="font-size: 18px;">📅</span> ${product.duration}</span>` : `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="font-size: 18px;">🪙</span> ${product.coins} ta coin</span>`}
+                ${product.bonus ? `<br><span style="color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;"><span style="font-size: 18px;">🎁</span> +${product.bonus} bonus coin!</span>` : ''}
+              </p>
+            </div>
+            <div style="
+              background: linear-gradient(135deg, #10b981, #059669);
+              color: white;
+              padding: 20px 28px;
+              border-radius: 16px;
+              text-align: center;
+              box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            ">
+              <div style="
+                font-size: 14px;
+                opacity: 0.9;
+                margin-bottom: 4px;
+                font-weight: 600;
+              ">Narx</div>
+              <div style="
+                font-size: 28px; 
+                font-weight: 800;
+                line-height: 1.2;
+                letter-spacing: -0.5px;
+              ">${formatPrice(product.price)}</div>
+              <div style="
+                font-size: 15px;
+                opacity: 0.9;
+                margin-top: 2px;
+                font-weight: 600;
+              ">so'm</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Instructions Card -->
+        <div style="
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          padding: 24px 28px;
+          border-radius: 16px;
+          margin-bottom: 28px;
+          border-left: 5px solid #f59e0b;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              font-size: 28px;
+              width: 44px;
+              height: 44px;
+              background: rgba(245, 158, 11, 0.2);
+              border-radius: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">📋</div>
+            <h4 style="
+              margin: 0;
+              font-weight: 700;
+              color: #92400e;
+              font-size: 18px;
+            ">To'lov qilish bo'yicha ko'rsatma</h4>
+          </div>
+          
+          <ol style="
+            margin: 0; 
+            padding-left: 24px; 
+            color: #78350f; 
+            font-size: 15px;
+            line-height: 2;
+            font-weight: 500;
+          ">
+            <li style="padding-left: 8px;">Karta raqamini nusxalang</li>
+            <li style="padding-left: 8px;">Belgilangan summani o'tkazing</li>
+            <li style="padding-left: 8px;">"Telegramga yozish" tugmasini bosing</li>
+            <li style="padding-left: 8px;">To'lov chekini yuboring va tasdiqlang</li>
           </ol>
         </div>
         
-        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-          <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280; font-weight: 600;">💳 Karta raqami:</p>
-          <div style="display: flex; gap: 10px; align-items: center;">
+        <!-- Card Details Section -->
+        <div style="
+          background: white;
+          border: 2px solid #e2e8f0;
+          border-radius: 20px;
+          padding: 32px;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="
+              font-size: 24px;
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #3b82f615, #2563eb15);
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">💳</div>
+            <h4 style="
+              margin: 0;
+              font-size: 17px;
+              color: #475569;
+              font-weight: 700;
+              letter-spacing: -0.3px;
+            ">Karta raqami</h4>
+          </div>
+          
+          <div style="
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+          ">
             <input type="text" id="cardNumberInput" value="${PAYMENT_CONFIG.CARD_NUMBER}" readonly
-              style="flex: 1; padding: 12px; font-size: 18px; font-weight: bold; border: 2px solid #e5e7eb; border-radius: 8px; font-family: monospace;">
+              style="
+                flex: 1;
+                padding: 18px 20px;
+                font-size: 20px;
+                font-weight: 700;
+                border: 2px solid #e2e8f0;
+                border-radius: 14px;
+                font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+                background: #f8fafc;
+                color: #1e293b;
+                letter-spacing: 1px;
+                transition: all 0.3s ease;
+              "
+              onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
+              onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
             <button onclick="copySubscriptionCardNumber()" 
-              style="padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-              📋 Nusxalash
+              style="
+                padding: 18px 28px;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: white;
+                border: none;
+                border-radius: 14px;
+                cursor: pointer;
+                font-weight: 700;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+                white-space: nowrap;
+              "
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.4)';"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(59, 130, 246, 0.3)';">
+              <span style="font-size: 18px;">📋</span>
+              <span>Nusxalash</span>
             </button>
           </div>
-          <p style="margin: 10px 0 0 0; font-size: 13px; color: #6b7280;">
-            📌 Karta egasi: <strong>${PAYMENT_CONFIG.CARD_HOLDER}</strong>
-          </p>
+          
+          <div style="
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f1f5f915, #e2e8f015);
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+          ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">👤</span>
+              <span style="
+                font-size: 14px;
+                color: #64748b;
+                font-weight: 600;
+              ">Karta egasi:</span>
+              <strong style="
+                color: #1e293b;
+                font-size: 16px;
+                font-weight: 700;
+              ">${PAYMENT_CONFIG.CARD_HOLDER}</strong>
+            </div>
+          </div>
         </div>
         
+        <!-- Telegram Button -->
         <button onclick="openTelegram('${productType}', '${userName}', '${user.uid}', '${user.email}')" 
-          style="width: 100%; padding: 16px; background: linear-gradient(135deg, #0088cc, #006699); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">
-          📱 Telegramga yozish
+          style="
+            width: 100%;
+            padding: 20px 32px;
+            background: linear-gradient(135deg, #0088cc, #006699);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 24px rgba(0, 136, 204, 0.3);
+            position: relative;
+            overflow: hidden;
+          "
+          onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(0, 136, 204, 0.4)';"
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0, 136, 204, 0.3)';">
+          <span style="font-size: 24px;"><i class="bi bi-telegram"></i></span>
+          <span>Telegramga yozish</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-left: 4px;">
+            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
+        
+        <!-- Security Badge -->
+        <div style="
+          margin-top: 24px;
+          padding: 16px;
+          background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          border: 1px solid #bbf7d0;
+        ">
+          <span style="font-size: 20px;">🔒</span>
+          <span style="
+            color: #166534;
+            font-size: 14px;
+            font-weight: 600;
+          ">Xavfsiz to'lov tizimi orqali amalga oshiriladi</span>
+        </div>
       </div>
     </div>
   `;
@@ -155,6 +476,10 @@ function openSubscriptionPaymentModal(productType) {
 function closeSubscriptionPaymentModal() {
   const modal = document.querySelector('.payment-modal');
   if (modal) {
+    const content = modal.querySelector('.payment-modal-content');
+    if (content) {
+      content.style.animation = 'modalSlideOut 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+    }
     modal.classList.remove('active');
     setTimeout(() => modal.remove(), 300);
   }
@@ -167,10 +492,73 @@ function copySubscriptionCardNumber() {
   
   try {
     navigator.clipboard.writeText(PAYMENT_CONFIG.CARD_NUMBER);
+    
+    // Enhanced visual feedback
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<span style="font-size: 18px;">✅</span><span>Nusxalandi!</span>';
+    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    
+    setTimeout(() => {
+      button.innerHTML = originalHTML;
+      button.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+    }, 2000);
+    
     showNotification('✅ Karta raqami nusxalandi!', 'success');
   } catch (err) {
     console.error('Copy error:', err);
+    showNotification('❌ Nusxalashda xatolik', 'error');
   }
+}
+
+// Add these CSS animations to your stylesheet or in a <style> tag
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  @keyframes modalSlideOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+  }
+  
+  .payment-modal-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .payment-modal-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+  
+  .payment-modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+  }
+  
+  .payment-modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+  }
+`;
+
+// Append the stylesheet to document head
+if (!document.querySelector('#payment-modal-styles')) {
+  styleSheet.id = 'payment-modal-styles';
+  document.head.appendChild(styleSheet);
 }
 
 // ============================================

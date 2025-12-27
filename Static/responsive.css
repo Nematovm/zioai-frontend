@@ -8,10 +8,19 @@
     left: 0;
     margin-top: -70px;
     z-index: 10003;
+    
   }
 
   .navbar-brand {
-    margin-top: -2px;
+    margin-top: -7px !important;
+  }
+
+  .main-logo {
+    margin-top: -6px !important;
+  }
+
+  .tool-cost-badge {
+    right: 10px !important;
   }
 
   .sidebar-header {
@@ -183,6 +192,7 @@
     display: flex;
     height: 30px;
     width: 30px;
+    margin-top: -6px !important;
   }
 
   .sidebar-header .menu-toggler span {
@@ -320,7 +330,7 @@
 
 @media (max-width: 600px) {
   .motivation-toast {
-    display: none;
+    display: none !important;
   }
   /* Language Selector Mobile */
   .language-selector {

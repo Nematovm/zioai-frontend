@@ -87,16 +87,10 @@ const toolTitles = {
 };
 
 // ============================================
-// 4️⃣ SWITCH TOOL FUNCTION - STRICT LOCKING ✅
+// 4️⃣ SWITCH TOOL FUNCTION - FIXED FOR PROFILE ✅
 // ============================================
 function switchTool(toolName) {
-  // ✅ STRICT CHECK: Never switch if prevented
-  // if (window.preventToolSwitch) {
-  //   console.warn('🚫 Tool switch BLOCKED - preventToolSwitch is TRUE');
-  //   console.warn('   Current tool remains:', window.currentActiveTool);
-  //   return;
-  // }
-
+  // ✅ Prevent concurrent switches
   if (window.isToolSwitching) {
     console.warn("⏳ Tool switch already in progress");
     return;
@@ -133,20 +127,37 @@ function switchTool(toolName) {
     activeContent.classList.add("active");
     activeContent.style.display = "block";
 
+    // ✅ TOOL-SPECIFIC INITIALIZATION
     if (toolName === "article" && typeof showArticlesTool === "function") {
       showArticlesTool();
     }
 
-// ✅ UPDATE PROFILE WHEN SWITCHING TO PROFILE
-if (toolName === "profile") {
-  if (typeof showProfileTool === "function") {
-    showProfileTool();
-  }
-  // Update profile data
-  if (typeof updateProfileCoinDisplay === "function") {
-    updateProfileCoinDisplay();
-  }
-}
+    // ✅ PROFILE TOOL - FIXED INITIALIZATION
+    if (toolName === "profile") {
+      console.log('📋 Initializing profile tool...');
+      
+      // Call profile initialization
+      if (typeof showProfileTool === "function") {
+        try {
+          showProfileTool();
+          console.log('✅ Profile tool initialized');
+        } catch (error) {
+          console.error('❌ Profile initialization error:', error);
+        }
+      }
+      
+      // Update coin display with safety checks
+      setTimeout(() => {
+        if (typeof updateProfileCoinDisplay === "function") {
+          try {
+            updateProfileCoinDisplay();
+            console.log('✅ Profile coin display updated');
+          } catch (error) {
+            console.error('❌ Coin display error:', error);
+          }
+        }
+      }, 300);
+    }
   }
 
   // Update header
@@ -180,11 +191,135 @@ if (toolName === "profile") {
     }
   }
 
-  // ✅ UNLOCK after animation
+  // ✅ UNLOCK after animation (ALWAYS UNLOCK!)
   setTimeout(() => {
     window.isToolSwitching = false;
     console.log("✅ Tool switch complete:", toolName);
+    console.log("🔓 Tool switching UNLOCKED");
   }, 500);
+}
+
+// ============================================
+// PROFILE TOOL INITIALIZATION - FIXED ✅
+// ============================================
+function showProfileTool() {
+  console.log('🔧 showProfileTool() called');
+  
+  // Firebase auth check
+  const auth = window.firebaseAuth;
+  if (!auth) {
+    console.error('❌ Firebase auth not initialized');
+    return;
+  }
+  
+  const currentUser = auth.currentUser;
+  
+  if (!currentUser) {
+    console.error('❌ No user logged in');
+    return;
+  }
+  
+  // Load profile data (existing function)
+  if (typeof loadProfileData === 'function') {
+    loadProfileData();
+  }
+  
+  // ✅ UPDATE COIN DISPLAY - WITH SAFETY CHECKS
+  const updateCoins = async () => {
+    try {
+      // Check if coin system is ready
+      if (typeof getUserCoins === 'function') {
+        const coins = await getUserCoins();
+        const coinBalance = document.getElementById('profileCoinBalance');
+        if (coinBalance) {
+          coinBalance.textContent = coins;
+          console.log('💰 Profile coins updated:', coins);
+        }
+      } else {
+        console.warn('⚠️ getUserCoins not available, retrying...');
+        // Retry after 500ms
+        setTimeout(updateCoins, 500);
+      }
+    } catch (error) {
+      console.error('❌ Error updating profile coins:', error);
+    }
+  };
+  
+  updateCoins();
+  
+  console.log('✅ Profile tool initialized');
+}
+
+// ============================================
+// HELPER: Load Profile Data
+// ============================================
+function loadProfileData() {
+  const auth = window.firebaseAuth;
+  if (!auth) return;
+  
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
+  
+  let userAvatar = '👤';
+  let username = '';
+  
+  if (currentUser.displayName) {
+    const displayName = currentUser.displayName;
+    
+    // Extract emoji
+    const emojiRegex = /[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+    const emojiMatch = displayName.match(emojiRegex);
+    
+    if (emojiMatch) {
+      userAvatar = emojiMatch[0];
+    }
+    
+    // Extract username (remove all emojis and spaces)
+    username = displayName
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+      .replace(/\s+/g, '')
+      .trim();
+  }
+  
+  if (!username || username.length === 0) {
+    username = currentUser.email.split('@')[0];
+  }
+  
+  console.log('✅ Extracted Avatar:', userAvatar);
+  console.log('✅ Extracted Username:', username);
+  
+  // Update UI elements
+  const profileAvatar = document.getElementById('profileAvatar');
+  const profileName = document.getElementById('profileName');
+  const profileEmail = document.getElementById('profileEmail');
+  const usernameInput = document.getElementById('usernameInput');
+  const emailInput = document.getElementById('emailInput');
+  
+  if (profileAvatar) profileAvatar.textContent = userAvatar;
+  if (profileName) profileName.textContent = username;
+  if (profileEmail) profileEmail.textContent = currentUser.email;
+  if (usernameInput) usernameInput.value = username;
+  if (emailInput) emailInput.value = currentUser.email;
+  
+  // Member since
+  const profileDate = document.getElementById('profileDate');
+  if (profileDate && currentUser.metadata.creationTime) {
+    const creationTime = currentUser.metadata.creationTime;
+    const memberDate = new Date(creationTime).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    profileDate.innerHTML = `<i class="bi bi-calendar3"></i> Member since: ${memberDate}`;
+  }
+  
+  console.log('✅ Profile data loaded');
 }
 
 // ============================================
@@ -532,7 +667,7 @@ function showError(outputElement, message) {
 }
 
 // ============================================
-// SWITCH HOMEWORK TAB
+// SWITCH HOMEWORK TAB - IMAGE CLEANUP ✅
 // ============================================
 function switchHomeworkTab(tab) {
   const textTab = document.getElementById("textInputTab");
@@ -541,24 +676,53 @@ function switchHomeworkTab(tab) {
   const imageBtn = document.getElementById("imageTabBtn");
 
   if (tab === "text") {
+    // ✅ TEXT TAB - CLEAR IMAGE DATA
+    console.log('🔄 Switching to TEXT tab - clearing image...');
+    
+    // Remove image data
+    uploadedImage = null;
+    
+    // Reset preview UI
+    const previewImg = document.getElementById("previewImg");
+    const imageFileName = document.getElementById("imageFileName");
+    const fileInput = document.getElementById("homeworkImageInput");
+    const uploadArea = document.getElementById("imageUploadArea");
+    const imagePreview = document.getElementById("imagePreview");
+    
+    if (previewImg) previewImg.src = "";
+    if (imageFileName) imageFileName.textContent = "";
+    if (fileInput) fileInput.value = "";
+    if (uploadArea) uploadArea.style.display = "block";
+    if (imagePreview) imagePreview.style.display = "none";
+    
+    console.log('✅ Image cleared from TEXT tab');
+    
+    // Show text tab
     textTab.style.display = "block";
     imageTab.style.display = "none";
     textBtn.classList.add("active", "linear-act-bc");
     textBtn.classList.remove("bg-bc");
-    textBtn.style.background =
-      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    textBtn.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     textBtn.style.color = "white";
     imageBtn.classList.remove("active", "linear-act-bc");
     imageBtn.classList.add("bg-bc");
     imageBtn.style.background = "#f3f4f6";
     imageBtn.style.color = "#6b7280";
+    
   } else {
+    // ✅ IMAGE TAB - CLEAR TEXT INPUT
+    console.log('🔄 Switching to IMAGE tab - clearing text...');
+    
+    // Clear text input (optional - uncomment if needed)
+    // const textInput = document.getElementById("homeworkInput");
+    // if (textInput) textInput.value = "";
+    
+    // Show image tab
     textTab.style.display = "none";
     imageTab.style.display = "block";
     imageBtn.classList.add("active", "linear-act-bc");
     imageBtn.classList.remove("bg-bc");
-    imageBtn.style.background =
-      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    imageBtn.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     imageBtn.style.color = "white";
     textBtn.classList.remove("active", "linear-act-bc");
     textBtn.classList.add("bg-bc");
@@ -920,21 +1084,21 @@ if (window.coinManager && window.coinManager.data.subscription === 'pro') {
 }
 
 // ============================================
-// 2️⃣ FIXED HOMEWORK FUNCTION
+// FIXED HOMEWORK FUNCTION - IMPROVED ✅
 // ============================================
 async function fixHomework() {
   console.log('🎯 fixHomework() called');
   
-  // 🪙 COIN CHECK - MUST BE FIRST AND BLOCK EXECUTION
+  // 🪙 COIN CHECK
   console.log('💰 Checking coins...');
   const canProceed = await checkAndSpendCoins('homework');
   
   if (!canProceed) {
-    console.error('❌ BLOCKED: insufficient coins or coin check failed');
-    return; // ✅ STOP HERE - DO NOT CONTINUE
+    console.error('❌ BLOCKED: insufficient coins');
+    return;
   }
   
-  console.log('✅ Coins deducted successfully, proceeding...');
+  console.log('✅ Coins deducted, proceeding...');
 
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
@@ -943,24 +1107,109 @@ async function fixHomework() {
 
   let homework = document.getElementById("homeworkInput").value.trim();
 
+  // ✅ CHECK WHICH TAB IS ACTIVE
+  const textTab = document.getElementById("textInputTab");
+  const imageTab = document.getElementById("imageInputTab");
+  
+  const isTextTabActive = textTab && textTab.style.display !== "none";
+  const isImageTabActive = imageTab && imageTab.style.display !== "none";
+  
+  console.log('📋 Active tab:', isTextTabActive ? 'TEXT' : 'IMAGE');
+  console.log('📝 Homework text:', homework ? homework.substring(0, 50) + '...' : '(empty)');
+  console.log('🖼️ Uploaded image:', uploadedImage ? 'YES' : 'NO');
+
   // ============================================
-  // IMAGE UPLOAD CHECK
+  // ✅ SCENARIO 1: TEXT TAB ACTIVE
   // ============================================
-  if (uploadedImage) {
-    console.log('📷 Processing image upload...');
+  if (isTextTabActive) {
+    console.log('✅ Processing TEXT mode');
     
+    // Clear any lingering image data
+    if (uploadedImage) {
+      console.warn('⚠️ Image data found in TEXT mode - clearing it');
+      uploadedImage = null;
+    }
+    
+    // Validate text input
+    if (!homework) {
+      if (window.coinManager) {
+        window.coinManager.addCoins(3, 'Refund: No homework text');
+        updateCoinDisplay();
+      }
+      alert("⚠️ Please enter your homework text!");
+      return;
+    }
+    
+    result.style.display = "block";
+    showLoading(output);
+
+    try {
+      const response = await fetch(`${API_URL}/fix-homework`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          homework: homework,
+          image: null, // ✅ EXPLICITLY NULL
+          type: "text",
+          language: language,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (window.coinManager) {
+          window.coinManager.addCoins(3, 'Refund: Server error');
+          updateCoinDisplay();
+        }
+        throw new Error(data.error || "Server error");
+      }
+
+      if (data.success && data.correctedHomework) {
+        displayHomeworkResult(data, output);
+      } else {
+        throw new Error("No response from AI");
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+      if (window.coinManager) {
+        window.coinManager.addCoins(3, 'Refund: ' + error.message);
+        updateCoinDisplay();
+      }
+      showError(output, error.message);
+    }
+    
+    return; // ✅ EXIT HERE
+  }
+
+  // ============================================
+  // ✅ SCENARIO 2: IMAGE TAB ACTIVE
+  // ============================================
+  if (isImageTabActive) {
+    console.log('✅ Processing IMAGE mode');
+    
+    if (!uploadedImage) {
+      if (window.coinManager) {
+        window.coinManager.addCoins(3, 'Refund: No image uploaded');
+        updateCoinDisplay();
+      }
+      alert("⚠️ Please upload an image first!");
+      return;
+    }
+    
+    result.style.display = "block";
+    showLoading(output);
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imageData = e.target.result;
-      result.style.display = "block";
-      showLoading(output);
 
       try {
         const response = await fetch(`${API_URL}/fix-homework`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            homework: null,
+            homework: null, // ✅ EXPLICITLY NULL
             image: imageData,
             type: "image",
             language: language,
@@ -968,11 +1217,8 @@ async function fixHomework() {
         });
 
         const data = await response.json();
-        console.log('📦 Server response:', data);
 
         if (!response.ok) {
-          // ⚠️ SERVER ERROR - REFUND COINS
-          console.error('❌ Server error:', data.error);
           if (window.coinManager) {
             window.coinManager.addCoins(3, 'Refund: Server error');
             updateCoinDisplay();
@@ -981,216 +1227,76 @@ async function fixHomework() {
         }
 
         if (data.success && data.correctedHomework) {
-          console.log('✅ Homework corrected successfully');
-          
-          // ✅ SUBJECT DETECTION
-          let subjectBadge = '';
-          
-          // Option 1: Backend provides subject
-          if (data.detectedSubject && data.subjectEmoji) {
-            subjectBadge = `
-              <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-                ${data.subjectEmoji} ${data.detectedSubject.toUpperCase()}
-              </div>
-            `;
-          } 
-          // Option 2: Frontend detects from text (FALLBACK)
-          else {
-            const detectedSubject = detectSubject(homework + ' ' + data.correctedHomework);
-            if (detectedSubject) {
-              subjectBadge = `
-                <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-                  ${detectedSubject.emoji} ${detectedSubject.name.toUpperCase()}
-                </div>
-              `;
-            }
-          }
-
-          // ✅ MATH FORMULA (if exists)
-          const formulaDisplay = data.mathData ? `
-            <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #0284c7;">
-              <h6 style="color: #0c4a6e; margin: 0 0 12px 0; font-weight: 700;">
-                📐 Aniqlangan Formula:
-              </h6>
-              <div style="background: white; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; margin-bottom: 10px;">
-                <div style="margin-bottom: 8px;">
-                  <strong>LaTeX:</strong> <code>${data.mathData.latex}</code>
-                </div>
-                <div>
-                  <strong>O'qilishi:</strong> ${data.mathData.readable}
-                </div>
-              </div>
-              <div id="formulaRender" style="font-size: 1.3em; text-align: center; padding: 15px; background: white; border-radius: 8px; border: 2px dashed #0284c7;">
-                $${data.mathData.latex}$
-              </div>
-            </div>
-          ` : '';
-
-          // ✅ AI ANALYSIS - NOW VISIBLE
-          output.innerHTML = `
-            ${subjectBadge}
-            ${formulaDisplay}
-            <div class="alert alert-success">
-              <h5 class="alert-heading">
-                <i class="bi bi-check-circle-fill"></i> AI Tahlil
-              </h5>
-              <hr>
-              <div id="mathContent" style="white-space: pre-wrap; line-height: 1.8;">
-                ${data.correctedHomework}
-              </div>
-            </div>
-          `;
-
-          // ✅ RENDER MATH FORMULAS
-          const mathContent = document.getElementById('mathContent');
-          const formulaRender = document.getElementById('formulaRender');
-          
-          if (mathContent && typeof renderMathFormulas === 'function') {
-            renderMathFormulas(mathContent);
-          }
-          
-          if (formulaRender && data.mathData && typeof renderMathFormulas === 'function') {
-            renderMathFormulas(formulaRender);
-          }
-
-          // Track stats
-          if (typeof trackToolUsage === "function") trackToolUsage("homework");
-          if (typeof incrementStat === "function") {
-            incrementStat("homeworkCompleted", 1);
-            incrementStat("totalStudyTime", 3);
-          }
-
-          console.log('✅ Homework display complete');
+          displayHomeworkResult(data, output);
         } else {
-          // ⚠️ NO RESPONSE - REFUND
-          console.error('❌ No AI response');
-          if (window.coinManager) {
-            window.coinManager.addCoins(3, 'Refund: No AI response');
-            updateCoinDisplay();
-          }
           throw new Error("No response from AI");
         }
       } catch (error) {
         console.error("❌ Error:", error);
-        
-        // ⚠️ ERROR - REFUND
         if (window.coinManager) {
           window.coinManager.addCoins(3, 'Refund: ' + error.message);
           updateCoinDisplay();
         }
-        
         showError(output, error.message);
       }
     };
+    
     reader.readAsDataURL(uploadedImage);
-    return;
+    return; // ✅ EXIT HERE
   }
 
   // ============================================
-  // TEXT HOMEWORK
+  // ✅ SCENARIO 3: FALLBACK (shouldn't happen)
   // ============================================
-  if (!homework) {
-    // ⚠️ EMPTY INPUT - REFUND
-    console.warn('⚠️ Empty homework input');
-    if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: No homework text');
-      updateCoinDisplay();
-    }
-    alert("⚠️ Please enter your homework or upload an image!");
-    return;
+  console.error('❌ No active tab detected!');
+  alert('⚠️ Please select Text or Image mode');
+  if (window.coinManager) {
+    window.coinManager.addCoins(3, 'Refund: No mode selected');
+    updateCoinDisplay();
+  }
+}
+
+// ============================================
+// HELPER: Display Homework Result
+// ============================================
+function displayHomeworkResult(data, output) {
+  console.log('✅ Homework corrected successfully');
+  
+  // ✅ SUBJECT DETECTION
+  let subjectBadge = '';
+  
+  if (data.detectedSubject && data.subjectEmoji) {
+    subjectBadge = `
+      <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
+        ${data.subjectEmoji} ${data.detectedSubject.toUpperCase()}
+      </div>
+    `;
   }
 
-  console.log('📝 Processing text homework...');
-  result.style.display = "block";
-  showLoading(output);
+  output.innerHTML = `
+    ${subjectBadge}
+    <div class="alert alert-success">
+      <h5 class="alert-heading">
+        <i class="bi bi-check-circle-fill"></i> AI Tahlil
+      </h5>
+      <hr>
+      <div id="mathContent" style="white-space: pre-wrap; line-height: 1.8;">
+        ${data.correctedHomework}
+      </div>
+    </div>
+  `;
 
-  try {
-    const response = await fetch(`${API_URL}/fix-homework`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        homework: homework,
-        image: null,
-        type: "text",
-        language: language,
-      }),
-    });
+  // ✅ RENDER MATH
+  const mathContent = document.getElementById('mathContent');
+  if (mathContent && typeof renderMathFormulas === 'function') {
+    renderMathFormulas(mathContent);
+  }
 
-    const data = await response.json();
-    console.log('📦 Server response:', data);
-
-    if (!response.ok) {
-      // ⚠️ SERVER ERROR - REFUND
-      console.error('❌ Server error:', data.error);
-      if (window.coinManager) {
-        window.coinManager.addCoins(3, 'Refund: Server error');
-        updateCoinDisplay();
-      }
-      throw new Error(data.error || "Server error");
-    }
-
-    if (data.success && data.correctedHomework) {
-      console.log('✅ Homework corrected successfully');
-      
-      // ✅ SUBJECT DETECTION
-      let subjectBadge = '';
-      
-      if (data.detectedSubject && data.subjectEmoji) {
-        subjectBadge = `
-          <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-            ${data.subjectEmoji} ${data.detectedSubject.toUpperCase()}
-          </div>
-        `;
-      } else {
-        const detectedSubject = detectSubject(homework + ' ' + data.correctedHomework);
-        if (detectedSubject) {
-          subjectBadge = `
-            <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
-              ${detectedSubject.emoji} ${detectedSubject.name.toUpperCase()}
-            </div>
-          `;
-        }
-      }
-
-      output.innerHTML = `
-        ${subjectBadge}
-        <div class="alert alert-success">
-          <h5 class="alert-heading">
-            <i class="bi bi-check-circle-fill"></i> AI Tahlil
-          </h5>
-          <hr>
-          <div id="mathContent" style="white-space: pre-wrap; line-height: 1.8;">
-            ${data.correctedHomework}
-          </div>
-        </div>
-      `;
-
-      // ✅ RENDER MATH
-      const mathContent = document.getElementById('mathContent');
-      if (mathContent && typeof renderMathFormulas === 'function') {
-        renderMathFormulas(mathContent);
-      }
-
-      console.log('✅ Homework display complete');
-    } else {
-      // ⚠️ NO RESPONSE - REFUND
-      console.error('❌ No AI response');
-      if (window.coinManager) {
-        window.coinManager.addCoins(3, 'Refund: No AI response');
-        updateCoinDisplay();
-      }
-      throw new Error("No response from AI");
-    }
-  } catch (error) {
-    console.error("❌ Error:", error);
-    
-    // ⚠️ ERROR - REFUND
-    if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: ' + error.message);
-      updateCoinDisplay();
-    }
-    
-    showError(output, error.message);
+  // Track stats
+  if (typeof trackToolUsage === "function") trackToolUsage("homework");
+  if (typeof incrementStat === "function") {
+    incrementStat("homeworkCompleted", 1);
+    incrementStat("totalStudyTime", 3);
   }
 }
 
@@ -5289,10 +5395,10 @@ function showLoading(element) {
 }
 
 // ============================================
-// UPDATE PROFILE COIN DISPLAY - FINAL FIX ✅
+// UPDATE PROFILE COIN DISPLAY - FIXED ✅
 // ============================================
 async function updateProfileCoinDisplay() {
-  console.log('🔄 Updating profile display...');
+  console.log('🔄 Updating profile coin display...');
   
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
@@ -5307,11 +5413,20 @@ async function updateProfileCoinDisplay() {
       const coinBalance = document.getElementById('profileCoinBalance');
       if (coinBalance) {
         coinBalance.textContent = coins;
+        
+        // Animation
+        coinBalance.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          coinBalance.style.transform = 'scale(1)';
+        }, 200);
+        
         console.log('💰 Profile coins updated:', coins);
       }
     } catch (error) {
       console.error('❌ Error getting coins:', error);
     }
+  } else {
+    console.warn('⚠️ getUserCoins function not available');
   }
   
   // ✅ 2. UPDATE SUBSCRIPTION FROM FIREBASE
@@ -5325,8 +5440,6 @@ async function updateProfileCoinDisplay() {
     const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
     const snapshot = await window.firebaseGet(subRef);
     
-    console.log('📊 Firebase subscription data:', snapshot.val());
-    
     let subType = 'free';
     let subExpiry = null;
     
@@ -5334,31 +5447,24 @@ async function updateProfileCoinDisplay() {
       const subData = snapshot.val();
       subType = (subData.type || 'free').toLowerCase();
       subExpiry = subData.expiry;
-      
-      console.log('✅ Subscription type:', subType);
-      console.log('✅ Expiry:', subExpiry);
-    } else {
-      console.log('ℹ️ No subscription data - defaulting to free');
     }
+    
+    console.log('✅ Subscription type:', subType);
     
     // ✅ 3. UPDATE BADGE
     const subBadge = document.getElementById('subscriptionBadgeProfile');
     if (subBadge) {
       subBadge.textContent = subType.toUpperCase();
       
-      // Apply styling based on type
       if (subType === 'pro') {
         subBadge.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
         subBadge.style.color = 'white';
-        console.log('✅ Badge set to: PRO (gold)');
       } else if (subType === 'standard') {
         subBadge.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         subBadge.style.color = 'white';
-        console.log('✅ Badge set to: STANDARD (green)');
       } else {
         subBadge.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
         subBadge.style.color = 'white';
-        console.log('✅ Badge set to: FREE (gray)');
       }
     }
     
@@ -5372,7 +5478,6 @@ async function updateProfileCoinDisplay() {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         subExpiryElement.textContent = `Expires: ${expiryDate.toLocaleDateString('en-US', options)}`;
       }
-      console.log('✅ Expiry updated');
     }
     
     // ✅ 5. UPDATE DAILY LIMIT
@@ -5385,7 +5490,6 @@ async function updateProfileCoinDisplay() {
       } else if (subType === 'pro') {
         dailyLimit.textContent = 'Unlimited coins';
       }
-      console.log('✅ Daily limit updated');
     }
     
   } catch (error) {
@@ -5399,6 +5503,8 @@ async function updateProfileCoinDisplay() {
   
   console.log('✅ Profile display update complete');
 }
+
+console.log('✅ Fixed Profile Tool Switching loaded!');
 
 // ============================================
 // LOAD TRANSACTION HISTORY - FIREBASE VERSION ✅

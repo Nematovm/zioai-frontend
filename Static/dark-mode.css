@@ -36,6 +36,47 @@ body.dark-mode .nav-title {
     color: transparent;
 }
 
+body.dark-mode .btn-secondary-inline {
+    background: var(--primary-dc);
+    border: 1px solid var(--border-bc);
+}
+
+body.dark-mode .billing-header h3{
+    color: var(--text-dc);
+}
+
+body.dark-mode .subscription-detail span {
+    color: var(--text-dc);
+}
+
+body.dark-mode .transaction-history h4 {
+    color: var(--text-dc);
+}
+
+body.dark-mode .modal-header-inline {
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .coin-package {
+    background: #2C2C32 !important;
+}
+
+body.dark-mode .pkg-coins {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .subs-card {
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .subs_card-option {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .subs_card-enable {
+    color: var(--text-dc) !important;
+}
+
 body.dark-mode .sidebar {
     background: var(--secondary-dc);
     box-shadow: 0 5px 10px 2px var(--box-shadow-bc);

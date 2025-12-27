@@ -18,9 +18,9 @@ const COIN_CONFIG = {
   
   COIN_PACKAGES: [
     { id: 'COINS_50', coins: 50, price: 10000, bonus: 0, popular: false },
-    { id: 'COINS_100', coins: 100, price: 17000, bonus: 10, popular: true },
-    { id: 'COINS_250', coins: 250, price: 40000, bonus: 50, popular: false },
-    { id: 'COINS_500', coins: 500, price: 70000, bonus: 150, popular: false }
+    { id: 'COINS_100', coins: 120, price: 20000, bonus: 20, popular: true },
+    { id: 'COINS_250', coins: 300, price: 45000, bonus: 50, popular: false },
+    { id: 'COINS_500', coins: 400, price: 70000, bonus: 100, popular: false }
   ]
 };
 
@@ -509,7 +509,7 @@ function openCoinShop() {
         ${generateCoinPackagesHTML()}
         
         <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px;">
-          <h4 style="margin: 0 0 15px 0; color: #374151;">
+          <h4 class="pkg-coins" style="margin: 0 0 15px 0; color: #374151;">
             <i class="bi bi-star-fill" style="color: #fbbf24;"></i> Or Upgrade to Premium
           </h4>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
@@ -550,38 +550,61 @@ function generateCoinPackagesHTML() {
         ">
           ${pkg.popular ? '<div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Popular</div>' : ''}
           <div style="font-size: 48px; margin-bottom: 10px;">🪙</div>
-          <div style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 5px;">${pkg.coins} Coins</div>
+          <div class="pkg-coins" style="font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 5px;">${pkg.coins} Coins</div>
           ${pkg.bonus > 0 ? `<div style="color: #10b981; font-size: 14px; font-weight: 600; margin-bottom: 10px;">+${pkg.bonus} Bonus!</div>` : '<div style="height: 24px;"></div>'}
           <div style="font-size: 18px; color: #6b7280; margin-bottom: 15px;">${formatPrice(pkg.price)} so'm</div>
           <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Buy Now</button>
         </div>
       `).join('')}
+      <div style="width: 750px; background: linear-gradient(135deg, #fbbf2420, #f59e0b20); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; text-align: center; position: relative;">
+        <span>
+        💡 Coins run out. Subscriptions give you coins every day.
+        </span>
+      </div>
     </div>
   `;
 }
 
 function generateSubscriptionCardsHTML() {
   return `
-    <div onclick="purchaseSubscription('standard')" style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative;">
+    <div class="subs-card" style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 20px; text-align: center; position: relative;">
+      <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Free Forever</div>
+      <h5 class="subs_card-option"  style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Free</h5>
+      <div style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">0<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
+      <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 5 coins/day</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Homework Checker</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Writing Checker</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">❌ Image upload</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">❌ Export / Download</li>
+      </ul>
+      <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600;">Current Plan</button>
+    </div>
+
+    <div class="subs-card" onclick="purchaseSubscription('standard')" style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative;">
       <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Best Value</div>
-      <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Standard</h5>
+      <h5  class="subs_card-option" style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Standard</h5>
       <div style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">25,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
       <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 100 coins/day</li>
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ All tools</li>
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ No ads</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 70 coins/day</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Homework Checker</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Writing Checker</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Image upload</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Export / Download</li>
       </ul>
       <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
     
     <div onclick="purchaseSubscription('pro')" style="background: linear-gradient(135deg, #fbbf2420, #f59e0b20); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative;">
       <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">Premium</div>
-      <h5 style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Pro</h5>
+      <h5 class="subs_card-option" style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Pro</h5>
       <div style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 15px;">50,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
       <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Unlimited coins</li>
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Premium tools</li>
-        <li style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Priority support</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 150 coins/day</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">🎁 Article tool (bonus)</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Priority support</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Everything in Free</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Everything in Standard</li>
       </ul>
       <button style="width: 100%; padding: 10px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: none; border-radius: 8px; font-weight: 600;">Subscribe</button>
     </div>
