@@ -24,14 +24,14 @@ const PAYMENT_CONFIG = {
       nameUz: 'Standard Obuna',
       price: 25000,
       duration: '1 oy',
-      benefits: ['100 coin/kun', 'Barcha toollar', 'Reklama yo\'q']
+      benefits: ['20 coin/kun', 'Barcha toollar', 'Reklama yo\'q']
     },
     PRO_SUB: {
       name: 'PRO Subscription',
       nameUz: 'PRO Obuna',
       price: 50000,
       duration: '1 oy',
-      benefits: ['Cheksiz coinlar', 'Barcha premium toollar', 'Reklama yo\'q', 'Birinchi qo\'llab-quvvatlash']
+      benefits: ['50 coin/kun', 'Barcha premium toollar', 'Reklama yo\'q', 'Birinchi qo\'llab-quvvatlash']
     },
     COINS_50: { name: '50 Coins', nameUz: '50 Coin', price: 10000, coins: 50 },
     COINS_100: { name: '120 Coins', nameUz: '120 Coin', price: 20000, coins: 120, bonus: 20 },

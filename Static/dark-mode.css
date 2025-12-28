@@ -955,3 +955,172 @@ body.dark-mode #dashboard-lock {
 body.dark-mode .profile-header-inline{
  background: var(--linear-bc);
 }
+
+
+
+/* ============================================
+   DARK MODE SUPPORT
+============================================ */
+
+body.dark-mode .article-upgrade-modal {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+body.dark-mode .article-modal-content {
+  background: #1f2937 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-mode .modal-header-gradient {
+  background: linear-gradient(151deg, rgba(93, 156, 245, 0.9) 0%, rgba(44, 170, 154, 0.9) 60%, rgba(35, 195, 101, 0.9) 100%) !important;
+}
+
+body.dark-mode .article-modal-content h2,
+body.dark-mode .article-modal-content h3 {
+  color: #f9fafb !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+body.dark-mode .article-modal-content h3 {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child {
+  background: #1f2937 !important;
+}
+
+/* Feature Cards Dark Mode */
+body.dark-mode .feature-card:nth-child(1) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%) !important;
+  border-color: rgba(134, 239, 172, 0.3) !important;
+}
+
+body.dark-mode .feature-card:nth-child(1) > div > div:first-child {
+  color: #6ee7b7 !important;
+}
+
+body.dark-mode .feature-card:nth-child(1) > div > div:last-child {
+  color: #86efac !important;
+}
+
+body.dark-mode .feature-card:nth-child(2) {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%) !important;
+  border-color: rgba(252, 211, 77, 0.3) !important;
+}
+
+body.dark-mode .feature-card:nth-child(2) > div > div:first-child {
+  color: #fcd34d !important;
+}
+
+body.dark-mode .feature-card:nth-child(2) > div > div:last-child {
+  color: #fde68a !important;
+}
+
+body.dark-mode .feature-card:nth-child(3) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%) !important;
+  border-color: rgba(165, 180, 252, 0.3) !important;
+}
+
+body.dark-mode .feature-card:nth-child(3) > div > div:first-child {
+  color: #a5b4fc !important;
+}
+
+body.dark-mode .feature-card:nth-child(3) > div > div:last-child {
+  color: #c7d2fe !important;
+}
+
+body.dark-mode .feature-card:nth-child(4) {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(225, 29, 72, 0.15) 100%) !important;
+  border-color: rgba(253, 164, 175, 0.3) !important;
+}
+
+body.dark-mode .feature-card:nth-child(4) > div > div:first-child {
+  color: #fda4af !important;
+}
+
+body.dark-mode .feature-card:nth-child(4) > div > div:last-child {
+  color: #fecdd3 !important;
+}
+
+body.dark-mode .feature-card:nth-child(5) {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%) !important;
+  border-color: rgba(216, 180, 254, 0.3) !important;
+}
+
+body.dark-mode .feature-card:nth-child(5) > div > div:first-child {
+  color: #d8b4fe !important;
+}
+
+body.dark-mode .feature-card:nth-child(5) > div > div:last-child {
+  color: #e9d5ff !important;
+}
+
+/* PRO Pricing Card Dark Mode */
+body.dark-mode .article-modal-content > div:last-child > div:nth-child(2) {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child > div:nth-child(2) > div > div:first-child {
+  background: rgba(146, 64, 14, 0.3) !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child > div:nth-child(2) > div > div:first-child span {
+  color: #fcd34d !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child > div:nth-child(2) > div > div:nth-child(2) span {
+  color: #fbbf24 !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child > div:nth-child(2) > div > div:last-child > div {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fde68a !important;
+}
+
+/* Buttons Dark Mode */
+body.dark-mode .modal-btn-secondary {
+  background: #374151 !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+body.dark-mode .modal-btn-secondary:hover {
+  background: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+body.dark-mode .modal-btn-primary {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.5) !important;
+}
+
+body.dark-mode .modal-btn-primary:hover {
+  box-shadow: 0 15px 30px -5px rgba(245, 158, 11, 0.6) !important;
+}
+
+body.dark-mode .article-modal-content > div:last-child > div:last-child > p {
+  color: #9ca3af !important;
+}
+
+/* Scrollbar Dark Mode */
+body.dark-mode .article-modal-content::-webkit-scrollbar-track {
+  background: #374151 !important;
+}
+
+body.dark-mode .article-modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(151deg, rgba(93, 156, 245, 0.8) 0%, rgba(44, 170, 154, 0.8) 60%, rgba(35, 195, 101, 0.8) 100%) !important;
+}
+
+body.dark-mode .article-modal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(151deg, rgba(35, 195, 101, 0.8) 0%, rgba(44, 170, 154, 0.8) 40%, rgba(93, 156, 245, 0.8) 100%) !important;
+}
+
+/* Close Button Dark Mode */
+body.dark-mode .modal-close-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-mode .modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}

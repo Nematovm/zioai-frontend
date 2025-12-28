@@ -82,11 +82,19 @@
   z-index: 10000;
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 20px;
+  padding: 30px 20px;
 }
 
 .article-upgrade-modal.active {
   opacity: 1;
+}
+
+/* Modal vertikal markazda turishi uchun */
+.article-upgrade-modal::before {
+  content: '';
+  height: 100%;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Modal Content Animation */
@@ -199,6 +207,30 @@
   }
 }
 
+/* Smooth Scrolling */
+.article-modal-content {
+  scroll-behavior: smooth;
+}
+
+.article-modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.article-modal-content::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.article-modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(151deg, rgba(93, 156, 245, 1) 0%, rgba(44, 170, 154, 1) 60%, rgba(35, 195, 101, 1) 100%);
+  border-radius: 10px;
+}
+
+.article-modal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(151deg, rgba(35, 195, 101, 1) 0%, rgba(44, 170, 154, 1) 40%, rgba(93, 156, 245, 1) 100%);
+}
+
 /* Button Hover Effects */
 .modal-btn-secondary {
   position: relative;
@@ -270,6 +302,8 @@
   height: 60px;
 }
 
+
+
 /* Scrollbar Styling for Modal */
 .article-modal-content::-webkit-scrollbar {
   width: 8px;
@@ -294,31 +328,62 @@
 ============================================ */
 
 @media (max-width: 768px) {
+  .article-upgrade-modal {
+    top: 500px !important;
+    padding: 20px 10px;
+    align-items: center; /* Bu muhim */
+  }
+
+
   .article-upgrade-modal .article-modal-content {
     max-width: 95vw !important;
-    margin: 10px;
+    max-height: 85vh !important;
+    width: 100%;
+    margin: 0;
+    border-radius: 20px !important;
+    margin-top: 50px !important;
   }
   
   .modal-header-gradient {
-    padding: 30px 25px !important;
+    padding: 30px 20px 25px 20px !important;
+  }
+  
+  .modal-icon-container {
+    margin-bottom: 15px !important;
+  }
+  
+  .modal-icon-paper {
+    font-size: 60px !important;
+    margin-top: -35px !important;
   }
   
   .modal-header-gradient h2 {
-    font-size: 26px !important;
+    font-size: 22px !important;
+    margin-bottom: 8px !important;
   }
   
   .modal-header-gradient p {
-    font-size: 15px !important;
+    font-size: 14px !important;
+    max-width: 100% !important;
+    padding: 0 10px;
   }
   
-.modal-icon-float,
-.modal-icon-paper {
-  font-size: 60px !important;
-}
-
+  .article-modal-content > div:last-child {
+    padding: 20px 18px 25px 18px !important;
+  }
+  
+  .article-modal-content h3 {
+    font-size: 17px !important;
+    margin-bottom: 14px !important;
+  }
+  
+  .article-modal-content h3 span:first-child {
+    font-size: 19px !important;
+  }
   
   .feature-card {
     padding: 14px !important;
+    gap: 12px !important;
   }
   
   .feature-card span:first-child {
@@ -326,17 +391,56 @@
   }
   
   .feature-card > div > div:first-child {
-    font-size: 14px !important;
+    font-size: 13px !important;
+    margin-bottom: 3px !important;
   }
   
   .feature-card > div > div:last-child {
     font-size: 12px !important;
+    line-height: 1.4 !important;
   }
   
+  /* PRO Pricing Card */
+  .article-modal-content > div:last-child > div:nth-child(2) {
+    padding: 20px 16px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:first-child span {
+    font-size: 11px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:nth-child(2) span:first-child {
+    font-size: 38px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:nth-child(2) span:last-child {
+    font-size: 15px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:last-child {
+    gap: 8px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:last-child > div {
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+  }
+  
+  /* Buttons */
   .modal-btn-primary,
   .modal-btn-secondary {
     font-size: 14px !important;
     padding: 14px !important;
+  }
+  
+  .modal-btn-primary span:last-child {
+    font-size: 14px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:last-child > p {
+    font-size: 11px !important;
+    margin-top: 14px !important;
   }
   
   .pro-badge-overlay {
@@ -348,35 +452,139 @@
     font-size: 10px !important;
     padding: 3px 10px !important;
   }
+  .modal-icon-paper {
+    font-size: 60px !important;
+    margin-top: 0 !important;  /* Bu qatorni qo'shing yoki o'zgartiring */
+  }
 }
 
 @media (max-width: 480px) {
   .article-upgrade-modal {
-    padding: 10px;
+    padding: 15px 8px;
+    align-items: center; /* Bu muhim */
+  }
+  
+  .article-upgrade-modal .article-modal-content {
+    max-width: 96vw !important;
+    max-height: 88vh !important;
+    border-radius: 18px !important;
+  }
+
+  .modal-icon-paper {
+    font-size: 50px !important;
+    margin-top: 0 !important;  /* Bu qatorni qo'shing yoki o'zgartiring */
+  }
+  
+  .modal-header-gradient {
+    padding: 25px 15px 20px 15px !important;
+  }
+  
+  .modal-icon-paper {
+    font-size: 50px !important;
+    margin-top: -30px !important;
   }
   
   .modal-header-gradient h2 {
-    font-size: 22px !important;
+    font-size: 19px !important;
+    letter-spacing: -0.5px !important;
   }
   
-.modal-icon-float,
-.modal-icon-paper {
-  font-size: 50px !important;
-  margin-bottom: 15px !important;
-}
+  .modal-header-gradient p {
+    font-size: 13px !important;
+  }
   
-  .modal-btn-primary,
-  .modal-btn-secondary {
-    flex: 1 !important;
+  .modal-close-btn {
+    width: 35px !important;
+    height: 35px !important;
+    font-size: 20px !important;
+    top: 12px !important;
+    right: 12px !important;
+  }
+  
+  .article-modal-content > div:last-child {
+    padding: 18px 14px 22px 14px !important;
+  }
+  
+  .article-modal-content h3 {
+    font-size: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .article-modal-content h3 span:first-child {
+    font-size: 17px !important;
   }
   
   .feature-card {
-    flex-direction: column;
-    text-align: center;
+    padding: 12px !important;
+    gap: 10px !important;
   }
   
   .feature-card span:first-child {
-    margin-bottom: 8px;
+    font-size: 20px !important;
+  }
+  
+  .feature-card > div > div:first-child {
+    font-size: 12px !important;
+  }
+  
+  .feature-card > div > div:last-child {
+    font-size: 11px !important;
+  }
+  
+  /* PRO Pricing Card */
+  .article-modal-content > div:last-child > div:nth-child(2) {
+    padding: 16px 12px !important;
+    margin-bottom: 18px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:first-child {
+    padding: 6px 14px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:first-child span {
+    font-size: 10px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:nth-child(2) span:first-child {
+    font-size: 34px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:nth-child(2) span:last-child {
+    font-size: 14px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:last-child {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .article-modal-content > div:last-child > div:nth-child(2) > div > div:last-child > div {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+  
+  /* Buttons */
+  .article-modal-content > div:last-child > div:last-child {
+    gap: 10px !important;
+  }
+  
+  .modal-btn-primary,
+  .modal-btn-secondary {
+    font-size: 13px !important;
+    padding: 13px 10px !important;
+  }
+  
+  .modal-btn-primary span:first-child {
+    font-size: 16px !important;
+  }
+  
+  .modal-btn-primary span:last-child {
+    font-size: 13px !important;
+  }
+  
+  .article-modal-content > div:last-child > div:last-child > p {
+    font-size: 10px !important;
+    margin-top: 12px !important;
   }
 }
 

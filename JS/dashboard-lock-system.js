@@ -143,8 +143,7 @@ function showArticleUpgradeModal() {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline article-upgrade-modal';
   modal.innerHTML = `
-    <div class="modal-inline article-modal-content" style="max-width: 580px; background: white; border-radius: 24px; padding: 0; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-      
+    <div class="modal-inline article-modal-content" style="max-width: 650px; max-height: 90vh; background: white; border-radius: 24px; padding: 0; overflow-y: auto; overflow-x: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">  
       <!-- Gradient Header -->
       <div class="modal-header-gradient" style="padding: 40px 35px; background: linear-gradient(151deg, rgba(93, 156, 245, 1) 0%, rgba(44, 170, 154, 1) 60%, rgba(35, 195, 101, 1) 100%); color: white; text-align: center; position: relative;">
         <button class="modal-close-btn" onclick="closeArticleUpgradeModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.25); border: none; color: white; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; backdrop-filter: blur(10px); font-weight: 300;">×</button>

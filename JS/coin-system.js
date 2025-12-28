@@ -586,7 +586,7 @@ function generateSubscriptionCardsHTML() {
       <h5  class="subs_card-option" style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Standard</h5>
       <div style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 15px;">25,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
       <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
-        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 70 coins/day</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 20 coins/day</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Homework Checker</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Writing Checker</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Image upload</li>
@@ -600,7 +600,7 @@ function generateSubscriptionCardsHTML() {
       <h5 class="subs_card-option" style="margin: 0 0 10px 0; font-size: 20px; color: #1f2937;">Pro</h5>
       <div style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 15px;">50,000<span style="font-size: 14px; color: #6b7280;">/oy</span></div>
       <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left;">
-        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 150 coins/day</li>
+        <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ 50 coins/day</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">🎁 Article tool (bonus)</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Priority support</li>
         <li class="subs_card-enable" style="padding: 5px 0; color: #4b5563; font-size: 14px;">✅ Everything in Free</li>
