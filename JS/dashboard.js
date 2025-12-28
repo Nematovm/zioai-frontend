@@ -5052,8 +5052,7 @@ function selectExamType(type) {
   const activeBtn = event.target.closest(".exam-type-btn");
   if (activeBtn) {
     activeBtn.classList.add("active");
-    activeBtn.style.background =
-      "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)";
+
     activeBtn.style.color = "white";
     activeBtn.style.border = "2px solid #6366f1";
   }

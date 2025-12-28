@@ -177,7 +177,6 @@ function renderArticlesList() {
   
   container.innerHTML = `
     <div class="articles-header">
-      <h2>Reading Articles</h2>
       <p class="articles-subtitle">
         ${articlesData.length} articles • Improve your English reading skills
       </p>
@@ -185,7 +184,7 @@ function renderArticlesList() {
       <div class="language-selector-inline">
         <i class="bi bi-globe"></i>
         <span>Vocabulary Language:</span>
-        <select id="articlesLanguageSelect" onchange="changeArticleLanguage(this.value)">
+        <select class="articles-language-select" id="articlesLanguageSelect" onchange="changeArticleLanguage(this.value)">
           <option value="uz" ${selectedArticleLanguage === 'uz' ? 'selected' : ''}>🇺🇿 O'zbek</option>
           <option value="ru" ${selectedArticleLanguage === 'ru' ? 'selected' : ''}>🇷🇺 Русский</option>
           <option value="en" ${selectedArticleLanguage === 'en' ? 'selected' : ''}>🇬🇧 English</option>

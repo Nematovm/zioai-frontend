@@ -212,7 +212,7 @@ function openSubscriptionPaymentModal(productType) {
           "></div>
           
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; position: relative;">
-            <div style="flex: 1;">
+            <div class="payment_cost-card" style="flex: 1;">
               <div style="
                 display: inline-block;
                 background: linear-gradient(135deg, #667eea, #764ba2);
@@ -319,7 +319,7 @@ function openSubscriptionPaymentModal(productType) {
         </div>
         
         <!-- Card Details Section -->
-        <div style="
+        <div class="card-number-section" style="
           background: white;
           border: 2px solid #e2e8f0;
           border-radius: 20px;
@@ -327,7 +327,7 @@ function openSubscriptionPaymentModal(productType) {
           margin-bottom: 24px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         ">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <div class="card-number-section" style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div style="
               font-size: 24px;
               width: 40px;
@@ -368,7 +368,7 @@ function openSubscriptionPaymentModal(productType) {
               "
               onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
               onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
-            <button onclick="copySubscriptionCardNumber()" 
+            <button class="copy-card-number" onclick="copySubscriptionCardNumber()" 
               style="
                 padding: 18px 28px;
                 background: linear-gradient(135deg, #3b82f6, #2563eb);
@@ -389,7 +389,7 @@ function openSubscriptionPaymentModal(productType) {
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(59, 130, 246, 0.3)';">
               <span style="font-size: 18px;">📋</span>
               <span>Nusxalash</span>
-            </button>
+            </button> 
           </div>
           
           <div style="
@@ -497,7 +497,7 @@ function copySubscriptionCardNumber() {
     const button = event.target.closest('button');
     const originalHTML = button.innerHTML;
     button.innerHTML = '<span style="font-size: 18px;">✅</span><span>Nusxalandi!</span>';
-    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    button.style.background = 'linear-gradient(135deg, #10b981, #059669) !important';
     
     setTimeout(() => {
       button.innerHTML = originalHTML;

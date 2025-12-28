@@ -243,6 +243,14 @@
 .coin-shop-modal .modal-inline {
   max-height: 90vh;
   overflow-y: auto;
+  background: white;
+}
+body.dark-mode .coin-shop-modal .modal-inline {
+  background: #262624 !important;
+}
+
+body.dark-mode .subscription-sect {
+  background: #2B2B29 !important;
 }
 
 /* Coin Package Cards */
@@ -328,6 +336,7 @@
   color: #4b5563;
   margin-bottom: 15px;
 }
+
 
 .package-btn {
   width: 100%;

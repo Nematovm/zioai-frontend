@@ -10,7 +10,7 @@
 
 /* Modal container - SCROLLABLE */
 .modal-inline {
-  background: white;
+  background: white !important;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 100%;
@@ -20,6 +20,14 @@
   position: relative;
   transform: scale(0.9);
   transition: transform 0.3s ease;
+}
+
+body.dark-mode .modal-inline {
+    background: var(--primary-dc) !important;
+}
+
+body.dark-mode .payment_cost-card h4 {
+  color: var(--text-dc) !important;
 }
 
 /* ✅ SMOOTH SCROLLING */

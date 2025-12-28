@@ -81,7 +81,7 @@
 
 /* Modern Card Design */
 .article-card {
-  background: white;
+  background: white !important;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -180,6 +180,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  background: white !important;
   gap: 15px;
 }
 
@@ -232,14 +233,14 @@
 /* Article Card Footer */
 .article-card-footer {
   padding: 15px 20px;
-  background: #f9fafb;
+  background: #f9fafb !important;
   border-top: 1px solid #e5e7eb;
 }
 
 /* Animated Read Button */
 .article-read-btn {
   width: 100%;
-  background: var(--primary-color);
+  background: var(--primary-color) !important;
   color: white;
   border: none;
   padding: 16px;
@@ -252,7 +253,7 @@
   justify-content: center;
   gap: 10px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
 }
 
 .article-read-btn::before {
@@ -393,8 +394,8 @@
 }
 
 .article-category-badge {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -521,7 +522,7 @@
 }
 
 .vocabulary-card {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
   padding: 20px;
   border-radius: 12px;
   border-left: 4px solid #8b5cf6;
@@ -574,13 +575,15 @@ SUMMARY SECTION
   width: 100%;
   min-height: 150px;
   padding: 16px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #e5e7eb !important;
   border-radius: 12px;
   font-size: 1rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   resize: vertical;
   transition: all 0.3s ease;
+  background: white !important;
+  color: #374151 !important;
 }
 
 .summary-textarea:focus {
@@ -788,6 +791,7 @@ RESPONSIVE DESIGN
   .article-vocabulary-section,
   .article-summary-section {
     padding: 25px;
+    background: white !important;
   }
   .vocabulary-grid {
     grid-template-columns: 1fr;
@@ -1143,4 +1147,65 @@ RESPONSIVE DESIGN
   .translation-popup-header h4 {
     font-size: 1.2rem;
   }
+}
+
+.article-description,
+.article-view-title,
+.article-text,
+.section-title,
+.article-title,
+.feedback-title h3 {
+  color: #1a202c !important;
+}
+
+
+/* ============================================
+   DARK MODE OVERRIDES
+============================================ */
+
+/* Only apply dark colors when dark-mode class exists */
+body.dark-mode .article-card {
+  background: var(--primary-dc) !important;
+}
+
+body.dark-mode .article-card-body,
+body.dark-mode .article-card-footer,
+body.dark-mode .article-view-header,
+body.dark-mode .article-view-content,
+body.dark-mode .article-vocabulary-section,
+body.dark-mode .article-summary-section {
+  background: var(--primary-dc) !important;
+}
+
+body.dark-mode .article-description,
+body.dark-mode .article-view-title,
+body.dark-mode .article-text,
+body.dark-mode .section-title,
+body.dark-mode .article-title,
+body.dark-mode .feedback-title h3 {
+  color: var(--text-dc) !important;
+}
+
+body.dark-mode .vocabulary-card {
+  background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .summary-textarea {
+  background: var(--secondary-dc) !important;
+  border: 2px solid var(--border-bc) !important;
+  color: var(--text-dc) !important;
+}
+
+body.dark-mode .article-category-badge {
+  background: var(--secondary-dc) !important;
+  color: var(--text-dc) !important;
+}
+
+body.dark-mode .article-read-btn {
+  background: var(--secondary-dc) !important;
+  box-shadow: none !important;
+}
+
+body.dark-mode .article-read-btn::before {
+  display: none;
 }

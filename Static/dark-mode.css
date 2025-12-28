@@ -26,7 +26,7 @@ body.dark-mode .spinner-wrapper .spinner-grow {
 
 /* Sidebar Dark Mode */
 body.dark-mode .main-logo {
-    background: var(--primary-dc);
+    background: var(--secondary-dc) !important;
 }
 
 body.dark-mode .nav-title {
@@ -76,6 +76,16 @@ body.dark-mode .subs_card-option {
 body.dark-mode .subs_card-enable {
     color: var(--text-dc) !important;
 }
+
+body.dark-mode .image-upload-area, .wiriting-image-upload-area {
+    background: var(--secondary-dc) !important;
+    border: 3px dashed var(--border-bc) !important;
+}
+
+body.dark-mode .task-type-btn {
+    background: var(--primary-dc) !important;
+}
+
 
 body.dark-mode .sidebar {
     background: var(--secondary-dc);
@@ -783,9 +793,7 @@ body.dark-mode .danger-zone-title-inline {
     color: #ef4444;
 }
 
-body.dark-mode .modal-inline {
-    background: var(--primary-dc);
-}
+
 
 body.dark-mode .modal-header-inline {
     border-bottom-color: var(--border-bc);
@@ -834,7 +842,6 @@ body.dark-mode .exam-type-btn div {
 
 body.dark-mode .exam-type-btn:hover {
     border-color: rgb(13, 109, 96) !important;
-    background: rgb(5, 90, 78) !important;
 }
 
 body.dark-mode #examInfoText {
@@ -843,14 +850,106 @@ body.dark-mode #examInfoText {
 }
 
 body.dark-mode .exam-type-btn.active {
-    border-color: #6366f1;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
+    border-color: rgb(13, 109, 96) !important;
 }
 
 body.dark-mode .style-bc {
     background-color: var(--secondary-dc) !important;
 }
+
+body.dark-mode .language-selector-inline {
+    background: var(--primary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+    color: var(--text-dc);
+}
+
+
+
+/* Dark Mode for Payment Instructions and Card Details */
+
+/* Instructions Card */
+body.dark-mode .payment-instructions-card {
+  background: linear-gradient(135deg, #78350f, #451a03) !important;
+  border-left: 5px solid #d97706 !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2) !important;
+}
+
+body.dark-mode .copy-card-number {
+    background: linear-gradient(135deg, #78350f, #451a03) !important;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2) !important;
+}
+
+body.dark-mode .payment-instructions-card .icon-box {
+  background: rgba(217, 119, 6, 0.2) !important;
+}
+
+body.dark-mode .payment-instructions-card h4 {
+  color: #fcd34d !important;
+}
+
+body.dark-mode .payment-instructions-card ol {
+  color: #fde68a !important;
+}
+
+/* Card Details Section */
+body.dark-mode .card-details-section {
+  background: #1f2937 !important;
+  border: 2px solid #374151 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .card-details-section .card-icon-box {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15)) !important;
+}
+
+body.dark-mode .card-details-section h4 {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode #cardNumberInput {
+  background: #111827 !important;
+  border: 2px solid #374151 !important;
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .card-number-section {
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .card-holder-info {
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.5), rgba(55, 65, 81, 0.5)) !important;
+  border: 1px dashed #4b5563 !important;
+}
+
+body.dark-mode .card-holder-info span:nth-child(2) {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .card-holder-info strong {
+  color: #f3f4f6 !important;
+}
+
+/* Telegram Button */
+body.dark-mode .telegram-button {
+  background: linear-gradient(135deg, #0088cc, #005580) !important;
+  box-shadow: 0 8px 24px rgba(0, 136, 204, 0.4) !important;
+}
+
+/* Security Badge */
+body.dark-mode .security-badge {
+  background: linear-gradient(135deg, #064e3b, #022c22) !important;
+  border: 1px solid #065f46 !important;
+}
+
+body.dark-mode .security-badge span:last-child {
+  color: #6ee7b7 !important;
+}
+
+body.dark-mode #dashboard-lock {
+    background: var(--primary-dc) !important;
+}
+
+
 
 /* Profile tool */
 body.dark-mode .profile-header-inline{

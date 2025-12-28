@@ -175,19 +175,7 @@ body {
   transform: translateY(65px);
 }
 
-#dashboard-lock, #vocabulary-lock {
-  background-color: #EEEFF1 !important;
-  padding: 12px 15px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  white-space: nowrap;
-  color: #A5A7B0;
-  text-decoration: none;
-  transition: 0.4s ease;
-  border-radius: 8px;
-  cursor: no-drop !important;
-}
+
 
 #lock-icon {
   position: absolute;
@@ -1279,7 +1267,7 @@ main {
   border: none;
   background: none;
   transition: transform 0.3s ease;
-  z-index: 10002;
+  z-index: 4;
   animation: shake 2s infinite;
   flex-shrink: 0; /* ✅ Kichraymasin */
 }

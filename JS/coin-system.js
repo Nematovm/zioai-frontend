@@ -500,7 +500,7 @@ function openCoinShop() {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline coin-shop-modal';
   modal.innerHTML = `
-    <div class="modal-inline" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-inline" style="max-width: 800px; max-height: 90vh; overflow-y: auto; background: white;">
       <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 2px solid #e5e7eb;">
         <h3 style="margin: 0;">🪙 Coin Shop</h3>
         <button class="modal-close-inline" onclick="closeCoinShop()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #6b7280;">×</button>
@@ -508,7 +508,7 @@ function openCoinShop() {
       <div class="modal-body-inline" style="padding: 20px;">
         ${generateCoinPackagesHTML()}
         
-        <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px;">
+        <div class="subscription-sect" style="margin-top: 30px; padding: 20px; border-radius: 12px;">
           <h4 class="pkg-coins" style="margin: 0 0 15px 0; color: #374151;">
             <i class="bi bi-star-fill" style="color: #fbbf24;"></i> Or Upgrade to Premium
           </h4>
