@@ -763,6 +763,9 @@ function closeAdminPanel() {
 // APPROVE/REJECT
 // ============================================
 
+// ============================================
+// APPROVE PAYMENT - UPDATED ✅
+// ============================================
 async function approvePayment(paymentKey, userId, productType) {
   const db = getDatabase();
   if (!db) {
@@ -792,70 +795,62 @@ async function approvePayment(paymentKey, userId, productType) {
     console.log('📦 Product:', product);
     
     // 3. Process based on product type
-if (productType === 'PRO' || productType === 'PRO_SUB') {
-      // PRO Subscription
+    if (productType === 'PRO' || productType === 'PRO_SUB') {
       const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
+      expiryDate.setDate(expiryDate.getDate() + 30);
       
-      // MUHIM: To'liq path bilan yozish
       const updates = {};
       updates[`users/${userId}/subscription/type`] = 'pro';
       updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
       updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
       updates[`users/${userId}/subscription/status`] = 'active';
       
-      // Atomic update
+      // ✅ RESET LAST DAILY COIN TIME (important!)
+      updates[`users/${userId}/lastDailyCoin`] = null;
+      
       const rootRef = window.firebaseRef(db, '/');
       await window.firebaseUpdate(rootRef, updates);
       
-      console.log('✅ PRO subscription activated for:', userId);
-      console.log('Expiry:', expiryDate.toISOString());
-      showNotification('✅ PRO obuna faollashtirildi!', 'success');
+      console.log('✅ PRO subscription activated');
+      showNotification('✅ PRO obuna faollashtirildi! 50 coin/kun', 'success');
       
     } else if (productType === 'STANDARD_SUB') {
-      // Standard Subscription
       const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
+      expiryDate.setDate(expiryDate.getDate() + 30);
       
-      // MUHIM: To'liq path bilan yozish
       const updates = {};
       updates[`users/${userId}/subscription/type`] = 'standard';
       updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
       updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
       updates[`users/${userId}/subscription/status`] = 'active';
       
-      // Atomic update
+      // ✅ RESET LAST DAILY COIN TIME
+      updates[`users/${userId}/lastDailyCoin`] = null;
+      
       const rootRef = window.firebaseRef(db, '/');
       await window.firebaseUpdate(rootRef, updates);
       
-      console.log('✅ Standard subscription activated for:', userId);
-      console.log('Expiry:', expiryDate.toISOString());
-      showNotification('✅ Standard obuna faollashtirildi!', 'success');
+      console.log('✅ Standard subscription activated');
+      showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
       
     } else if (product.coins) {
-      // Coins purchase - FIXED WITH PROPER PATH
+      // Coins purchase (existing code)
       const coinsToAdd = product.coins + (product.bonus || 0);
       
-      // Use full path in updates object (CRITICAL!)
       const updates = {};
-      
-      // Get current coins first
       const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
       const snapshot = await window.firebaseGet(coinsRef);
       const currentCoins = snapshot.val() || 0;
       const newCoins = currentCoins + coinsToAdd;
       
-      // Set new coins value in updates object
       updates[`users/${userId}/coins`] = newCoins;
       
-      // Apply atomic update to root
       const rootRef = window.firebaseRef(db, '/');
       await window.firebaseUpdate(rootRef, updates);
       
       console.log(`✅ Coins added: ${currentCoins} + ${coinsToAdd} = ${newCoins}`);
-      showNotification(`✅ ${coinsToAdd} coin qo'shildi! (${currentCoins} → ${newCoins})`, 'success');
+      showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
       
-      // Also log the transaction
       const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
       const newTransactionRef = window.firebasePush(transactionRef);
       await window.firebaseSet(newTransactionRef, {
@@ -877,35 +872,10 @@ if (productType === 'PRO' || productType === 'PRO_SUB') {
     
   } catch (error) {
     console.error('❌ Approve error:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      stack: error.stack
-    });
-    
-    if (error.code === 'PERMISSION_DENIED') {
-      showNotification('❌ Ruxsat yo\'q! Rules tekshiring.', 'error');
-      alert(`❌ Permission Denied!
-      
-User ID: ${userId}
-Product: ${productType}
-
-Firebase Rules'da users/${userId} ga yozish huquqi yo'q.
-
-Tekshiring:
-1. Firebase Console > Database > Rules
-2. "users" qismida admin ruxsati borligini tasdiqlang
-3. Rule to'g'ri bo'lishi kerak:
-   "users": {
-     "$uid": {
-       ".write": "$uid === auth.uid || root.child('admins').child(auth.uid).val() === true"
-     }
-   }`);
-    } else {
-      showNotification('❌ Xatolik: ' + error.message, 'error');
-    }
+    showNotification('❌ Xatolik: ' + error.message, 'error');
   }
 }
+
 
 async function rejectPayment(paymentKey) {
   const db = getDatabase();

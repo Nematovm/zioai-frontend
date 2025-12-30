@@ -77,7 +77,12 @@ body.dark-mode .subs_card-enable {
     color: var(--text-dc) !important;
 }
 
-body.dark-mode .image-upload-area, .wiriting-image-upload-area {
+body.dark-mode .image-upload-area {
+    background: var(--secondary-dc) !important;
+    border: 3px dashed var(--border-bc) !important;
+}
+
+body.dark-mode .wiriting-image-upload-area {
     background: var(--secondary-dc) !important;
     border: 3px dashed var(--border-bc) !important;
 }

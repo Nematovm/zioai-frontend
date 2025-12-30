@@ -3563,4 +3563,14 @@ input:checked + .slider:before {
   border-radius: 10px;
 }
 
+.wiriting-image-upload-area {
+  border: 3px dashed #d1d5db !important;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  background: #f9fafb !important;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
 

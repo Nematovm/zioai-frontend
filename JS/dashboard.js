@@ -21,21 +21,18 @@ let recordingTimer = null;
 let recordingSeconds = 0;
 let selectedExamType = null;
 let recordedAudioBlob = null;
-
+let isHomeworkUploadInitialized = false;
 
 // Wait for coin system to be ready
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
   setTimeout(() => {
     if (window.coinManager) {
       coinSystemReady = true;
-      console.log('✅ Coin system ready for integration');
+      console.log("✅ Coin system ready for integration");
       updateProfileCoinDisplay();
     }
   }, 1000);
 });
-
-
-
 
 // ============================================
 // 2️⃣B GLOBAL IMAGE VARIABLES ✅
@@ -43,6 +40,8 @@ window.addEventListener('load', () => {
 let uploadedImage = null; // Homework image
 let uploadedWritingImage = null; // Writing checker image
 let uploadedTopicImage = null; // Topic image
+let isWritingUploadInitialized = false;
+let isTopicUploadInitialized = false;
 
 // ============================================
 // 3️⃣ TOOL TITLES
@@ -134,26 +133,26 @@ function switchTool(toolName) {
 
     // ✅ PROFILE TOOL - FIXED INITIALIZATION
     if (toolName === "profile") {
-      console.log('📋 Initializing profile tool...');
-      
+      console.log("📋 Initializing profile tool...");
+
       // Call profile initialization
       if (typeof showProfileTool === "function") {
         try {
           showProfileTool();
-          console.log('✅ Profile tool initialized');
+          console.log("✅ Profile tool initialized");
         } catch (error) {
-          console.error('❌ Profile initialization error:', error);
+          console.error("❌ Profile initialization error:", error);
         }
       }
-      
+
       // Update coin display with safety checks
       setTimeout(() => {
         if (typeof updateProfileCoinDisplay === "function") {
           try {
             updateProfileCoinDisplay();
-            console.log('✅ Profile coin display updated');
+            console.log("✅ Profile coin display updated");
           } catch (error) {
-            console.error('❌ Coin display error:', error);
+            console.error("❌ Coin display error:", error);
           }
         }
       }, 300);
@@ -182,6 +181,19 @@ function switchTool(toolName) {
       }
     }
   }
+  if (toolName === "grammar") {
+  console.log("📝 Initializing Writing Checker...");
+  
+  // Reset initialization flag to allow re-initialization
+  isWritingUploadInitialized = false;
+  
+  // If Task 1 is already selected, initialize upload
+  if (selectedTaskType === "Task 1") {
+    setTimeout(() => {
+      selectTaskType("Task 1"); // This will check subscription and init
+    }, 300);
+  }
+}
 
   // Close mobile sidebar
   if (window.innerWidth < 1024) {
@@ -203,51 +215,51 @@ function switchTool(toolName) {
 // PROFILE TOOL INITIALIZATION - FIXED ✅
 // ============================================
 function showProfileTool() {
-  console.log('🔧 showProfileTool() called');
-  
+  console.log("🔧 showProfileTool() called");
+
   // Firebase auth check
   const auth = window.firebaseAuth;
   if (!auth) {
-    console.error('❌ Firebase auth not initialized');
+    console.error("❌ Firebase auth not initialized");
     return;
   }
-  
+
   const currentUser = auth.currentUser;
-  
+
   if (!currentUser) {
-    console.error('❌ No user logged in');
+    console.error("❌ No user logged in");
     return;
   }
-  
+
   // Load profile data (existing function)
-  if (typeof loadProfileData === 'function') {
+  if (typeof loadProfileData === "function") {
     loadProfileData();
   }
-  
+
   // ✅ UPDATE COIN DISPLAY - WITH SAFETY CHECKS
   const updateCoins = async () => {
     try {
       // Check if coin system is ready
-      if (typeof getUserCoins === 'function') {
+      if (typeof getUserCoins === "function") {
         const coins = await getUserCoins();
-        const coinBalance = document.getElementById('profileCoinBalance');
+        const coinBalance = document.getElementById("profileCoinBalance");
         if (coinBalance) {
           coinBalance.textContent = coins;
-          console.log('💰 Profile coins updated:', coins);
+          console.log("💰 Profile coins updated:", coins);
         }
       } else {
-        console.warn('⚠️ getUserCoins not available, retrying...');
+        console.warn("⚠️ getUserCoins not available, retrying...");
         // Retry after 500ms
         setTimeout(updateCoins, 500);
       }
     } catch (error) {
-      console.error('❌ Error updating profile coins:', error);
+      console.error("❌ Error updating profile coins:", error);
     }
   };
-  
+
   updateCoins();
-  
-  console.log('✅ Profile tool initialized');
+
+  console.log("✅ Profile tool initialized");
 }
 
 // ============================================
@@ -256,70 +268,71 @@ function showProfileTool() {
 function loadProfileData() {
   const auth = window.firebaseAuth;
   if (!auth) return;
-  
+
   const currentUser = auth.currentUser;
   if (!currentUser) return;
-  
-  let userAvatar = '👤';
-  let username = '';
-  
+
+  let userAvatar = "👤";
+  let username = "";
+
   if (currentUser.displayName) {
     const displayName = currentUser.displayName;
-    
+
     // Extract emoji
-    const emojiRegex = /[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+    const emojiRegex =
+      /[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
     const emojiMatch = displayName.match(emojiRegex);
-    
+
     if (emojiMatch) {
       userAvatar = emojiMatch[0];
     }
-    
+
     // Extract username (remove all emojis and spaces)
     username = displayName
-      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-      .replace(/[\u{2600}-\u{26FF}]/gu, '')
-      .replace(/[\u{2700}-\u{27BF}]/gu, '')
-      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
-      .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
-      .replace(/\s+/g, '')
+      .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
+      .replace(/[\u{2600}-\u{26FF}]/gu, "")
+      .replace(/[\u{2700}-\u{27BF}]/gu, "")
+      .replace(/[\u{1F300}-\u{1F5FF}]/gu, "")
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, "")
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, "")
+      .replace(/\s+/g, "")
       .trim();
   }
-  
+
   if (!username || username.length === 0) {
-    username = currentUser.email.split('@')[0];
+    username = currentUser.email.split("@")[0];
   }
-  
-  console.log('✅ Extracted Avatar:', userAvatar);
-  console.log('✅ Extracted Username:', username);
-  
+
+  console.log("✅ Extracted Avatar:", userAvatar);
+  console.log("✅ Extracted Username:", username);
+
   // Update UI elements
-  const profileAvatar = document.getElementById('profileAvatar');
-  const profileName = document.getElementById('profileName');
-  const profileEmail = document.getElementById('profileEmail');
-  const usernameInput = document.getElementById('usernameInput');
-  const emailInput = document.getElementById('emailInput');
-  
+  const profileAvatar = document.getElementById("profileAvatar");
+  const profileName = document.getElementById("profileName");
+  const profileEmail = document.getElementById("profileEmail");
+  const usernameInput = document.getElementById("usernameInput");
+  const emailInput = document.getElementById("emailInput");
+
   if (profileAvatar) profileAvatar.textContent = userAvatar;
   if (profileName) profileName.textContent = username;
   if (profileEmail) profileEmail.textContent = currentUser.email;
   if (usernameInput) usernameInput.value = username;
   if (emailInput) emailInput.value = currentUser.email;
-  
+
   // Member since
-  const profileDate = document.getElementById('profileDate');
+  const profileDate = document.getElementById("profileDate");
   if (profileDate && currentUser.metadata.creationTime) {
     const creationTime = currentUser.metadata.creationTime;
-    const memberDate = new Date(creationTime).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    const memberDate = new Date(creationTime).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
     profileDate.innerHTML = `<i class="bi bi-calendar3"></i> Member since: ${memberDate}`;
   }
-  
-  console.log('✅ Profile data loaded');
+
+  console.log("✅ Profile data loaded");
 }
 
 // ============================================
@@ -425,24 +438,24 @@ document.addEventListener("DOMContentLoaded", () => {
 async function waitForCoinSystem() {
   return new Promise((resolve) => {
     if (window.coinManager) {
-      console.log('✅ Coin system already ready');
+      console.log("✅ Coin system already ready");
       resolve(true);
       return;
     }
 
     let attempts = 0;
     const maxAttempts = 50;
-    
+
     const checkInterval = setInterval(() => {
       attempts++;
-      
+
       if (window.coinManager) {
         clearInterval(checkInterval);
-        console.log('✅ Coin system loaded after', attempts * 100, 'ms');
+        console.log("✅ Coin system loaded after", attempts * 100, "ms");
         resolve(true);
       } else if (attempts >= maxAttempts) {
         clearInterval(checkInterval);
-        console.error('❌ Coin system failed to load');
+        console.error("❌ Coin system failed to load");
         resolve(false);
       }
     }, 100);
@@ -453,104 +466,47 @@ async function waitForCoinSystem() {
  * Fallback: Coin systemni majburiy yuklash
  */
 function initializeCoinSystemFallback() {
-  console.warn('⚠️ Attempting fallback coin system initialization...');
-  
+  console.warn("⚠️ Attempting fallback coin system initialization...");
+
   // Check if initCoinSystem exists
-  if (typeof initCoinSystem === 'function') {
+  if (typeof initCoinSystem === "function") {
     try {
       initCoinSystem();
-      console.log('✅ Coin system initialized via fallback');
+      console.log("✅ Coin system initialized via fallback");
     } catch (error) {
-      console.error('❌ Fallback initialization failed:', error);
+      console.error("❌ Fallback initialization failed:", error);
     }
   } else {
-    console.error('❌ initCoinSystem function not found!');
-    console.error('Make sure coin.js is loaded before dashboard.js');
+    console.error("❌ initCoinSystem function not found!");
+    console.error("Make sure coin.js is loaded before dashboard.js");
   }
 }
 
 // ============================================
-// UPDATED WINDOW.LOAD EVENT ✅
-// Replace the existing window.addEventListener('load') section
+// 5️⃣ INITIALIZE IMAGE UPLOAD ON PAGE LOAD ✅
 // ============================================
-window.addEventListener('load', async () => {
-  console.log('🪟 Window loaded - starting initialization');
+window.addEventListener("load", async () => {
+  console.log("🔧 Initializing image upload subscription check...");
   
-  // ============================================
-  // 1️⃣ WAIT FOR FIREBASE AUTH
-  // ============================================
-  const auth = window.firebaseAuth;
-  if (auth) {
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        console.log('👤 User authenticated:', user.email);
-        
-        // ✅ Initialize coin system
-        if (typeof initCoinSystem === 'function') {
-          const success = await initCoinSystem();
-          if (success) {
-            console.log('✅ Coin system initialized');
-            
-            // Update display
-            if (typeof updateCoinDisplay === 'function') {
-              await updateCoinDisplay();
-            }
-          } else {
-            console.error('❌ Coin system initialization failed');
-          }
-        }
-        
-        // Update username
-        const username = getUsernameFromDisplayName(user.displayName, user.email);
-        updateWelcomeMessage(username);
-        
-        const userNameElement = document.getElementById('userName');
-        if (userNameElement) {
-          userNameElement.textContent = username;
-        }
+  // Check if user is on image tab
+  const imageTab = document.getElementById("imageInputTab");
+  if (imageTab && imageTab.style.display !== "none") {
+    // Re-check subscription
+    const subscription = await checkUserSubscription();
+    const fileInput = document.getElementById("homeworkImageInput");
+    const uploadArea = document.getElementById("imageUploadArea");
+    
+    if (subscription.type === "free") {
+      if (fileInput) fileInput.disabled = true;
+      if (uploadArea) {
+        uploadArea.style.opacity = "0.5";
+        uploadArea.style.pointerEvents = "none";
       }
-    });
+    }
   }
   
-  // ============================================
-  // 2️⃣ INITIALIZE DEFAULT TOOL
-  // ============================================
-  setTimeout(() => {
-    if (!window.hasInitialized) {
-      console.warn('⚠️ Backup initialization');
-      initializeDefaultTool();
-    }
-    
-    // Stats system
-    try {
-      if (typeof window.loadUserStats === 'function') {
-        window.loadUserStats();
-        console.log('✅ Stats loaded');
-      }
-    } catch (error) {
-      console.warn('⚠️ Stats error (non-critical):', error.message);
-    }
-    
-    // Motivation system
-    if (typeof startMotivationSystem === 'function') {
-      startMotivationSystem();
-      console.log('✅ Motivation system started');
-    }
-    
-    console.log('✅ All systems ready');
-  }, 200);
-  
-  // ============================================
-  // 3️⃣ HIDE SPINNER
-  // ============================================
-  setTimeout(() => {
-    const spinner = document.querySelector('.spinner-wrapper');
-    if (spinner) spinner.style.display = 'none';
-  }, 500);
-  
-  console.log('✅ Page load initialization complete!');
+  console.log("✅ Image upload subscription check initialized");
 });
-
 
 // ============================================
 // BACKEND AVAILABILITY CHECKER
@@ -667,37 +623,101 @@ function showError(outputElement, message) {
 }
 
 // ============================================
-// SWITCH HOMEWORK TAB - IMAGE CLEANUP ✅
+// 4️⃣ SHOW LOCKED MODAL ✅
 // ============================================
-function switchHomeworkTab(tab) {
+function showImageUploadLockedModal() {
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay-inline";
+  modal.innerHTML = `
+    <div class="modal-inline">
+      <div class="modal-header-inline">
+        <h3>🔒 Premium Feature</h3>
+        <button class="modal-close-inline" onclick="this.closest('.modal-overlay-inline').remove()">×</button>
+      </div>
+      <div class="modal-body-inline" style="text-align: center; padding: 30px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📷</div>
+        <p style="font-size: 18px; color: #4b5563; margin-bottom: 15px;">
+          Image upload is available for <strong>Standard</strong> and <strong>Pro</strong> plans
+        </p>
+        <p style="font-size: 16px; color: #6b7280; margin-bottom: 25px;">
+          Upgrade your plan to unlock this feature
+        </p>
+        <button onclick="window.openSubscriptionPaymentModal('STANDARD_SUB'); this.closest('.modal-overlay-inline').remove()" class="btn-inline btn-primary-inline">
+          <i class="bi bi-star"></i> Upgrade Now
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add("active"), 10);
+}
+
+
+// ============================================
+// 1️⃣ HELPER FUNCTION - CHECK USER SUBSCRIPTION FROM FIREBASE
+// ============================================
+async function checkUserSubscription() {
+  const user = window.firebaseAuth?.currentUser;
+  
+  if (!user) {
+    console.error("❌ User not logged in");
+    return { type: "free", expiry: null };
+  }
+
+  try {
+    const db = window.firebaseDatabase;
+    if (!db) {
+      console.error("❌ Database not initialized");
+      return { type: "free", expiry: null };
+    }
+
+    const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
+    const snapshot = await window.firebaseGet(subRef);
+
+    if (snapshot.exists()) {
+      const subData = snapshot.val();
+      const subscriptionType = (subData.type || "free").toLowerCase();
+      const expiry = subData.expiry;
+
+      console.log("✅ Subscription:", subscriptionType);
+      return { type: subscriptionType, expiry: expiry };
+    }
+
+    console.log("⚠️ No subscription data, defaulting to free");
+    return { type: "free", expiry: null };
+
+  } catch (error) {
+    console.error("❌ Subscription check error:", error);
+    return { type: "free", expiry: null };
+  }
+}
+
+// ============================================
+// 1️⃣ SWITCH HOMEWORK TAB - FIXED ✅
+// ============================================
+async function switchHomeworkTab(tab) {
   const textTab = document.getElementById("textInputTab");
   const imageTab = document.getElementById("imageInputTab");
   const textBtn = document.getElementById("textTabBtn");
   const imageBtn = document.getElementById("imageTabBtn");
 
   if (tab === "text") {
-    // ✅ TEXT TAB - CLEAR IMAGE DATA
-    console.log('🔄 Switching to TEXT tab - clearing image...');
-    
-    // Remove image data
+    console.log("🔄 Switching to TEXT tab - clearing image...");
+
     uploadedImage = null;
-    
-    // Reset preview UI
+
     const previewImg = document.getElementById("previewImg");
     const imageFileName = document.getElementById("imageFileName");
     const fileInput = document.getElementById("homeworkImageInput");
     const uploadArea = document.getElementById("imageUploadArea");
     const imagePreview = document.getElementById("imagePreview");
-    
+
     if (previewImg) previewImg.src = "";
     if (imageFileName) imageFileName.textContent = "";
     if (fileInput) fileInput.value = "";
     if (uploadArea) uploadArea.style.display = "block";
     if (imagePreview) imagePreview.style.display = "none";
-    
-    console.log('✅ Image cleared from TEXT tab');
-    
-    // Show text tab
+
     textTab.style.display = "block";
     imageTab.style.display = "none";
     textBtn.classList.add("active", "linear-act-bc");
@@ -710,14 +730,9 @@ function switchHomeworkTab(tab) {
     imageBtn.style.color = "#6b7280";
     
   } else {
-    // ✅ IMAGE TAB - CLEAR TEXT INPUT
-    console.log('🔄 Switching to IMAGE tab - clearing text...');
-    
-    // Clear text input (optional - uncomment if needed)
-    // const textInput = document.getElementById("homeworkInput");
-    // if (textInput) textInput.value = "";
-    
-    // Show image tab
+    // IMAGE TAB
+    console.log("🔄 Switching to IMAGE tab - checking subscription...");
+
     textTab.style.display = "none";
     imageTab.style.display = "block";
     imageBtn.classList.add("active", "linear-act-bc");
@@ -728,66 +743,370 @@ function switchHomeworkTab(tab) {
     textBtn.classList.add("bg-bc");
     textBtn.style.background = "#f3f4f6";
     textBtn.style.color = "#6b7280";
+
+    const subscription = await checkUserSubscription();
+    console.log("📊 Subscription type:", subscription.type);
+
+    const fileInput = document.getElementById("homeworkImageInput");
+    const uploadArea = document.getElementById("imageUploadArea");
+
+    if (subscription.type === "free") {
+      console.log("🔒 Free user - LOCKING image upload");
+      
+      if (fileInput) fileInput.disabled = true;
+      
+      if (uploadArea) {
+        const existingOverlay = uploadArea.querySelector('.lock-overlay');
+        if (existingOverlay) {
+          existingOverlay.remove();
+        }
+        
+        uploadArea.style.opacity = "0.7";
+        uploadArea.style.cursor = "not-allowed";
+        uploadArea.style.position = 'relative';
+        
+        // ✅ Create lock overlay - BLOCKS ALL INTERACTIONS
+        const lockOverlay = document.createElement('div');
+        lockOverlay.className = 'lock-overlay';
+        lockOverlay.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.92);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          z-index: 100;
+          pointer-events: auto;
+          cursor: pointer;
+        `;
+        lockOverlay.innerHTML = `
+          <div style="text-align: center; user-select: none;">
+            <i class="bi bi-lock-fill" style="font-size: 52px; color: #6b7280; display: block; margin-bottom: 12px;"></i>
+            <p style="color: #374151; font-weight: 700; margin: 0; font-size: 15px;">Premium Feature</p>
+            <p style="color: #9ca3af; font-size: 13px; margin: 8px 0 0 0; font-weight: 500;">Click to upgrade</p>
+          </div>
+        `;
+        
+        // ✅ CLICK HANDLER FOR LOCK
+        lockOverlay.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          console.log("🔒 Lock overlay clicked - showing modal");
+          showImageUploadLockedModal();
+        });
+        
+        uploadArea.appendChild(lockOverlay);
+        console.log("✅ Lock overlay added (blocks all interactions)");
+      }
+    } else {
+      console.log("✅ Standard/Pro user - ENABLING image upload");
+      
+      if (fileInput) fileInput.disabled = false;
+      
+      if (uploadArea) {
+        uploadArea.style.opacity = "1";
+        uploadArea.style.cursor = "pointer";
+        
+        const lockOverlay = uploadArea.querySelector('.lock-overlay');
+        if (lockOverlay) {
+          lockOverlay.remove();
+          console.log("✅ Lock overlay removed");
+        }
+      }
+      
+      // ✅ Initialize upload for paid users
+      setTimeout(() => {
+        initializeHomeworkImageUpload();
+      }, 100);
+    }
   }
 }
 
 // ============================================
-// PROCESS IMAGE FILE
+// HANDLE FILE INPUT CHANGE - VERIFIED ✅
+// ============================================
+async function handleImageUpload(event) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  console.log("📁 handleImageUpload called");
+  console.log("Files:", event.target.files);
+
+  const file = event.target.files[0];
+  
+  if (!file) {
+    console.warn("⚠️ No file selected");
+    return;
+  }
+
+  console.log("✅ File selected:", file.name, file.size, "bytes");
+
+  // Process the file
+  processImageFile(file);
+
+  // Reset input
+  event.target.value = "";
+}
+
+// ============================================
+// 2️⃣ PROCESS IMAGE FILE (Validation + Preview)
 // ============================================
 function processImageFile(file) {
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  console.log("🔍 Processing image:", file.name, file.size, "bytes");
+
+  // ✅ Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024;
   if (file.size > maxSize) {
     alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
 
+  // ✅ Validate file type
   if (!file.type.startsWith("image/")) {
     alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
 
+  // ✅ Store file globally
   uploadedImage = file;
+  console.log("✅ Image stored:", uploadedImage.name);
 
+  // ✅ Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
-    document.getElementById("previewImg").src = e.target.result;
-    document.getElementById("imageFileName").textContent = file.name;
-    document.getElementById("imageUploadArea").style.display = "none";
-    document.getElementById("imagePreview").style.display = "block";
+    const previewImg = document.getElementById("previewImg");
+    const imageFileName = document.getElementById("imageFileName");
+    const uploadArea = document.getElementById("imageUploadArea");
+    const imagePreview = document.getElementById("imagePreview");
+
+    if (previewImg) previewImg.src = e.target.result;
+    if (imageFileName) imageFileName.textContent = file.name;
+    if (uploadArea) uploadArea.style.display = "none";
+    if (imagePreview) imagePreview.style.display = "block";
+
+    console.log("✅ Preview displayed");
   };
   reader.readAsDataURL(file);
 }
 
-// ============================================
-// HANDLE FILE INPUT CHANGE - FIXED ✅
-// ============================================
-function handleImageUpload(event) {
-  event.stopPropagation();
-  event.preventDefault();
-
-  const file = event.target.files[0];
-  if (file) {
-    processImageFile(file);
+// Homework Image Upload (drag-drop, click working)
+function initializeHomeworkImageUpload() {
+  if (isHomeworkUploadInitialized) {
+    console.log("⏭️ Homework upload already initialized");
+    return;
   }
 
-  // ✅ IMPORTANT: Reset file input to allow re-selection
-  event.target.value = "";
+  const uploadArea = document.getElementById("imageUploadArea");
+  const fileInput = document.getElementById("homeworkImageInput");
+  
+  if (!uploadArea || !fileInput) {
+    console.warn("⚠️ Upload elements not found");
+    return;
+  }
+
+  // File input change
+  const fileInputChangeHandler = (e) => {
+    console.log("📁 File input changed");
+    handleImageUpload(e);
+  };
+
+  fileInput.removeEventListener("change", fileInputChangeHandler);
+  fileInput.addEventListener("change", fileInputChangeHandler);
+
+  // Click handler
+  const clickHandler = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const subscription = await checkUserSubscription();
+    
+    if (subscription.type === "free") {
+      console.log("🔒 Free user clicked");
+      showImageUploadLockedModal();
+      return;
+    }
+
+    console.log("✅ Opening file picker");
+    fileInput.click();
+  };
+
+  // Replace element to remove old listeners
+  const newUploadArea = uploadArea.cloneNode(true);
+  uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
+  
+  const freshUploadArea = document.getElementById("imageUploadArea");
+  freshUploadArea.addEventListener("click", clickHandler, true);
+
+  // DRAG OVER
+  freshUploadArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const lockOverlay = freshUploadArea.querySelector('.lock-overlay');
+    
+    if (lockOverlay) {
+      freshUploadArea.style.borderColor = "#ef4444";
+      freshUploadArea.style.background = "#fee";
+    } else {
+      freshUploadArea.style.borderColor = "#667eea";
+      freshUploadArea.style.background = "#f0f2ff";
+    }
+    
+    freshUploadArea.style.borderWidth = "4px";
+  });
+
+  // DRAG LEAVE
+  freshUploadArea.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    freshUploadArea.style.borderColor = "#d1d5db";
+    freshUploadArea.style.background = "#f9fafb";
+    freshUploadArea.style.borderWidth = "3px";
+  });
+
+  // DROP
+  freshUploadArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    freshUploadArea.style.borderColor = "#d1d5db";
+    freshUploadArea.style.background = "#f9fafb";
+    freshUploadArea.style.borderWidth = "3px";
+
+    console.log("📦 File dropped");
+
+    const lockOverlay = freshUploadArea.querySelector('.lock-overlay');
+    
+    if (lockOverlay) {
+      console.log("🔒 Free user - drop blocked");
+      showImageUploadLockedModal();
+      return;
+    }
+
+    console.log("✅ Processing dropped file");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      processImageFile(file);
+    }
+  });
+
+  isHomeworkUploadInitialized = true;
+  console.log("✅ Homework drag-drop initialized (paste disabled)");
 }
+
 // ============================================
-// REMOVE IMAGE
+// 3️⃣ PASTE FROM CLIPBOARD - WITH SUBSCRIPTION CHECK ✅
+// HOMEWORK PASTE HANDLER - FIXED
+// ============================================
+
+// Remove old listener
+// if (window.homeworkPasteHandlerAdded) {
+//   document.removeEventListener("paste", handleHomeworkPasteEvent);
+//   window.homeworkPasteHandlerAdded = false;
+// }
+
+// function handleHomeworkPasteEvent(e) {
+//   const homeworkContent = document.getElementById("homework-content");
+//   if (!homeworkContent || homeworkContent.style.display === "none") {
+//     return;
+//   }
+
+//   const imageTab = document.getElementById("imageInputTab");
+//   if (!imageTab || imageTab.style.display === "none") {
+//     return;
+//   }
+
+//   const items = e.clipboardData.items;
+//   let hasImage = false;
+  
+//   for (let item of items) {
+//     if (item.type.indexOf("image") !== -1) {
+//       hasImage = true;
+//       break;
+//     }
+//   }
+
+//   if (!hasImage) return;
+
+//   e.preventDefault();
+//   e.stopPropagation();
+  
+//   console.log("📋 Paste blocked, checking subscription...");
+
+//   (async () => {
+//     const subscription = await checkUserSubscription();
+    
+//     if (subscription.type === "free") {
+//       console.log("🔒 Free user - paste BLOCKED");
+//       showImageUploadLockedModal();
+//       return;
+//     }
+
+//     console.log("✅ Paid user - processing pasted image");
+
+//     for (let item of items) {
+//       if (item.type.indexOf("image") !== -1) {
+//         const file = item.getAsFile();
+//         if (file) {
+//           processImageFile(file);
+
+//           const uploadArea = document.getElementById("imageUploadArea");
+//           if (uploadArea && uploadArea.style.display !== "none") {
+//             uploadArea.style.borderColor = "#10b981";
+//             uploadArea.style.background = "#d1fae5";
+
+//             setTimeout(() => {
+//               uploadArea.style.borderColor = "#d1d5db";
+//               uploadArea.style.background = "#f9fafb";
+//             }, 1000);
+//           }
+//         }
+//         break;
+//       }
+//     }
+//   })();
+// }
+
+// document.addEventListener("paste", handleHomeworkPasteEvent);
+// window.homeworkPasteHandlerAdded = true;
+
+// console.log("✅ Homework Paste Handler (SYNC BLOCK) loaded!");
+
+// ============================================
+// 5️⃣ INITIALIZE ON PAGE LOAD - ONCE ONLY ✅
+// ============================================
+window.addEventListener("load", () => {
+  console.log("🔧 Page loaded - initializing image upload");
+  
+  // Wait for DOM to be ready
+  setTimeout(() => {
+    initializeHomeworkImageUpload();
+  }, 500);
+});
+
+
+// ============================================
+// 6️⃣ REMOVE IMAGE FUNCTION
 // ============================================
 function removeImage() {
   uploadedImage = null;
 
-  document.getElementById("previewImg").src = "";
-  document.getElementById("imageFileName").textContent = "";
-
+  const previewImg = document.getElementById("previewImg");
+  const imageFileName = document.getElementById("imageFileName");
   const fileInput = document.getElementById("homeworkImageInput");
-  fileInput.value = "";
+  const uploadArea = document.getElementById("imageUploadArea");
+  const imagePreview = document.getElementById("imagePreview");
 
-  // ✅ SHOW UPLOAD AREA AGAIN
-  document.getElementById("imageUploadArea").style.display = "block";
-  document.getElementById("imagePreview").style.display = "none";
+  if (previewImg) previewImg.src = "";
+  if (imageFileName) imageFileName.textContent = "";
+  if (fileInput) fileInput.value = "";
+  if (uploadArea) uploadArea.style.display = "block";
+  if (imagePreview) imagePreview.style.display = "none";
 
   console.log("✅ Image removed, upload area restored");
 }
@@ -795,63 +1114,62 @@ function removeImage() {
 // ============================================
 // PASTE FROM CLIPBOARD
 // ============================================
-document.addEventListener("paste", (e) => {
-  const imageTab = document.getElementById("imageInputTab");
-  if (imageTab?.style.display === "none") return;
+// document.addEventListener("paste", (e) => {
+//   const imageTab = document.getElementById("imageInputTab");
+//   if (imageTab?.style.display === "none") return;
 
-  const items = e.clipboardData.items;
-  for (let item of items) {
-    if (item.type.indexOf("image") !== -1) {
-      const file = item.getAsFile();
-      processImageFile(file);
-      break;
-    }
-  }
-});
+//   const items = e.clipboardData.items;
+//   for (let item of items) {
+//     if (item.type.indexOf("image") !== -1) {
+//       const file = item.getAsFile();
+//       processImageFile(file);
+//       break;
+//     }
+//   }
+// });
 
 // ============================================
 // COIN CHECK FUNCTION - FIREBASE VERSION ✅
 // ============================================
 async function checkAndSpendCoins(toolName) {
   console.log(`🪙 Checking coins for tool: ${toolName}`);
-  
+
   // ✅ Get current user
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
-    console.error('❌ User not logged in');
-    alert('Please log in first!');
+    console.error("❌ User not logged in");
+    alert("Please log in first!");
     return false;
   }
-  
+
   // ✅ Check if Firebase coin functions exist
-  if (typeof canUseTool !== 'function' || typeof useTool !== 'function') {
-    console.error('❌ Coin system not loaded!');
-    alert('⚠️ Coin system loading... Please wait and try again.');
+  if (typeof canUseTool !== "function" || typeof useTool !== "function") {
+    console.error("❌ Coin system not loaded!");
+    alert("⚠️ Coin system loading... Please wait and try again.");
     return false;
   }
-  
+
   try {
     // ✅ CRITICAL: Use useTool which checks AND deducts
     const success = await useTool(toolName);
-    
+
     if (!success) {
       console.error(`❌ Cannot use tool: ${toolName}`);
       // Modal is already shown by useTool()
       return false;
     }
-    
+
     console.log(`✅ Tool ${toolName} authorized and coins deducted`);
-    
+
     // Update display
-    if (typeof updateCoinDisplay === 'function') {
+    if (typeof updateCoinDisplay === "function") {
       await updateCoinDisplay();
     }
-    
+
     return true;
-    
   } catch (error) {
     console.error(`❌ Coin check error for ${toolName}:`, error);
-    alert('⚠️ Coin system error. Please try again.');
+    alert("⚠️ Coin system error. Please try again.");
     return false;
   }
 }
@@ -861,46 +1179,50 @@ async function checkAndSpendCoins(toolName) {
 // ============================================
 
 // Console da ishlatish uchun:
-window.testCoinSystem = function() {
-  console.log('=== COIN SYSTEM TEST ===');
-  console.log('Coin Manager:', window.coinManager ? '✅ Active' : '❌ Not initialized');
-  
+window.testCoinSystem = function () {
+  console.log("=== COIN SYSTEM TEST ===");
+  console.log(
+    "Coin Manager:",
+    window.coinManager ? "✅ Active" : "❌ Not initialized"
+  );
+
   if (window.coinManager) {
-    console.log('Current Balance:', window.coinManager.getCoins(), 'coins');
-    console.log('Total Earned:', window.coinManager.data.totalEarned);
-    console.log('Total Spent:', window.coinManager.data.totalSpent);
-    console.log('Subscription:', window.coinManager.data.subscription);
-    console.log('Tool Usage:', window.coinManager.data.toolUsageCount);
+    console.log("Current Balance:", window.coinManager.getCoins(), "coins");
+    console.log("Total Earned:", window.coinManager.data.totalEarned);
+    console.log("Total Spent:", window.coinManager.data.totalSpent);
+    console.log("Subscription:", window.coinManager.data.subscription);
+    console.log("Tool Usage:", window.coinManager.data.toolUsageCount);
   }
-  console.log('========================');
+  console.log("========================");
 };
 
-window.addTestCoins = function(amount) {
+window.addTestCoins = function (amount) {
   if (!window.coinManager) {
-    console.error('❌ Coin manager not initialized');
+    console.error("❌ Coin manager not initialized");
     return;
   }
-  window.coinManager.addCoins(amount || 50, 'Test coins');
-  console.log(`✅ Added ${amount || 50} test coins. New balance: ${window.coinManager.getCoins()}`);
+  window.coinManager.addCoins(amount || 50, "Test coins");
+  console.log(
+    `✅ Added ${
+      amount || 50
+    } test coins. New balance: ${window.coinManager.getCoins()}`
+  );
 };
 
-window.resetCoinSystem = function() {
+window.resetCoinSystem = function () {
   if (!window.coinManager) {
-    console.error('❌ Coin manager not initialized');
+    console.error("❌ Coin manager not initialized");
     return;
   }
   window.coinManager.reset();
-  console.log('🔄 Coin system reset to defaults');
+  console.log("🔄 Coin system reset to defaults");
 };
 
-console.log('✅ Coin check function (FIXED) loaded!');
-console.log('💡 Test commands:');
-console.log('   window.testCoinSystem() - show current state');
-console.log('   window.addTestCoins(50) - add test coins');
-console.log('   window.resetCoinSystem() - reset to defaults');
-
-
-
+console.log("✅ Coin check function (FIXED) loaded!");
+console.log("💡 Test commands:");
+console.log("   window.testCoinSystem() - show current state");
+console.log("   window.addTestCoins(50) - add test coins");
+console.log("   window.resetCoinSystem() - reset to defaults");
 
 // Helper Functions
 function showLoading(outputElement) {
@@ -928,16 +1250,16 @@ function showError(outputElement, message) {
 // ============================================
 
 // ✅ Initialize MathJax/KaTeX when page loads
-window.addEventListener('load', () => {
-  console.log('🔢 Initializing math renderer...');
-  
+window.addEventListener("load", () => {
+  console.log("🔢 Initializing math renderer...");
+
   // Check which library is available
-  if (typeof MathJax !== 'undefined') {
-    console.log('✅ MathJax loaded');
-  } else if (typeof renderMathInElement !== 'undefined') {
-    console.log('✅ KaTeX loaded');
+  if (typeof MathJax !== "undefined") {
+    console.log("✅ MathJax loaded");
+  } else if (typeof renderMathInElement !== "undefined") {
+    console.log("✅ KaTeX loaded");
   } else {
-    console.warn('⚠️ No math rendering library found!');
+    console.warn("⚠️ No math rendering library found!");
   }
 });
 
@@ -946,41 +1268,41 @@ window.addEventListener('load', () => {
 // ============================================
 function renderMathFormulas(element) {
   if (!element) {
-    console.error('❌ No element provided for math rendering');
+    console.error("❌ No element provided for math rendering");
     return;
   }
 
   try {
     // Method 1: MathJax (preferred for complex formulas)
-    if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
-      console.log('🔢 Rendering with MathJax...');
-      
+    if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+      console.log("🔢 Rendering with MathJax...");
+
       MathJax.typesetPromise([element])
         .then(() => {
-          console.log('✅ MathJax rendered successfully');
+          console.log("✅ MathJax rendered successfully");
           // Add styling to math elements
-          element.querySelectorAll('.MathJax').forEach(mjx => {
-            mjx.style.fontSize = '1.1em';
-            mjx.style.margin = '0 4px';
+          element.querySelectorAll(".MathJax").forEach((mjx) => {
+            mjx.style.fontSize = "1.1em";
+            mjx.style.margin = "0 4px";
           });
         })
         .catch((err) => {
-          console.error('❌ MathJax error:', err);
+          console.error("❌ MathJax error:", err);
           fallbackToKaTeX(element);
         });
     }
     // Method 2: KaTeX (fallback, faster but simpler)
-    else if (typeof renderMathInElement !== 'undefined') {
-      console.log('🔢 Rendering with KaTeX...');
+    else if (typeof renderMathInElement !== "undefined") {
+      console.log("🔢 Rendering with KaTeX...");
       renderKatexFormulas(element);
     }
     // Method 3: Manual rendering (basic fallback)
     else {
-      console.warn('⚠️ No math library, using basic rendering');
+      console.warn("⚠️ No math library, using basic rendering");
       renderBasicMath(element);
     }
   } catch (error) {
-    console.error('❌ Math rendering error:', error);
+    console.error("❌ Math rendering error:", error);
   }
 }
 
@@ -989,38 +1311,38 @@ function renderKatexFormulas(element) {
   try {
     renderMathInElement(element, {
       delimiters: [
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false},
-        {left: '\\(', right: '\\)', display: false},
-        {left: '\\[', right: '\\]', display: true},
-        {left: '```latex', right: '```', display: true}
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false },
+        { left: "\\[", right: "\\]", display: true },
+        { left: "```latex", right: "```", display: true },
       ],
       throwOnError: false,
       strict: false,
       trust: true,
       macros: {
         "\\RR": "\\mathbb{R}",
-        "\\NN": "\\mathbb{N}"
-      }
+        "\\NN": "\\mathbb{N}",
+      },
     });
-    
-    console.log('✅ KaTeX rendered successfully');
-    
+
+    console.log("✅ KaTeX rendered successfully");
+
     // Style KaTeX elements
-    element.querySelectorAll('.katex').forEach(katex => {
-      katex.style.fontSize = '1.1em';
-      katex.style.margin = '0 4px';
+    element.querySelectorAll(".katex").forEach((katex) => {
+      katex.style.fontSize = "1.1em";
+      katex.style.margin = "0 4px";
     });
   } catch (error) {
-    console.error('❌ KaTeX error:', error);
+    console.error("❌ KaTeX error:", error);
     renderBasicMath(element);
   }
 }
 
 // Fallback to KaTeX if MathJax fails
 function fallbackToKaTeX(element) {
-  console.log('🔄 Falling back to KaTeX...');
-  if (typeof renderMathInElement !== 'undefined') {
+  console.log("🔄 Falling back to KaTeX...");
+  if (typeof renderMathInElement !== "undefined") {
     renderKatexFormulas(element);
   } else {
     renderBasicMath(element);
@@ -1029,42 +1351,51 @@ function fallbackToKaTeX(element) {
 
 // Basic math rendering (no library needed)
 function renderBasicMath(element) {
-  console.log('📐 Using basic math rendering...');
-  
+  console.log("📐 Using basic math rendering...");
+
   let html = element.innerHTML;
-  
+
   // Replace common LaTeX patterns with Unicode
   html = html
     // Fractions: \frac{a}{b} → (a)/(b)
-    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span style="display: inline-block; text-align: center;"><span style="display: block; border-bottom: 1px solid #000; padding: 0 4px;">$1</span><span style="display: block; padding: 0 4px;">$2</span></span>')
-    
+    .replace(
+      /\\frac\{([^}]+)\}\{([^}]+)\}/g,
+      '<span style="display: inline-block; text-align: center;"><span style="display: block; border-bottom: 1px solid #000; padding: 0 4px;">$1</span><span style="display: block; padding: 0 4px;">$2</span></span>'
+    )
+
     // Square root: \sqrt{x} → √x
-    .replace(/\\sqrt\{([^}]+)\}/g, '<span style="position: relative; padding-left: 18px;"><span style="position: absolute; left: 0; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$1</span></span>')
-    
+    .replace(
+      /\\sqrt\{([^}]+)\}/g,
+      '<span style="position: relative; padding-left: 18px;"><span style="position: absolute; left: 0; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$1</span></span>'
+    )
+
     // Root with index: \sqrt[n]{x} → ⁿ√x
-    .replace(/\\sqrt\[(\d+)\]\{([^}]+)\}/g, '<span style="position: relative; padding-left: 22px;"><span style="position: absolute; left: 0; top: -4px; font-size: 0.7em;">$1</span><span style="position: absolute; left: 8px; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$2</span></span>')
-    
+    .replace(
+      /\\sqrt\[(\d+)\]\{([^}]+)\}/g,
+      '<span style="position: relative; padding-left: 22px;"><span style="position: absolute; left: 0; top: -4px; font-size: 0.7em;">$1</span><span style="position: absolute; left: 8px; font-size: 1.4em;">√</span><span style="border-top: 1px solid #000; padding: 0 4px;">$2</span></span>'
+    )
+
     // Superscript: x^{2} → x²
-    .replace(/([a-zA-Z0-9])\^\{([^}]+)\}/g, '$1<sup>$2</sup>')
-    
+    .replace(/([a-zA-Z0-9])\^\{([^}]+)\}/g, "$1<sup>$2</sup>")
+
     // Subscript: x_{2} → x₂
-    .replace(/([a-zA-Z0-9])_\{([^}]+)\}/g, '$1<sub>$2</sub>')
-    
+    .replace(/([a-zA-Z0-9])_\{([^}]+)\}/g, "$1<sub>$2</sub>")
+
     // Operators
-    .replace(/\\times/g, '×')
-    .replace(/\\div/g, '÷')
-    .replace(/\\cdot/g, '·')
-    .replace(/\\pm/g, '±')
-    .replace(/\\leq/g, '≤')
-    .replace(/\\geq/g, '≥')
-    .replace(/\\neq/g, '≠')
-    .replace(/\\approx/g, '≈')
-    
+    .replace(/\\times/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\pm/g, "±")
+    .replace(/\\leq/g, "≤")
+    .replace(/\\geq/g, "≥")
+    .replace(/\\neq/g, "≠")
+    .replace(/\\approx/g, "≈")
+
     // Remove remaining LaTeX commands
-    .replace(/\\[a-zA-Z]+/g, '');
-  
+    .replace(/\\[a-zA-Z]+/g, "");
+
   element.innerHTML = html;
-  console.log('✅ Basic math rendered');
+  console.log("✅ Basic math rendered");
 }
 
 // ============================================
@@ -1072,33 +1403,33 @@ function renderBasicMath(element) {
 // ============================================
 
 // 1️⃣ TEMPORARILY DISABLE PRO SUBSCRIPTION FOR TESTING
-console.log('🧪 TEST MODE: Forcing Free subscription for testing');
+console.log("🧪 TEST MODE: Forcing Free subscription for testing");
 
 // Override subscription check temporarily
-if (window.coinManager && window.coinManager.data.subscription === 'pro') {
-  console.warn('⚠️ Detected Pro subscription, switching to Free for testing');
-  window.coinManager.data.subscription = 'free';
+if (window.coinManager && window.coinManager.data.subscription === "pro") {
+  console.warn("⚠️ Detected Pro subscription, switching to Free for testing");
+  window.coinManager.data.subscription = "free";
   window.coinManager.data.coins = 1016; // Your current balance
   window.coinManager.saveData();
-  console.log('✅ Switched to Free subscription with 1016 coins');
+  console.log("✅ Switched to Free subscription with 1016 coins");
 }
 
 // ============================================
 // FIXED HOMEWORK FUNCTION - IMPROVED ✅
 // ============================================
 async function fixHomework() {
-  console.log('🎯 fixHomework() called');
-  
+  console.log("🎯 fixHomework() called");
+
   // 🪙 COIN CHECK
-  console.log('💰 Checking coins...');
-  const canProceed = await checkAndSpendCoins('homework');
-  
+  console.log("💰 Checking coins...");
+  const canProceed = await checkAndSpendCoins("homework");
+
   if (!canProceed) {
-    console.error('❌ BLOCKED: insufficient coins');
+    console.error("❌ BLOCKED: insufficient coins");
     return;
   }
-  
-  console.log('✅ Coins deducted, proceeding...');
+
+  console.log("✅ Coins deducted, proceeding...");
 
   const result = document.getElementById("homeworkResult");
   const output = document.getElementById("homeworkOutput");
@@ -1110,36 +1441,39 @@ async function fixHomework() {
   // ✅ CHECK WHICH TAB IS ACTIVE
   const textTab = document.getElementById("textInputTab");
   const imageTab = document.getElementById("imageInputTab");
-  
+
   const isTextTabActive = textTab && textTab.style.display !== "none";
   const isImageTabActive = imageTab && imageTab.style.display !== "none";
-  
-  console.log('📋 Active tab:', isTextTabActive ? 'TEXT' : 'IMAGE');
-  console.log('📝 Homework text:', homework ? homework.substring(0, 50) + '...' : '(empty)');
-  console.log('🖼️ Uploaded image:', uploadedImage ? 'YES' : 'NO');
+
+  console.log("📋 Active tab:", isTextTabActive ? "TEXT" : "IMAGE");
+  console.log(
+    "📝 Homework text:",
+    homework ? homework.substring(0, 50) + "..." : "(empty)"
+  );
+  console.log("🖼️ Uploaded image:", uploadedImage ? "YES" : "NO");
 
   // ============================================
   // ✅ SCENARIO 1: TEXT TAB ACTIVE
   // ============================================
   if (isTextTabActive) {
-    console.log('✅ Processing TEXT mode');
-    
+    console.log("✅ Processing TEXT mode");
+
     // Clear any lingering image data
     if (uploadedImage) {
-      console.warn('⚠️ Image data found in TEXT mode - clearing it');
+      console.warn("⚠️ Image data found in TEXT mode - clearing it");
       uploadedImage = null;
     }
-    
+
     // Validate text input
     if (!homework) {
       if (window.coinManager) {
-        window.coinManager.addCoins(3, 'Refund: No homework text');
+        window.coinManager.addCoins(3, "Refund: No homework text");
         updateCoinDisplay();
       }
       alert("⚠️ Please enter your homework text!");
       return;
     }
-    
+
     result.style.display = "block";
     showLoading(output);
 
@@ -1156,10 +1490,10 @@ async function fixHomework() {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         if (window.coinManager) {
-          window.coinManager.addCoins(3, 'Refund: Server error');
+          window.coinManager.addCoins(3, "Refund: Server error");
           updateCoinDisplay();
         }
         throw new Error(data.error || "Server error");
@@ -1173,12 +1507,12 @@ async function fixHomework() {
     } catch (error) {
       console.error("❌ Error:", error);
       if (window.coinManager) {
-        window.coinManager.addCoins(3, 'Refund: ' + error.message);
+        window.coinManager.addCoins(3, "Refund: " + error.message);
         updateCoinDisplay();
       }
       showError(output, error.message);
     }
-    
+
     return; // ✅ EXIT HERE
   }
 
@@ -1186,17 +1520,17 @@ async function fixHomework() {
   // ✅ SCENARIO 2: IMAGE TAB ACTIVE
   // ============================================
   if (isImageTabActive) {
-    console.log('✅ Processing IMAGE mode');
-    
+    console.log("✅ Processing IMAGE mode");
+
     if (!uploadedImage) {
       if (window.coinManager) {
-        window.coinManager.addCoins(3, 'Refund: No image uploaded');
+        window.coinManager.addCoins(3, "Refund: No image uploaded");
         updateCoinDisplay();
       }
       alert("⚠️ Please upload an image first!");
       return;
     }
-    
+
     result.style.display = "block";
     showLoading(output);
 
@@ -1220,7 +1554,7 @@ async function fixHomework() {
 
         if (!response.ok) {
           if (window.coinManager) {
-            window.coinManager.addCoins(3, 'Refund: Server error');
+            window.coinManager.addCoins(3, "Refund: Server error");
             updateCoinDisplay();
           }
           throw new Error(data.error || "Server error");
@@ -1234,13 +1568,13 @@ async function fixHomework() {
       } catch (error) {
         console.error("❌ Error:", error);
         if (window.coinManager) {
-          window.coinManager.addCoins(3, 'Refund: ' + error.message);
+          window.coinManager.addCoins(3, "Refund: " + error.message);
           updateCoinDisplay();
         }
         showError(output, error.message);
       }
     };
-    
+
     reader.readAsDataURL(uploadedImage);
     return; // ✅ EXIT HERE
   }
@@ -1248,10 +1582,10 @@ async function fixHomework() {
   // ============================================
   // ✅ SCENARIO 3: FALLBACK (shouldn't happen)
   // ============================================
-  console.error('❌ No active tab detected!');
-  alert('⚠️ Please select Text or Image mode');
+  console.error("❌ No active tab detected!");
+  alert("⚠️ Please select Text or Image mode");
   if (window.coinManager) {
-    window.coinManager.addCoins(3, 'Refund: No mode selected');
+    window.coinManager.addCoins(3, "Refund: No mode selected");
     updateCoinDisplay();
   }
 }
@@ -1260,11 +1594,11 @@ async function fixHomework() {
 // HELPER: Display Homework Result
 // ============================================
 function displayHomeworkResult(data, output) {
-  console.log('✅ Homework corrected successfully');
-  
+  console.log("✅ Homework corrected successfully");
+
   // ✅ SUBJECT DETECTION
-  let subjectBadge = '';
-  
+  let subjectBadge = "";
+
   if (data.detectedSubject && data.subjectEmoji) {
     subjectBadge = `
       <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 15px;">
@@ -1287,8 +1621,8 @@ function displayHomeworkResult(data, output) {
   `;
 
   // ✅ RENDER MATH
-  const mathContent = document.getElementById('mathContent');
-  if (mathContent && typeof renderMathFormulas === 'function') {
+  const mathContent = document.getElementById("mathContent");
+  if (mathContent && typeof renderMathFormulas === "function") {
     renderMathFormulas(mathContent);
   }
 
@@ -1305,64 +1639,219 @@ function displayHomeworkResult(data, output) {
 // ============================================
 function detectSubject(text) {
   if (!text) return null;
-  
+
   const textLower = text.toLowerCase();
-  
+
   const subjects = [
     // Math
     {
-      keywords: ['matematik', 'algebra', 'geometriya', 'trigonometriya', 'calculus', 'integral', 'derivative', 'equation', 'formula', 'theorem', 'proof', 'x=', 'y=', '+', '-', '*', '/', '=', '²', '³', 'sin', 'cos', 'tan', 'log'],
-      name: 'Matematika',
-      emoji: '🔢'
+      keywords: [
+        "matematik",
+        "algebra",
+        "geometriya",
+        "trigonometriya",
+        "calculus",
+        "integral",
+        "derivative",
+        "equation",
+        "formula",
+        "theorem",
+        "proof",
+        "x=",
+        "y=",
+        "+",
+        "-",
+        "*",
+        "/",
+        "=",
+        "²",
+        "³",
+        "sin",
+        "cos",
+        "tan",
+        "log",
+      ],
+      name: "Matematika",
+      emoji: "🔢",
     },
     // Physics
     {
-      keywords: ['fizika', 'physics', 'mexanika', 'elektr', 'magnit', 'yorug\'lik', 'issiqlik', 'energiya', 'kuch', 'tezlik', 'massa', 'zaryad', 'tok', 'kuchlanish', 'qarshilik', 'quvvat', 'newton', 'joule', 'watt', 'volt', 'ampere'],
-      name: 'Fizika',
-      emoji: '⚛️'
+      keywords: [
+        "fizika",
+        "physics",
+        "mexanika",
+        "elektr",
+        "magnit",
+        "yorug'lik",
+        "issiqlik",
+        "energiya",
+        "kuch",
+        "tezlik",
+        "massa",
+        "zaryad",
+        "tok",
+        "kuchlanish",
+        "qarshilik",
+        "quvvat",
+        "newton",
+        "joule",
+        "watt",
+        "volt",
+        "ampere",
+      ],
+      name: "Fizika",
+      emoji: "⚛️",
     },
     // Chemistry
     {
-      keywords: ['kimyo', 'chemistry', 'element', 'molekula', 'atom', 'reaksiya', 'oksid', 'kislota', 'asos', 'tuz', 'ionlar', 'elektrolitlar', 'pH', 'H2O', 'O2', 'CO2', 'NaCl', 'H2SO4'],
-      name: 'Kimyo',
-      emoji: '🧪'
+      keywords: [
+        "kimyo",
+        "chemistry",
+        "element",
+        "molekula",
+        "atom",
+        "reaksiya",
+        "oksid",
+        "kislota",
+        "asos",
+        "tuz",
+        "ionlar",
+        "elektrolitlar",
+        "pH",
+        "H2O",
+        "O2",
+        "CO2",
+        "NaCl",
+        "H2SO4",
+      ],
+      name: "Kimyo",
+      emoji: "🧪",
     },
     // Biology
     {
-      keywords: ['biologiya', 'biology', 'hujayra', 'gen', 'DNK', 'o\'simlik', 'hayvon', 'organizm', 'to\'qima', 'a\'zo', 'fotosintez', 'nafas', 'qon', 'yurak', 'evolyutsiya'],
-      name: 'Biologiya',
-      emoji: '🧬'
+      keywords: [
+        "biologiya",
+        "biology",
+        "hujayra",
+        "gen",
+        "DNK",
+        "o'simlik",
+        "hayvon",
+        "organizm",
+        "to'qima",
+        "a'zo",
+        "fotosintez",
+        "nafas",
+        "qon",
+        "yurak",
+        "evolyutsiya",
+      ],
+      name: "Biologiya",
+      emoji: "🧬",
     },
     // English
     {
-      keywords: ['ingliz', 'english', 'grammar', 'vocabulary', 'tense', 'present', 'past', 'future', 'verb', 'noun', 'adjective', 'adverb', 'article', 'preposition'],
-      name: 'Ingliz tili',
-      emoji: '🇬🇧'
+      keywords: [
+        "ingliz",
+        "english",
+        "grammar",
+        "vocabulary",
+        "tense",
+        "present",
+        "past",
+        "future",
+        "verb",
+        "noun",
+        "adjective",
+        "adverb",
+        "article",
+        "preposition",
+      ],
+      name: "Ingliz tili",
+      emoji: "🇬🇧",
     },
     // Geography
     {
-      keywords: ['geografiya', 'geography', 'qit\'a', 'okean', 'daryo', 'tog\'', 'cho\'l', 'iqlim', 'xarita', 'davlat', 'poytaxt', 'aholi', 'resurlar'],
-      name: 'Geografiya',
-      emoji: '🌍'
+      keywords: [
+        "geografiya",
+        "geography",
+        "qit'a",
+        "okean",
+        "daryo",
+        "tog'",
+        "cho'l",
+        "iqlim",
+        "xarita",
+        "davlat",
+        "poytaxt",
+        "aholi",
+        "resurlar",
+      ],
+      name: "Geografiya",
+      emoji: "🌍",
     },
     // History
     {
-      keywords: ['tarix', 'history', 'davlat', 'urush', 'siyosat', 'imperiya', 'inqilob', 'sulola', 'amir', 'shoh', 'xon', 'qudrat'],
-      name: 'Tarix',
-      emoji: '📜'
+      keywords: [
+        "tarix",
+        "history",
+        "davlat",
+        "urush",
+        "siyosat",
+        "imperiya",
+        "inqilob",
+        "sulola",
+        "amir",
+        "shoh",
+        "xon",
+        "qudrat",
+      ],
+      name: "Tarix",
+      emoji: "📜",
     },
     // Literature
     {
-      keywords: ['adabiyot', 'literature', 'she\'r', 'hikoya', 'roman', 'drama', 'qissa', 'shoir', 'yozuvchi', 'asar', 'badiiy', 'nasriy'],
-      name: 'Adabiyot',
-      emoji: '📚'
+      keywords: [
+        "adabiyot",
+        "literature",
+        "she'r",
+        "hikoya",
+        "roman",
+        "drama",
+        "qissa",
+        "shoir",
+        "yozuvchi",
+        "asar",
+        "badiiy",
+        "nasriy",
+      ],
+      name: "Adabiyot",
+      emoji: "📚",
     },
     // Computer Science
     {
-      keywords: ['informatika', 'computer', 'dasturlash', 'kod', 'algoritm', 'python', 'javascript', 'html', 'css', 'function', 'class', 'array', 'loop', 'if', 'else', 'print', 'return'],
-      name: 'Informatika',
-      emoji: '💻'
-    }
+      keywords: [
+        "informatika",
+        "computer",
+        "dasturlash",
+        "kod",
+        "algoritm",
+        "python",
+        "javascript",
+        "html",
+        "css",
+        "function",
+        "class",
+        "array",
+        "loop",
+        "if",
+        "else",
+        "print",
+        "return",
+      ],
+      name: "Informatika",
+      emoji: "💻",
+    },
   ];
 
   for (const subject of subjects) {
@@ -1372,15 +1861,17 @@ function detectSubject(text) {
         matchCount++;
       }
     }
-    
+
     // If 2+ keywords match, return subject
     if (matchCount >= 2) {
-      console.log(`✅ Subject detected: ${subject.name} (${matchCount} keywords)`);
+      console.log(
+        `✅ Subject detected: ${subject.name} (${matchCount} keywords)`
+      );
       return subject;
     }
   }
 
-  console.log('⚠️ No subject detected');
+  console.log("⚠️ No subject detected");
   return null;
 }
 
@@ -1389,92 +1880,99 @@ function detectSubject(text) {
 // REPLACE EXISTING updateCoinDisplay FUNCTION
 // ============================================
 async function updateCoinDisplay() {
-  if (typeof getUserCoins !== 'function') {
-    console.warn('⚠️ getUserCoins function not available');
+  if (typeof getUserCoins !== "function") {
+    console.warn("⚠️ getUserCoins function not available");
     return;
   }
-  
+
   try {
     const coins = await getUserCoins();
-    
-    console.log('💰 Updating coin display:', coins);
-    
+
+    console.log("💰 Updating coin display:", coins);
+
     // Update all coin displays
-    const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
-    coinElements.forEach(el => {
+    const coinElements = document.querySelectorAll(
+      "#userCoins, .coin-amount, #profileCoinBalance"
+    );
+    coinElements.forEach((el) => {
       if (el) {
         el.textContent = coins;
-        
+
         // Animation
-        el.style.transform = 'scale(1.2)';
+        el.style.transform = "scale(1.2)";
         setTimeout(() => {
-          el.style.transform = 'scale(1)';
+          el.style.transform = "scale(1)";
         }, 200);
       }
     });
-    
+
     // Update profile if needed
-    if (typeof updateProfileCoinDisplay === 'function') {
+    if (typeof updateProfileCoinDisplay === "function") {
       updateProfileCoinDisplay();
     }
-    
   } catch (error) {
-    console.error('❌ Update coin display error:', error);
+    console.error("❌ Update coin display error:", error);
   }
 }
 
 // ============================================
 // 5️⃣ TESTING COMMANDS
 // ============================================
-window.testHomework = function() {
-  console.log('=== HOMEWORK SYSTEM TEST ===');
-  console.log('Coin Manager:', window.coinManager ? '✅ Active' : '❌ Not initialized');
+window.testHomework = function () {
+  console.log("=== HOMEWORK SYSTEM TEST ===");
+  console.log(
+    "Coin Manager:",
+    window.coinManager ? "✅ Active" : "❌ Not initialized"
+  );
   if (window.coinManager) {
-    console.log('Current Balance:', window.coinManager.getCoins(), 'coins');
-    console.log('Subscription:', window.coinManager.data.subscription);
+    console.log("Current Balance:", window.coinManager.getCoins(), "coins");
+    console.log("Subscription:", window.coinManager.data.subscription);
   }
-  console.log('Homework Input:', document.getElementById('homeworkInput')?.value || '(empty)');
-  console.log('Uploaded Image:', uploadedImage ? '✅ Yes' : '❌ No');
-  console.log('===========================');
+  console.log(
+    "Homework Input:",
+    document.getElementById("homeworkInput")?.value || "(empty)"
+  );
+  console.log("Uploaded Image:", uploadedImage ? "✅ Yes" : "❌ No");
+  console.log("===========================");
 };
 
-window.switchToFree = function() {
+window.switchToFree = function () {
   if (window.coinManager) {
-    window.coinManager.data.subscription = 'free';
+    window.coinManager.data.subscription = "free";
     window.coinManager.saveData();
-    console.log('✅ Switched to Free subscription');
+    console.log("✅ Switched to Free subscription");
     updateCoinDisplay();
   }
 };
 
-window.switchToPro = function() {
+window.switchToPro = function () {
   if (window.coinManager) {
-    window.coinManager.data.subscription = 'pro';
+    window.coinManager.data.subscription = "pro";
     window.coinManager.saveData();
-    console.log('✅ Switched to Pro subscription');
+    console.log("✅ Switched to Pro subscription");
     updateCoinDisplay();
   }
 };
 
-console.log('✅ Complete homework fix loaded!');
-console.log('📝 Commands:');
-console.log('  window.testHomework() - test system');
-console.log('  window.switchToFree() - switch to Free');
-console.log('  window.switchToPro() - switch to Pro');
+console.log("✅ Complete homework fix loaded!");
+console.log("📝 Commands:");
+console.log("  window.testHomework() - test system");
+console.log("  window.switchToFree() - switch to Free");
+console.log("  window.switchToPro() - switch to Pro");
 
 // ============================================
 // FORMAT AI RESPONSE WITH MATH SUPPORT ✅
 // ============================================
 function formatAIResponse(text) {
   let html = text;
-  
+
   // Protect LaTeX formulas from formatting
   const latexBlocks = [];
   html = html.replace(/\$\$[\s\S]+?\$\$/g, (match) => {
     latexBlocks.push(match);
     return `__LATEX_BLOCK_${latexBlocks.length - 1}__`;
   });
-  
+
   html = html.replace(/\$[^$]+\$/g, (match) => {
     latexBlocks.push(match);
     return `__LATEX_INLINE_${latexBlocks.length - 1}__`;
@@ -1492,17 +1990,26 @@ function formatAIResponse(text) {
       <div class="ai-body">`;
   });
 
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="ai-bold">$1</strong>');
+  html = html.replace(
+    /\*\*([^*]+)\*\*/g,
+    '<strong class="ai-bold">$1</strong>'
+  );
   html = html.replace(/^[-•]\s+(.+)$/gm, '<div class="ai-bullet">$1</div>');
-  
+
   // Restore LaTeX formulas
-  html = html.replace(/__LATEX_BLOCK_(\d+)__/g, (match, index) => latexBlocks[index]);
-  html = html.replace(/__LATEX_INLINE_(\d+)__/g, (match, index) => latexBlocks[index]);
+  html = html.replace(
+    /__LATEX_BLOCK_(\d+)__/g,
+    (match, index) => latexBlocks[index]
+  );
+  html = html.replace(
+    /__LATEX_INLINE_(\d+)__/g,
+    (match, index) => latexBlocks[index]
+  );
 
   return html;
 }
 
-console.log('✅ Math Formula Renderer loaded');
+console.log("✅ Math Formula Renderer loaded");
 
 // ============================================
 // GRAMMAR CHECKER - TRACKING FAQAT SUCCESS DA ✅
@@ -1569,205 +2076,308 @@ console.log('✅ Math Formula Renderer loaded');
 // WRITING CHECKER - YANGILANGAN FRONTEND ✅
 // ============================================
 
-
-
 // ============================================
 // 1️⃣ SELECT TASK TYPE
 // ============================================
 let selectedTaskType = "Task 2"; // Default
 
-function selectTaskType(taskType) {
+// ============================================
+// 1️⃣ SELECT TASK TYPE - WITH SUBSCRIPTION CHECK ✅
+// REMOVE ALL OTHER selectTaskType FUNCTIONS AND USE ONLY THIS ONE
+// ============================================
+async function selectTaskType(taskType) {
   selectedTaskType = taskType;
+  console.log("📝 Task type selected:", taskType);
 
   const task1Btn = document.getElementById("task1Btn");
   const task2Btn = document.getElementById("task2Btn");
   const imageUploadSection = document.getElementById("writingImageSection");
   const topicInput = document.getElementById("essayTopic");
 
-  // Update button styles
+  // ✅ Update button styles
   if (taskType === "Task 1") {
-    task1Btn.classList.add("active");
-    task2Btn.classList.remove("active");
-    task1Btn.style.borderColor = "#667eea";
-    task1Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
-    task1Btn.querySelector("div:nth-child(2)").style.color = "#667eea";
+    // Task 1 Active
+    if (task1Btn) {
+      task1Btn.classList.add("active");
+      task1Btn.style.borderColor = "#667eea";
+      task1Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
+      const title = task1Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#667eea";
+    }
 
-    task2Btn.style.borderColor = "#e5e7eb";
-    task2Btn.style.background = "#fff";
-    task2Btn.querySelector("div:nth-child(2)").style.color = "#1f2937";
+    // Task 2 Inactive
+    if (task2Btn) {
+      task2Btn.classList.remove("active");
+      task2Btn.style.borderColor = "#e5e7eb";
+      task2Btn.style.background = "#fff";
+      const title = task2Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#1f2937";
+    }
 
     // ✅ Show image upload for Task 1
     if (imageUploadSection) {
       imageUploadSection.style.display = "block";
+      console.log("✅ Image upload section shown (Task 1)");
     }
 
     // Update topic placeholder
-    topicInput.placeholder = "Describe the graph/chart/diagram... (REQUIRED)";
-  } else {
-    task2Btn.classList.add("active");
-    task1Btn.classList.remove("active");
-    task2Btn.style.borderColor = "#667eea";
-    task2Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
-    task2Btn.querySelector("div:nth-child(2)").style.color = "#667eea";
+    if (topicInput) {
+      topicInput.placeholder = "Describe the graph/chart/diagram... (REQUIRED)";
+    }
 
-    task1Btn.style.borderColor = "#e5e7eb";
-    task1Btn.style.background = "#fff";
-    task1Btn.querySelector("div:nth-child(2)").style.color = "#1f2937";
+    // ✅ CHECK SUBSCRIPTION AND LOCK/UNLOCK
+    const subscription = await checkUserSubscription();
+    console.log("📊 Subscription type:", subscription.type);
+
+    const fileInput = document.getElementById("writingImageInput");
+    const uploadArea = document.getElementById("writingImageUploadArea");
+
+    if (subscription.type === "free") {
+      console.log("🔒 Free user - LOCKING image upload");
+      
+      if (fileInput) fileInput.disabled = true;
+      
+      if (uploadArea) {
+        // Remove existing overlay if any
+        const existingOverlay = uploadArea.querySelector('.lock-overlay');
+        if (existingOverlay) {
+          existingOverlay.remove();
+        }
+        
+        uploadArea.style.opacity = "0.7";
+        uploadArea.style.cursor = "pointer";
+        uploadArea.style.position = 'relative';
+        
+        // ✅ Create lock overlay
+        const lockOverlay = document.createElement('div');
+        lockOverlay.className = 'lock-overlay';
+        lockOverlay.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.92);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          z-index: 10;
+          pointer-events: none;
+        `;
+        lockOverlay.innerHTML = `
+          <div style="text-align: center; pointer-events: none; user-select: none;">
+            <i class="bi bi-lock-fill" style="font-size: 52px; color: #6b7280; display: block; margin-bottom: 12px;"></i>
+            <p style="color: #374151; font-weight: 700; margin: 0; font-size: 15px;">Premium Feature</p>
+            <p style="color: #9ca3af; font-size: 13px; margin: 8px 0 0 0; font-weight: 500;">Click to upgrade</p>
+          </div>
+        `;
+        
+        uploadArea.appendChild(lockOverlay);
+        console.log("✅ Lock overlay added");
+      }
+    } else {
+      console.log("✅ Standard/Pro user - ENABLING image upload");
+      
+      if (fileInput) fileInput.disabled = false;
+      
+      if (uploadArea) {
+        uploadArea.style.opacity = "1";
+        uploadArea.style.cursor = "pointer";
+        
+        // Remove lock overlay if exists
+        const lockOverlay = uploadArea.querySelector('.lock-overlay');
+        if (lockOverlay) {
+          lockOverlay.remove();
+          console.log("✅ Lock overlay removed");
+        }
+      }
+
+      // ✅ Initialize upload functionality for paid users
+      setTimeout(() => {
+        initializeWritingImageUpload();
+      }, 100);
+    }
+
+  } else {
+    // Task 2 Active
+    if (task2Btn) {
+      task2Btn.classList.add("active");
+      task2Btn.style.borderColor = "#667eea";
+      task2Btn.style.background = "linear-gradient(135deg, #667eea15, #764ba215)";
+      const title = task2Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#667eea";
+    }
+
+    // Task 1 Inactive
+    if (task1Btn) {
+      task1Btn.classList.remove("active");
+      task1Btn.style.borderColor = "#e5e7eb";
+      task1Btn.style.background = "#fff";
+      const title = task1Btn.querySelector("div:nth-child(2)");
+      if (title) title.style.color = "#1f2937";
+    }
 
     // ✅ Hide image upload for Task 2
     if (imageUploadSection) {
       imageUploadSection.style.display = "none";
+      console.log("✅ Image upload section hidden (Task 2)");
     }
 
     // Update topic placeholder
-    topicInput.placeholder = "Enter the essay question... (REQUIRED)";
+    if (topicInput) {
+      topicInput.placeholder = "Enter the essay question... (REQUIRED)";
+    }
   }
-
-  console.log("✅ Selected task type:", taskType);
 }
 
 // ============================================
 // 2️⃣ IMAGE UPLOAD FUNCTIONS
 // ============================================
 
-// Handle image upload
-function handleWritingImageUpload(event) {
-  const file = event.target.files[0];
-  if (file) {
-    processWritingImage(file);
-  }
-}
 
-// Process image file
-function processWritingImage(file) {
-  const maxSize = 5 * 1024 * 1024; // 5MB
-
-  if (file.size > maxSize) {
-    alert("❌ File too large! Maximum size is 5MB.");
-    return;
-  }
-
-  if (!file.type.startsWith("image/")) {
-    alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
-    return;
-  }
-
-  uploadedWritingImage = file;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById("writingPreviewImg").src = e.target.result;
-    document.getElementById("writingImageFileName").textContent = file.name;
-    document.getElementById("writingImageUploadArea").style.display = "none";
-    document.getElementById("writingImagePreview").style.display = "block";
-  };
-  reader.readAsDataURL(file);
-
-  console.log("✅ Image uploaded:", file.name);
-}
-
-// Remove uploaded image
-function removeWritingImage() {
-  uploadedWritingImage = null;
-
-  document.getElementById("writingPreviewImg").src = "";
-  document.getElementById("writingImageFileName").textContent = "";
-
-  const fileInput = document.getElementById("writingImageInput");
-  if (fileInput) fileInput.value = "";
-
-  document.getElementById("writingImageUploadArea").style.display = "block";
-  document.getElementById("writingImagePreview").style.display = "none";
-
-  console.log("✅ Image removed");
-}
-
-// ============================================
-// 3️⃣ DRAG & DROP + PASTE SUPPORT ✅
-// ============================================
+// ✅ WRITING DRAG-DROP - FIXED
+// Writing Image Upload (drag-drop, click working)
 function initializeWritingImageUpload() {
+  if (isWritingUploadInitialized) {
+    console.log("⏭️ Writing upload already initialized");
+    return;
+  }
+
   const uploadArea = document.getElementById("writingImageUploadArea");
+  const fileInput = document.getElementById("writingImageInput");
+  
+  if (!uploadArea || !fileInput) {
+    console.warn("⚠️ Writing upload elements not found");
+    return;
+  }
 
-  if (!uploadArea) return;
+  // File input change
+  const fileInputChangeHandler = (e) => {
+    handleWritingImageUpload(e);
+  };
 
-  // Click to upload
-  uploadArea.addEventListener("click", () => {
-    document.getElementById("writingImageInput").click();
-  });
+  fileInput.removeEventListener("change", fileInputChangeHandler);
+  fileInput.addEventListener("change", fileInputChangeHandler);
 
-  // Drag over
-  uploadArea.addEventListener("dragover", (e) => {
+  // Click handler
+  const clickHandler = (e) => {
+    e.stopPropagation();
     e.preventDefault();
-    uploadArea.style.borderColor = "#667eea";
-    uploadArea.style.background = "#f0f2ff";
-    uploadArea.style.borderWidth = "4px";
-  });
+    
+    const lockOverlay = uploadArea.querySelector('.lock-overlay');
+    
+    if (lockOverlay) {
+      showImageUploadLockedModal();
+      return;
+    }
 
-  // Drag leave
-  uploadArea.addEventListener("dragleave", () => {
-    uploadArea.style.borderColor = "#d1d5db";
-    uploadArea.style.background = "#f9fafb";
-    uploadArea.style.borderWidth = "3px";
-  });
+    fileInput.click();
+  };
 
-  // Drop
-  uploadArea.addEventListener("drop", (e) => {
+  // Replace element
+  const newUploadArea = uploadArea.cloneNode(true);
+  uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
+  
+  const freshUploadArea = document.getElementById("writingImageUploadArea");
+  freshUploadArea.addEventListener("click", clickHandler, true);
+
+  // DRAG OVER
+  freshUploadArea.addEventListener("dragover", (e) => {
     e.preventDefault();
-    uploadArea.style.borderColor = "#d1d5db";
-    uploadArea.style.background = "#f9fafb";
-    uploadArea.style.borderWidth = "3px";
+    e.stopPropagation();
+    
+    const lockOverlay = freshUploadArea.querySelector('.lock-overlay');
+    
+    if (lockOverlay) {
+      freshUploadArea.style.borderColor = "#ef4444";
+      freshUploadArea.style.background = "#fee";
+    } else {
+      freshUploadArea.style.borderColor = "#667eea";
+      freshUploadArea.style.background = "#f0f2ff";
+    }
+    
+    freshUploadArea.style.borderWidth = "4px";
+  });
+
+  // DRAG LEAVE
+  freshUploadArea.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    freshUploadArea.style.borderColor = "#d1d5db";
+    freshUploadArea.style.background = "#f9fafb";
+    freshUploadArea.style.borderWidth = "3px";
+  });
+
+  // DROP
+  freshUploadArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    freshUploadArea.style.borderColor = "#d1d5db";
+    freshUploadArea.style.background = "#f9fafb";
+    freshUploadArea.style.borderWidth = "3px";
+
+    const lockOverlay = freshUploadArea.querySelector('.lock-overlay');
+    
+    if (lockOverlay) {
+      showImageUploadLockedModal();
+      return;
+    }
 
     const file = e.dataTransfer.files[0];
     if (file) {
       processWritingImage(file);
     }
   });
+
+  isWritingUploadInitialized = true;
+  console.log("✅ Writing drag-drop initialized (paste disabled)");
 }
+
+console.log("✅ Image Upload System loaded (PASTE DISABLED - will fix later)");
 // ============================================
 // 4️⃣ CLIPBOARD PASTE SUPPORT ✅
 // ============================================
-document.addEventListener("paste", (e) => {
-  // Check if we're in the Writing Checker tool
-  const grammarContent = document.getElementById("grammar-content");
-  if (!grammarContent || grammarContent.style.display === "none") {
-    return; // Not in Writing Checker, ignore paste
-  }
+// document.addEventListener("paste", (e) => {
+//   const grammarContent = document.getElementById("grammar-content");
+//   if (!grammarContent || grammarContent.style.display === "none") {
+//     return;
+//   }
 
-  const items = e.clipboardData.items;
+//   const items = e.clipboardData.items;
 
-  for (let item of items) {
-    // Check if pasted item is an image
-    if (item.type.indexOf("image") !== -1) {
-      e.preventDefault(); // Prevent default paste behavior
+//   for (let item of items) {
+//     if (item.type.indexOf("image") !== -1) {
+//       e.preventDefault(); 
 
-      const file = item.getAsFile();
+//       const file = item.getAsFile();
 
-      if (file) {
-        console.log(
-          "📋 Image pasted from clipboard:",
-          file.name || "clipboard-image"
-        );
+//       if (file) {
+//         console.log(
+//           "📋 Image pasted from clipboard:",
+//           file.name || "clipboard-image"
+//         );
 
-        // Process the image for Writing Checker
-        processWritingImage(file);
+//         processWritingImage(file);
 
-        // Show success feedback
-        const uploadArea = document.getElementById("writingImageUploadArea");
-        if (uploadArea && uploadArea.style.display !== "none") {
-          uploadArea.style.borderColor = "#10b981";
-          uploadArea.style.background = "#d1fae5";
+//         const uploadArea = document.getElementById("writingImageUploadArea");
+//         if (uploadArea && uploadArea.style.display !== "none") {
+//           uploadArea.style.borderColor = "#10b981";
+//           uploadArea.style.background = "#d1fae5";
 
-          setTimeout(() => {
-            uploadArea.style.borderColor = "#d1d5db";
-            uploadArea.style.background = "#f9fafb";
-          }, 1000);
-        }
-      }
+//           setTimeout(() => {
+//             uploadArea.style.borderColor = "#d1d5db";
+//             uploadArea.style.background = "#f9fafb";
+//           }, 1000);
+//         }
+//       }
 
-      break; // Only process first image
-    }
-  }
-});
+//       break;
+//     }
+//   }
+// });
 
 // ============================================
 // 4️⃣ WORD COUNTER (Keep existing)
@@ -1803,16 +2413,16 @@ if (grammarInput && wordCounter) {
 // ============================================
 async function checkWriting() {
   // 🪙 COIN CHECK - MUST BE FIRST AND BLOCK EXECUTION
-  console.log('💰 Checking coins for Writing Checker...');
-  const canProceed = await checkAndSpendCoins('grammar');
-  
+  console.log("💰 Checking coins for Writing Checker...");
+  const canProceed = await checkAndSpendCoins("grammar");
+
   if (!canProceed) {
-    console.error('❌ BLOCKED: Insufficient coins for Writing Checker');
+    console.error("❌ BLOCKED: Insufficient coins for Writing Checker");
     return; // ✅ STOP HERE
   }
-  
-  console.log('✅ Coins deducted for Writing Checker, proceeding...');
-  
+
+  console.log("✅ Coins deducted for Writing Checker, proceeding...");
+
   const text = document.getElementById("grammarInput").value;
   const language = document.getElementById("grammar-language").value;
   const resultBox = document.getElementById("grammarResult");
@@ -1845,9 +2455,9 @@ async function checkWriting() {
   // ✅ VALIDATION 1: Topic is REQUIRED (text or image)
   if (!topic && !topicImageData) {
     // ⚠️ REFUND COINS
-    console.warn('⚠️ No topic provided, refunding coins');
+    console.warn("⚠️ No topic provided, refunding coins");
     if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: No topic provided');
+      window.coinManager.addCoins(3, "Refund: No topic provided");
       updateCoinDisplay();
     }
     alert(
@@ -1860,9 +2470,9 @@ async function checkWriting() {
   // ✅ VALIDATION 2: Text check
   if (!text.trim()) {
     // ⚠️ REFUND COINS
-    console.warn('⚠️ No essay text, refunding coins');
+    console.warn("⚠️ No essay text, refunding coins");
     if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: No essay text');
+      window.coinManager.addCoins(3, "Refund: No essay text");
       updateCoinDisplay();
     }
     alert("⚠️ Please enter your essay! / Essayingizni kiriting!");
@@ -1876,9 +2486,9 @@ async function checkWriting() {
     .filter((w) => w.length > 0).length;
   if (wordCount < 150) {
     // ⚠️ REFUND COINS
-    console.warn('⚠️ Essay too short, refunding coins');
+    console.warn("⚠️ Essay too short, refunding coins");
     if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: Essay too short');
+      window.coinManager.addCoins(3, "Refund: Essay too short");
       updateCoinDisplay();
     }
     alert(
@@ -2058,14 +2668,14 @@ async function checkWriting() {
     }
   } catch (error) {
     console.error("❌ Writing check error:", error);
-    
+
     // ⚠️ ERROR - REFUND COINS
-    console.warn('⚠️ Writing check failed, refunding coins');
+    console.warn("⚠️ Writing check failed, refunding coins");
     if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: ' + error.message);
+      window.coinManager.addCoins(3, "Refund: " + error.message);
       updateCoinDisplay();
     }
-    
+
     output.innerHTML = `
       <div style="text-align: center; padding: 40px; background: #fee; border-radius: 12px;">
         <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
@@ -2449,47 +3059,48 @@ function copyModelAnswer() {
 // ============================================
 
 // ============================================
-// 1️⃣ HANDLE FILE INPUT CHANGE - FIXED ✅
+// 3️⃣ HANDLE FILE INPUT CHANGE ✅
 // ============================================
 function handleWritingImageUpload(event) {
   event.stopPropagation();
   event.preventDefault();
 
-  const file = event.target.files[0];
-  console.log("📁 File selected:", file?.name);
+  console.log("📁 handleWritingImageUpload called");
+  console.log("Files:", event.target.files);
 
-  if (file) {
-    processWritingImage(file);
+  const file = event.target.files[0];
+  
+  if (!file) {
+    console.warn("⚠️ No file selected");
+    return;
   }
 
-  // ✅ IMPORTANT: Reset file input to allow re-selection
+  console.log("✅ File selected:", file.name, file.size, "bytes");
+  processWritingImage(file);
   event.target.value = "";
 }
 
+
 // ============================================
-// 2️⃣ PROCESS IMAGE FILE (Validation + Preview)
+// 4️⃣ PROCESS WRITING IMAGE ✅
 // ============================================
 function processWritingImage(file) {
-  console.log("🔍 Processing image:", file.name, file.size, "bytes");
+  console.log("🔍 Processing writing image:", file.name, file.size, "bytes");
 
-  // ✅ Validate file size (max 5MB)
   const maxSize = 5 * 1024 * 1024;
   if (file.size > maxSize) {
     alert("❌ File too large! Maximum size is 5MB.");
     return;
   }
 
-  // ✅ Validate file type
   if (!file.type.startsWith("image/")) {
     alert("⚠️ Please upload an image file (PNG, JPG, JPEG)");
     return;
   }
 
-  // ✅ Store file globally
   uploadedWritingImage = file;
-  console.log("✅ Image stored:", uploadedWritingImage.name);
+  console.log("✅ Writing image stored:", uploadedWritingImage.name);
 
-  // ✅ Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
     const previewImg = document.getElementById("writingPreviewImg");
@@ -2502,18 +3113,17 @@ function processWritingImage(file) {
       imageFileName.textContent = file.name;
       uploadArea.style.display = "none";
       imagePreview.style.display = "block";
-
-      console.log("✅ Preview displayed");
+      console.log("✅ Writing preview displayed");
     }
   };
   reader.readAsDataURL(file);
 }
 
 // ============================================
-// 3️⃣ REMOVE UPLOADED IMAGE
+// 5️⃣ REMOVE WRITING IMAGE ✅
 // ============================================
 function removeWritingImage() {
-  console.log("🗑️ Removing image...");
+  console.log("🗑️ Removing writing image...");
 
   uploadedWritingImage = null;
 
@@ -2529,91 +3139,98 @@ function removeWritingImage() {
   if (uploadArea) uploadArea.style.display = "block";
   if (imagePreview) imagePreview.style.display = "none";
 
-  console.log("✅ Image removed successfully");
+  console.log("✅ Writing image removed successfully");
 }
 
 // ============================================
-// 4️⃣ SELECT TASK TYPE (Show/Hide Image Upload)
+// WRITING CHECKER PASTE HANDLER - FIXED
 // ============================================
 
-function selectTaskType(taskType) {
-  selectedTaskType = taskType;
-  console.log("📝 Task type selected:", taskType);
+// Remove old listener
+// if (window.writingPasteHandlerAdded) {
+//   document.removeEventListener("paste", handleWritingPasteEvent);
+//   window.writingPasteHandlerAdded = false;
+// }
 
-  const task1Btn = document.getElementById("task1Btn");
-  const task2Btn = document.getElementById("task2Btn");
-  const imageUploadSection = document.getElementById("writingImageSection");
-  const topicInput = document.getElementById("essayTopic");
+// function handleWritingPasteEvent(e) {
+//   const grammarContent = document.getElementById("grammar-content");
+//   if (!grammarContent || grammarContent.style.display === "none") {
+//     return;
+//   }
 
-  // ✅ Update button styles
-  if (taskType === "Task 1") {
-    // Task 1 Active
-    if (task1Btn) {
-      task1Btn.classList.add("active");
-      task1Btn.style.borderColor = "#667eea";
-      task1Btn.style.background =
-        "linear-gradient(135deg, #667eea15, #764ba215)";
-      const title = task1Btn.querySelector("div:nth-child(2)");
-      if (title) title.style.color = "#667eea";
-    }
+//   if (selectedTaskType !== "Task 1") {
+//     return;
+//   }
 
-    // Task 2 Inactive
-    if (task2Btn) {
-      task2Btn.classList.remove("active");
-      task2Btn.style.borderColor = "#e5e7eb";
-      task2Btn.style.background = "#fff";
-      const title = task2Btn.querySelector("div:nth-child(2)");
-      if (title) title.style.color = "#1f2937";
-    }
+//   const items = e.clipboardData.items;
+//   let hasImage = false;
+  
+//   for (let item of items) {
+//     if (item.type.indexOf("image") !== -1) {
+//       hasImage = true;
+//       break;
+//     }
+//   }
 
-    // ✅ Show image upload for Task 1
-    if (imageUploadSection) {
-      imageUploadSection.style.display = "block";
-      console.log("✅ Image upload section shown (Task 1)");
-    }
+//   if (!hasImage) return;
 
-    // Update topic placeholder
-    if (topicInput) {
-      topicInput.placeholder = "Describe the graph/chart/diagram... (REQUIRED)";
-    }
-  } else {
-    // Task 2 Active
-    if (task2Btn) {
-      task2Btn.classList.add("active");
-      task2Btn.style.borderColor = "#667eea";
-      task2Btn.style.background =
-        "linear-gradient(135deg, #667eea15, #764ba215)";
-      const title = task2Btn.querySelector("div:nth-child(2)");
-      if (title) title.style.color = "#667eea";
-    }
+//   e.preventDefault();
+//   e.stopPropagation();
+  
+//   console.log("📋 Writing paste blocked, checking subscription...");
 
-    // Task 1 Inactive
-    if (task1Btn) {
-      task1Btn.classList.remove("active");
-      task1Btn.style.borderColor = "#e5e7eb";
-      task1Btn.style.background = "#fff";
-      const title = task1Btn.querySelector("div:nth-child(2)");
-      if (title) title.style.color = "#1f2937";
-    }
+//   (async () => {
+//     const subscription = await checkUserSubscription();
+    
+//     if (subscription.type === "free") {
+//       console.log("🔒 Free user - paste BLOCKED");
+//       showImageUploadLockedModal();
+//       return;
+//     }
 
-    // ✅ Hide image upload for Task 2
-    if (imageUploadSection) {
-      imageUploadSection.style.display = "none";
-      console.log("✅ Image upload section hidden (Task 2)");
-    }
+//     console.log("✅ Paid user - processing pasted image");
 
-    // Update topic placeholder
-    if (topicInput) {
-      topicInput.placeholder = "Enter the essay question... (REQUIRED)";
-    }
-  }
-}
+//     for (let item of items) {
+//       if (item.type.indexOf("image") !== -1) {
+//         const file = item.getAsFile();
+//         if (file) {
+//           processWritingImage(file);
+
+//           const uploadArea = document.getElementById("writingImageUploadArea");
+//           if (uploadArea && uploadArea.style.display !== "none") {
+//             uploadArea.style.borderColor = "#10b981";
+//             uploadArea.style.background = "#d1fae5";
+
+//             setTimeout(() => {
+//               uploadArea.style.borderColor = "#d1d5db";
+//               uploadArea.style.background = "#f9fafb";
+//             }, 1000);
+//           }
+//         }
+//         break;
+//       }
+//     }
+//   })();
+// }
+
+// document.addEventListener("paste", handleWritingPasteEvent);
+// window.writingPasteHandlerAdded = true;
+
+// console.log("✅ Writing Paste Handler (SYNC BLOCK) loaded!");
+
+// ============================================
+// 7️⃣ INITIALIZE ON TOOL SWITCH ✅
+// ============================================
+window.addEventListener("load", () => {
+  console.log("🔧 Page loaded - will initialize writing upload on tool switch");
+});
+
+console.log("✅ Writing Checker Image Upload System loaded!");
+
 
 // ============================================
 // TOPIC IMAGE UPLOAD - YANGI FUNKSIYALAR ✅
 // ============================================
-
-
 
 // ============================================
 // 2️⃣ HANDLE FILE INPUT CHANGE
@@ -2693,8 +3310,6 @@ function removeTopicImage() {
   console.log("✅ Topic image removed successfully");
 }
 
-
-
 // ============================================
 // EXPORT TO PDF - CLEAN & STRUCTURED VERSION ✅
 // ============================================
@@ -2709,10 +3324,15 @@ function removeTopicImage() {
 // ============================================
 
 async function exportWritingToPDF() {
-  const topic = document.getElementById("essayTopic").value || "IELTS Writing Task";
-  const wordCount = document.getElementById("grammarInput").value.trim().split(/\s+/).filter((w) => w).length;
+  const topic =
+    document.getElementById("essayTopic").value || "IELTS Writing Task";
+  const wordCount = document
+    .getElementById("grammarInput")
+    .value.trim()
+    .split(/\s+/)
+    .filter((w) => w).length;
   const yourText = document.getElementById("grammarInput").value;
-  
+
   const resultElement = document.getElementById("grammarOutput");
   const modelAnswerElement = document.getElementById("modelAnswerText");
 
@@ -2843,29 +3463,31 @@ async function exportWritingToPDF() {
     // ============================================
     // HELPER FUNCTIONS
     // ============================================
-const cleanText = (text) => {
-  if (!text) return "";
-  return text
-    .replace(/<[^>]*>/g, "") // Remove HTML tags
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#\d+;/g, "")
-    // ✅ FIX: Preserve spaces between words
-    .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
-    .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Space between letter and number
-    .replace(/(\d)([a-zA-Z])/g, '$1 $2') // Space between number and letter
-    // ✅ Keep only single newlines
-    .replace(/\n{3,}/g, '\n\n')
-    // ✅ Remove control chars EXCEPT newlines
-    .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
-    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
-    .replace(/[\u{2600}-\u{26FF}]/gu, "")
-    .replace(/[\u{2700}-\u{27BF}]/gu, "")
-    .trim();
-};
+    const cleanText = (text) => {
+      if (!text) return "";
+      return (
+        text
+          .replace(/<[^>]*>/g, "") // Remove HTML tags
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#\d+;/g, "")
+          // ✅ FIX: Preserve spaces between words
+          .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space between camelCase
+          .replace(/([a-zA-Z])(\d)/g, "$1 $2") // Space between letter and number
+          .replace(/(\d)([a-zA-Z])/g, "$1 $2") // Space between number and letter
+          // ✅ Keep only single newlines
+          .replace(/\n{3,}/g, "\n\n")
+          // ✅ Remove control chars EXCEPT newlines
+          .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
+          .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
+          .replace(/[\u{2600}-\u{26FF}]/gu, "")
+          .replace(/[\u{2700}-\u{27BF}]/gu, "")
+          .trim()
+      );
+    };
 
     const checkPageBreak = (requiredSpace = 25) => {
       if (yPos > pageHeight - requiredSpace) {
@@ -2933,283 +3555,375 @@ const cleanText = (text) => {
       fullText = cleanText(fullText);
     }
 
-    let detectedLanguage = 'uz';
-    if (fullText.includes('POCHEMU ETOT BAND') || fullText.includes('Uroven\'')) {
-      detectedLanguage = 'ru';
-    } else if (fullText.includes('WHY THIS BAND') || fullText.includes('Level: C')) {
-      detectedLanguage = 'en';
+    let detectedLanguage = "uz";
+    if (
+      fullText.includes("POCHEMU ETOT BAND") ||
+      fullText.includes("Uroven'")
+    ) {
+      detectedLanguage = "ru";
+    } else if (
+      fullText.includes("WHY THIS BAND") ||
+      fullText.includes("Level: C")
+    ) {
+      detectedLanguage = "en";
     }
 
     const t = translations[detectedLanguage];
-    console.log('🌐 Language:', detectedLanguage);
-    console.log('📝 Text length:', fullText.length);
+    console.log("🌐 Language:", detectedLanguage);
+    console.log("📝 Text length:", fullText.length);
 
     // ============================================
     // ✅ TASK TURINI ANIQLASH
     // ============================================
     const actualTaskType = selectedTaskType || "Task 2"; // Global variable dan olish
-    console.log('📋 Task Type:', actualTaskType);
+    console.log("📋 Task Type:", actualTaskType);
 
     // ============================================
     // PARSE ANALYSIS - SECTION 3, 4 REMOVED ✅
     // ============================================
-const parseAnalysis = (text) => {
-  const parsed = {
-    vocabulary: { 
-      level: null, 
-      strong: [], 
-      repetitive: [], 
-      synonyms: [],
-      collocations: []
-    },
-    grammar: { 
-      total: null, 
-      types: [],
-      errors: [] // ✅ This will store individual errors properly
-    },
-    patterns: {
-      recommended: [],
-      commonErrors: []
-    },
-    bandReasons: [],
-    nextBand: {
-      fix: [],
-      add: [],
-      improve: []
-    }
-  };
+    const parseAnalysis = (text) => {
+      const parsed = {
+        vocabulary: {
+          level: null,
+          strong: [],
+          repetitive: [],
+          synonyms: [],
+          collocations: [],
+        },
+        grammar: {
+          total: null,
+          types: [],
+          errors: [], // ✅ This will store individual errors properly
+        },
+        patterns: {
+          recommended: [],
+          commonErrors: [],
+        },
+        bandReasons: [],
+        nextBand: {
+          fix: [],
+          add: [],
+          improve: [],
+        },
+      };
 
-  if (!text) return parsed;
+      if (!text) return parsed;
 
-  try {
-    // ============================================
-    // 1. VOCABULARY (existing code - keep as is)
-    // ============================================
-    const vocabSection = text.match(/(?:LUG'AT SIFATI|VOCABULARY QUALITY|KACHESTVO LEKSIKI)[:\s]*([\s\S]*?)(?:GRAMMATIKA|GRAMMAR|$)/i);
-    
-    if (vocabSection) {
-      const vocabText = vocabSection[1];
+      try {
+        // ============================================
+        // 1. VOCABULARY (existing code - keep as is)
+        // ============================================
+        const vocabSection = text.match(
+          /(?:LUG'AT SIFATI|VOCABULARY QUALITY|KACHESTVO LEKSIKI)[:\s]*([\s\S]*?)(?:GRAMMATIKA|GRAMMAR|$)/i
+        );
 
-      const levelMatch = vocabText.match(/(?:Daraja|Level|Uroven')[:\s]*([A-C][1-2])/i);
-      if (levelMatch) parsed.vocabulary.level = levelMatch[1];
+        if (vocabSection) {
+          const vocabText = vocabSection[1];
 
-      const strongMatch = vocabText.match(/(?:Kuchli So'zlar|Strong Words|Sil'nye Slova)[:\s]*([^\n]+)/i);
-      if (strongMatch) {
-        const wordsText = strongMatch[1].replace(/["']/g, '').trim();
-        parsed.vocabulary.strong = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
-      }
+          const levelMatch = vocabText.match(
+            /(?:Daraja|Level|Uroven')[:\s]*([A-C][1-2])/i
+          );
+          if (levelMatch) parsed.vocabulary.level = levelMatch[1];
 
-      const repMatch = vocabText.match(/(?:Takrorlanuvchi|Repetitive|Povtoryayushchiesya)[:\s]*([^\n]+)/i);
-      if (repMatch) {
-        const wordsText = repMatch[1].replace(/["']/g, '').trim();
-        parsed.vocabulary.repetitive = wordsText.split(/[,;]/).map(w => w.trim()).filter(w => w.length > 2);
-      }
+          const strongMatch = vocabText.match(
+            /(?:Kuchli So'zlar|Strong Words|Sil'nye Slova)[:\s]*([^\n]+)/i
+          );
+          if (strongMatch) {
+            const wordsText = strongMatch[1].replace(/["']/g, "").trim();
+            parsed.vocabulary.strong = wordsText
+              .split(/[,;]/)
+              .map((w) => w.trim())
+              .filter((w) => w.length > 2);
+          }
 
-      const synMatch = vocabText.match(/(?:Sinonimlar Kerak|Suggested Synonyms|Sinonimy)[:\s]*([^\n]+)/i);
-      if (synMatch) parsed.vocabulary.synonyms.push(synMatch[1].trim());
+          const repMatch = vocabText.match(
+            /(?:Takrorlanuvchi|Repetitive|Povtoryayushchiesya)[:\s]*([^\n]+)/i
+          );
+          if (repMatch) {
+            const wordsText = repMatch[1].replace(/["']/g, "").trim();
+            parsed.vocabulary.repetitive = wordsText
+              .split(/[,;]/)
+              .map((w) => w.trim())
+              .filter((w) => w.length > 2);
+          }
 
-      const collMatch = vocabText.match(/(?:Ilg'or Kollokatsiyalar|Advanced Collocations|Kollokatsii)[:\s]*([^\n]+)/i);
-      if (collMatch) {
-        const collText = collMatch[1].replace(/["']/g, '').trim();
-        parsed.vocabulary.collocations = collText.split(/[,;]/).map(c => c.trim()).filter(c => c.length > 3);
-      }
-    }
+          const synMatch = vocabText.match(
+            /(?:Sinonimlar Kerak|Suggested Synonyms|Sinonimy)[:\s]*([^\n]+)/i
+          );
+          if (synMatch) parsed.vocabulary.synonyms.push(synMatch[1].trim());
 
-    // ============================================
-    // 2. GRAMMAR ERRORS - COMPLETELY REWRITTEN ✅
-    // ============================================
-    const grammarSection = text.match(/(?:GRAMMATIKA TAHLILI|GRAMMAR ANALYSIS|ANALIZ GRAMMATIKI)[:\s]*([\s\S]*?)(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|$)/i);
-
-    if (grammarSection) {
-      const grammarText = grammarSection[1];
-      console.log('📋 Grammar section found:', grammarText.substring(0, 200));
-
-      // Total errors count
-      const totalMatch = grammarText.match(/(?:Jami Xatolar|Total Errors|Vsego Oshibok)[:\s]*(\d+)/i);
-      if (totalMatch) {
-        parsed.grammar.total = totalMatch[1];
-        console.log('✅ Total errors:', parsed.grammar.total);
-      }
-
-      // ✅ METHOD 1: Extract by numbered bullets (#1:, #2:, etc.)
-      const numberedErrors = grammarText.match(/#\d+[:\s]*([^\n#]+)/gi);
-      
-      if (numberedErrors && numberedErrors.length > 0) {
-        console.log('✅ Found', numberedErrors.length, 'numbered errors');
-        
-        parsed.grammar.errors = numberedErrors.map(error => {
-          // Remove the number prefix
-          let cleaned = error.replace(/#\d+[:\s]*/, '').trim();
-          
-          // ✅ FIX: Ensure proper spacing
-          cleaned = cleaned
-            .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase → camel Case
-            .replace(/([a-zA-Z])(\()/g, '$1 (') // word( → word (
-            .replace(/(\))([a-zA-Z])/g, '$1 $2') // )word → ) word
-            .replace(/([,.;:])([a-zA-Z])/g, '$1 $2') // punctuation + letter
-            .replace(/\s+/g, ' ') // Multiple spaces → single space
-            .trim();
-          
-          return cleaned;
-        }).filter(e => e.length > 10); // Ignore very short entries
-        
-        console.log('✅ Parsed errors:', parsed.grammar.errors);
-      } 
-      // ✅ METHOD 2: Fallback - split by bullet points
-      else {
-        console.log('⚠️ No numbered format, trying bullet points...');
-        
-        const bulletErrors = grammarText.match(/[•\-\*]\s*([^\n•\-\*]+)/g);
-        
-        if (bulletErrors && bulletErrors.length > 0) {
-          parsed.grammar.errors = bulletErrors
-            .map(bullet => {
-              let cleaned = bullet.replace(/^[•\-\*]\s*/, '').trim();
-              
-              // Apply same spacing fixes
-              cleaned = cleaned
-                .replace(/([a-z])([A-Z])/g, '$1 $2')
-                .replace(/([a-zA-Z])(\()/g, '$1 (')
-                .replace(/(\))([a-zA-Z])/g, '$1 $2')
-                .replace(/([,.;:])([a-zA-Z])/g, '$1 $2')
-                .replace(/\s+/g, ' ')
-                .trim();
-              
-              return cleaned;
-            })
-            .filter(e => e.length > 10);
-          
-          console.log('✅ Parsed from bullets:', parsed.grammar.errors.length);
+          const collMatch = vocabText.match(
+            /(?:Ilg'or Kollokatsiyalar|Advanced Collocations|Kollokatsii)[:\s]*([^\n]+)/i
+          );
+          if (collMatch) {
+            const collText = collMatch[1].replace(/["']/g, "").trim();
+            parsed.vocabulary.collocations = collText
+              .split(/[,;]/)
+              .map((c) => c.trim())
+              .filter((c) => c.length > 3);
+          }
         }
+
+        // ============================================
+        // 2. GRAMMAR ERRORS - COMPLETELY REWRITTEN ✅
+        // ============================================
+        const grammarSection = text.match(
+          /(?:GRAMMATIKA TAHLILI|GRAMMAR ANALYSIS|ANALIZ GRAMMATIKI)[:\s]*([\s\S]*?)(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|$)/i
+        );
+
+        if (grammarSection) {
+          const grammarText = grammarSection[1];
+          console.log(
+            "📋 Grammar section found:",
+            grammarText.substring(0, 200)
+          );
+
+          // Total errors count
+          const totalMatch = grammarText.match(
+            /(?:Jami Xatolar|Total Errors|Vsego Oshibok)[:\s]*(\d+)/i
+          );
+          if (totalMatch) {
+            parsed.grammar.total = totalMatch[1];
+            console.log("✅ Total errors:", parsed.grammar.total);
+          }
+
+          // ✅ METHOD 1: Extract by numbered bullets (#1:, #2:, etc.)
+          const numberedErrors = grammarText.match(/#\d+[:\s]*([^\n#]+)/gi);
+
+          if (numberedErrors && numberedErrors.length > 0) {
+            console.log("✅ Found", numberedErrors.length, "numbered errors");
+
+            parsed.grammar.errors = numberedErrors
+              .map((error) => {
+                // Remove the number prefix
+                let cleaned = error.replace(/#\d+[:\s]*/, "").trim();
+
+                // ✅ FIX: Ensure proper spacing
+                cleaned = cleaned
+                  .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase → camel Case
+                  .replace(/([a-zA-Z])(\()/g, "$1 (") // word( → word (
+                  .replace(/(\))([a-zA-Z])/g, "$1 $2") // )word → ) word
+                  .replace(/([,.;:])([a-zA-Z])/g, "$1 $2") // punctuation + letter
+                  .replace(/\s+/g, " ") // Multiple spaces → single space
+                  .trim();
+
+                return cleaned;
+              })
+              .filter((e) => e.length > 10); // Ignore very short entries
+
+            console.log("✅ Parsed errors:", parsed.grammar.errors);
+          }
+          // ✅ METHOD 2: Fallback - split by bullet points
+          else {
+            console.log("⚠️ No numbered format, trying bullet points...");
+
+            const bulletErrors = grammarText.match(/[•\-\*]\s*([^\n•\-\*]+)/g);
+
+            if (bulletErrors && bulletErrors.length > 0) {
+              parsed.grammar.errors = bulletErrors
+                .map((bullet) => {
+                  let cleaned = bullet.replace(/^[•\-\*]\s*/, "").trim();
+
+                  // Apply same spacing fixes
+                  cleaned = cleaned
+                    .replace(/([a-z])([A-Z])/g, "$1 $2")
+                    .replace(/([a-zA-Z])(\()/g, "$1 (")
+                    .replace(/(\))([a-zA-Z])/g, "$1 $2")
+                    .replace(/([,.;:])([a-zA-Z])/g, "$1 $2")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+                  return cleaned;
+                })
+                .filter((e) => e.length > 10);
+
+              console.log(
+                "✅ Parsed from bullets:",
+                parsed.grammar.errors.length
+              );
+            }
+          }
+        }
+
+        // ============================================
+        // 3. GRAMMAR PATTERNS (keep existing code)
+        // ============================================
+        const patSection = text.match(
+          /(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|GRAMMATICHESKIE PATTERNY)[:\s]*([\s\S]*?)(?:NEGA BU BAND|WHY THIS BAND|POCHEMU|$)/i
+        );
+
+        if (patSection) {
+          const patText = patSection[1];
+
+          const recMatch = patText.match(
+            /(?:Tavsiya etilgan|Recommended|Rekomenduemye)[:\s]*([^\n]+)/i
+          );
+          if (recMatch) {
+            parsed.patterns.recommended = recMatch[1]
+              .split(/[,;]/)
+              .map((r) => r.trim())
+              .filter((r) => r.length > 5);
+          }
+
+          const errMatch = patText.match(
+            /(?:Umumiy xatolar|Common errors|Obshchie oshibki)[:\s]*([^\n]+)/i
+          );
+          if (errMatch) {
+            parsed.patterns.commonErrors = errMatch[1]
+              .split(/[,;]/)
+              .map((e) => e.trim())
+              .filter((e) => e.length > 5);
+          }
+        }
+
+        // ============================================
+        // 4. BAND REASONS - FIXED TO CAPTURE ALL CONTENT ✅
+        // ============================================
+        const reasonSection = text.match(
+          /(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i
+        );
+
+        if (reasonSection) {
+          const reasonText = reasonSection[1].trim();
+          console.log(
+            "📋 Band Reasons section found, length:",
+            reasonText.length
+          );
+
+          // ✅ METHOD 1: Try bullet points first
+          const bullets = reasonText.match(/[•▸►\-\*]\s*([^\n•▸►\-\*]+)/g);
+
+          if (bullets && bullets.length > 0) {
+            parsed.bandReasons = bullets
+              .map((b) => b.replace(/^[•▸►\-\*]\s*/, "").trim())
+              .filter((item) => item.length > 10) // Lower threshold
+              .slice(0, 8); // Increase limit to 8
+
+            console.log(
+              "✅ Extracted",
+              parsed.bandReasons.length,
+              "reasons from bullets"
+            );
+          }
+          // ✅ METHOD 2: If no bullets, extract by numbered items or lines
+          else {
+            // Try numbered format (1., 2., etc.)
+            const numberedItems = reasonText.match(/\d+\.\s*([^\n]+)/g);
+
+            if (numberedItems && numberedItems.length > 0) {
+              parsed.bandReasons = numberedItems
+                .map((item) => item.replace(/^\d+\.\s*/, "").trim())
+                .filter((item) => item.length > 10)
+                .slice(0, 8);
+
+              console.log(
+                "✅ Extracted",
+                parsed.bandReasons.length,
+                "reasons from numbered list"
+              );
+            }
+            // ✅ METHOD 3: Split by double newlines (paragraphs)
+            else {
+              const paragraphs = reasonText
+                .split(/\n\n+/)
+                .map((p) => p.replace(/\n/g, " ").trim())
+                .filter(
+                  (p) =>
+                    p.length > 20 &&
+                    !p.match(/^(NEGA|WHY|KEYINGI|TO REACH|MODEL)/i)
+                )
+                .slice(0, 8);
+
+              if (paragraphs.length > 0) {
+                parsed.bandReasons = paragraphs;
+                console.log(
+                  "✅ Extracted",
+                  paragraphs.length,
+                  "reasons from paragraphs"
+                );
+              }
+            }
+          }
+        } else {
+          console.warn("⚠️ Band Reasons section not found in text");
+        }
+
+        // ============================================
+        // 5. NEXT BAND (keep existing code)
+        // ============================================
+        const nextSection = text.match(
+          /(?:KEYINGI BANDGA YETISH|TO REACH THE NEXT BAND|DLYA SLEDUYUSHCHEGO BAND)[:\s]*([\s\S]*?)(?:YAKUNIY|$)/i
+        );
+
+        if (nextSection) {
+          const nextText = nextSection[1];
+
+          const fixMatch = nextText.match(
+            /(?:Tuzatish|Fix|Ispravit')[:\s]*([^\n]+)/i
+          );
+          if (fixMatch) parsed.nextBand.fix.push(fixMatch[1].trim());
+
+          const addMatch = nextText.match(
+            /(?:Qo'shish|Add|Dobavit')[:\s]*([^\n]+)/i
+          );
+          if (addMatch) parsed.nextBand.add.push(addMatch[1].trim());
+
+          const impMatch = nextText.match(
+            /(?:Yaxshilash|Improve|Uluchshit')[:\s]*([^\n]+)/i
+          );
+          if (impMatch) parsed.nextBand.improve.push(impMatch[1].trim());
+        }
+      } catch (error) {
+        console.error("❌ Parse error:", error);
       }
-    }
 
-    // ============================================
-    // 3. GRAMMAR PATTERNS (keep existing code)
-    // ============================================
-    const patSection = text.match(/(?:GRAMMATIK NAQSHLAR|GRAMMAR PATTERNS|GRAMMATICHESKIE PATTERNY)[:\s]*([\s\S]*?)(?:NEGA BU BAND|WHY THIS BAND|POCHEMU|$)/i);
-    
-    if (patSection) {
-      const patText = patSection[1];
-
-      const recMatch = patText.match(/(?:Tavsiya etilgan|Recommended|Rekomenduemye)[:\s]*([^\n]+)/i);
-      if (recMatch) {
-        parsed.patterns.recommended = recMatch[1].split(/[,;]/).map(r => r.trim()).filter(r => r.length > 5);
-      }
-
-      const errMatch = patText.match(/(?:Umumiy xatolar|Common errors|Obshchie oshibki)[:\s]*([^\n]+)/i);
-      if (errMatch) {
-        parsed.patterns.commonErrors = errMatch[1].split(/[,;]/).map(e => e.trim()).filter(e => e.length > 5);
-      }
-    }
-
-// ============================================
-// 4. BAND REASONS - FIXED TO CAPTURE ALL CONTENT ✅
-// ============================================
-const reasonSection = text.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
-
-if (reasonSection) {
-  const reasonText = reasonSection[1].trim();
-  console.log('📋 Band Reasons section found, length:', reasonText.length);
-  
-  // ✅ METHOD 1: Try bullet points first
-  const bullets = reasonText.match(/[•▸►\-\*]\s*([^\n•▸►\-\*]+)/g);
-  
-  if (bullets && bullets.length > 0) {
-    parsed.bandReasons = bullets
-      .map(b => b.replace(/^[•▸►\-\*]\s*/, '').trim())
-      .filter(item => item.length > 10) // Lower threshold
-      .slice(0, 8); // Increase limit to 8
-    
-    console.log('✅ Extracted', parsed.bandReasons.length, 'reasons from bullets');
-  } 
-  // ✅ METHOD 2: If no bullets, extract by numbered items or lines
-  else {
-    // Try numbered format (1., 2., etc.)
-    const numberedItems = reasonText.match(/\d+\.\s*([^\n]+)/g);
-    
-    if (numberedItems && numberedItems.length > 0) {
-      parsed.bandReasons = numberedItems
-        .map(item => item.replace(/^\d+\.\s*/, '').trim())
-        .filter(item => item.length > 10)
-        .slice(0, 8);
-      
-      console.log('✅ Extracted', parsed.bandReasons.length, 'reasons from numbered list');
-    } 
-    // ✅ METHOD 3: Split by double newlines (paragraphs)
-    else {
-      const paragraphs = reasonText
-        .split(/\n\n+/)
-        .map(p => p.replace(/\n/g, ' ').trim())
-        .filter(p => 
-          p.length > 20 && 
-          !p.match(/^(NEGA|WHY|KEYINGI|TO REACH|MODEL)/i)
-        )
-        .slice(0, 8);
-      
-      if (paragraphs.length > 0) {
-        parsed.bandReasons = paragraphs;
-        console.log('✅ Extracted', paragraphs.length, 'reasons from paragraphs');
-      }
-    }
-  }
-} else {
-  console.warn('⚠️ Band Reasons section not found in text');
-}
-
-    // ============================================
-    // 5. NEXT BAND (keep existing code)
-    // ============================================
-    const nextSection = text.match(/(?:KEYINGI BANDGA YETISH|TO REACH THE NEXT BAND|DLYA SLEDUYUSHCHEGO BAND)[:\s]*([\s\S]*?)(?:YAKUNIY|$)/i);
-    
-    if (nextSection) {
-      const nextText = nextSection[1];
-
-      const fixMatch = nextText.match(/(?:Tuzatish|Fix|Ispravit')[:\s]*([^\n]+)/i);
-      if (fixMatch) parsed.nextBand.fix.push(fixMatch[1].trim());
-
-      const addMatch = nextText.match(/(?:Qo'shish|Add|Dobavit')[:\s]*([^\n]+)/i);
-      if (addMatch) parsed.nextBand.add.push(addMatch[1].trim());
-
-      const impMatch = nextText.match(/(?:Yaxshilash|Improve|Uluchshit')[:\s]*([^\n]+)/i);
-      if (impMatch) parsed.nextBand.improve.push(impMatch[1].trim());
-    }
-
-  } catch (error) {
-    console.error('❌ Parse error:', error);
-  }
-
-  return parsed;
-};
+      return parsed;
+    };
 
     // ============================================
     // EXTRACT SCORES
     // ============================================
     const extractScores = (text) => {
-      const scores = { overall: null, task: null, coherence: null, lexical: null, grammar: null };
-      
-      const overallMatch = text.match(/(?:OVERALL|UMUMIY|OBSHCHIY).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+      const scores = {
+        overall: null,
+        task: null,
+        coherence: null,
+        lexical: null,
+        grammar: null,
+      };
+
+      const overallMatch = text.match(
+        /(?:OVERALL|UMUMIY|OBSHCHIY).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+      );
       if (overallMatch) scores.overall = overallMatch[1];
-      
-      const taskMatch = text.match(/(?:Task Achievement|Topshiriqni Bajarish|Vypolnenie Zadaniya).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+
+      const taskMatch = text.match(
+        /(?:Task Achievement|Topshiriqni Bajarish|Vypolnenie Zadaniya).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+      );
       if (taskMatch) scores.task = taskMatch[1];
-      
-      const cohMatch = text.match(/(?:Coherence|Izchillik|Svyaznost').*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+
+      const cohMatch = text.match(
+        /(?:Coherence|Izchillik|Svyaznost').*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+      );
       if (cohMatch) scores.coherence = cohMatch[1];
-      
-      const lexMatch = text.match(/(?:Lexical|Lug'at|Leksika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+
+      const lexMatch = text.match(
+        /(?:Lexical|Lug'at|Leksika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+      );
       if (lexMatch) scores.lexical = lexMatch[1];
-      
-      const gramMatch = text.match(/(?:Grammatical|Grammatika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is);
+
+      const gramMatch = text.match(
+        /(?:Grammatical|Grammatika).*?(\d+(?:\.\d+)?)\s*\/\s*9/is
+      );
       if (gramMatch) scores.grammar = gramMatch[1];
-      
+
       return scores;
     };
 
     // ============================================
     // BUILD PDF
     // ============================================
-    
+
     // Header
     doc.setFillColor(44, 170, 154);
     doc.rect(0, 0, pageWidth, 50, "F");
@@ -3229,10 +3943,17 @@ if (reasonSection) {
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     const infoY = yPos + 8;
-    doc.text(`${t.date}: ${new Date().toLocaleDateString("en-GB")}`, margin + 5, infoY);
+    doc.text(
+      `${t.date}: ${new Date().toLocaleDateString("en-GB")}`,
+      margin + 5,
+      infoY
+    );
     doc.text(`${t.task}: ${actualTaskType}`, margin + 5, infoY + 7); // ✅ To'g'ri task
     doc.text(`${t.words}: ${wordCount}`, margin + 5, infoY + 14);
-    const topicLines = doc.splitTextToSize(`${t.topic}: ${cleanText(topic)}`, maxWidth - 10);
+    const topicLines = doc.splitTextToSize(
+      `${t.topic}: ${cleanText(topic)}`,
+      maxWidth - 10
+    );
     doc.text(topicLines, margin + 5, infoY + 21);
     yPos += 60;
 
@@ -3240,8 +3961,8 @@ if (reasonSection) {
     // ✅ TASK 1 RASMI - ASPECT RATIO BILAN (cho'zilmasin)
     // ============================================
     if (actualTaskType === "Task 1" && uploadedWritingImage) {
-      console.log('📷 Adding Task 1 chart to PDF...');
-      
+      console.log("📷 Adding Task 1 chart to PDF...");
+
       try {
         const reader = new FileReader();
         const imageData = await new Promise((resolve, reject) => {
@@ -3255,33 +3976,33 @@ if (reasonSection) {
         // ✅ ASPECT RATIO SAQLASH (cho'zilmasin)
         const img = new Image();
         img.src = imageData;
-        
+
         await new Promise((resolve) => {
           img.onload = resolve;
         });
-        
+
         const imgRatio = img.width / img.height;
         const maxImgWidth = maxWidth;
         const maxImgHeight = 80;
-        
+
         let finalWidth = maxImgWidth;
         let finalHeight = finalWidth / imgRatio;
-        
+
         // Agar balandlik juda katta bo'lsa
         if (finalHeight > maxImgHeight) {
           finalHeight = maxImgHeight;
           finalWidth = finalHeight * imgRatio;
         }
-        
+
         // Markazga joylashtirish
         const xOffset = margin + (maxImgWidth - finalWidth) / 2;
-        
-        doc.addImage(imageData, 'JPEG', xOffset, yPos, finalWidth, finalHeight);
+
+        doc.addImage(imageData, "JPEG", xOffset, yPos, finalWidth, finalHeight);
         yPos += finalHeight + 10;
-        
-        console.log('✅ Chart image added (aspect ratio preserved)');
+
+        console.log("✅ Chart image added (aspect ratio preserved)");
       } catch (error) {
-        console.error('❌ Failed to add chart:', error);
+        console.error("❌ Failed to add chart:", error);
       }
     }
 
@@ -3300,7 +4021,9 @@ if (reasonSection) {
         doc.text(`${t.overall}:`, margin + 5, yPos + 10);
         doc.setFontSize(14);
         doc.setTextColor(44, 170, 154);
-        doc.text(`${scores.overall}/9.0`, margin + maxWidth - 5, yPos + 10, { align: "right" });
+        doc.text(`${scores.overall}/9.0`, margin + maxWidth - 5, yPos + 10, {
+          align: "right",
+        });
         doc.setTextColor(0, 0, 0);
         yPos += 20;
 
@@ -3329,223 +4052,254 @@ if (reasonSection) {
       // 1. VOCABULARY
       if (analysis.vocabulary.level || analysis.vocabulary.strong.length > 0) {
         addSubSection(`1. ${t.vocabAnalysis}`);
-        
+
         if (analysis.vocabulary.level) {
           addText(`${t.level}: ${analysis.vocabulary.level}`, 9, true);
           yPos += 2;
         }
-        
+
         if (analysis.vocabulary.strong.length > 0) {
-          addText(`${t.strongWords}: ${analysis.vocabulary.strong.join(", ")}`, 9);
+          addText(
+            `${t.strongWords}: ${analysis.vocabulary.strong.join(", ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         if (analysis.vocabulary.repetitive.length > 0) {
-          addText(`${t.repetitive}: ${analysis.vocabulary.repetitive.join(", ")}`, 9);
+          addText(
+            `${t.repetitive}: ${analysis.vocabulary.repetitive.join(", ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         if (analysis.vocabulary.synonyms.length > 0) {
-          addText(`${t.synonyms}: ${analysis.vocabulary.synonyms.join("; ")}`, 9);
+          addText(
+            `${t.synonyms}: ${analysis.vocabulary.synonyms.join("; ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         if (analysis.vocabulary.collocations.length > 0) {
-          addText(`${t.collocations}: ${analysis.vocabulary.collocations.join(", ")}`, 9);
+          addText(
+            `${t.collocations}: ${analysis.vocabulary.collocations.join(", ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         yPos += 3;
       }
 
-// 2. GRAMMAR ERRORS - with proper formatting
-if (analysis.grammar.total) {
-  addSubSection(`2. ${t.grammarSection}`);
-  
-  // Show total count
-  addText(`${t.totalErrors}: ${analysis.grammar.total}`, 9, true);
-  yPos += 5;
-  
-  // ✅ Display individual errors with proper spacing
-  if (analysis.grammar.errors.length > 0) {
-    analysis.grammar.errors.slice(0, 5).forEach((error, idx) => {
-      // Clean and format each error
-      const cleanError = error
-        .replace(/\s+/g, ' ') // Multiple spaces → single
-        .trim();
-      
-      // Add numbered bullet point
-      checkPageBreak(15);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.text(`#${idx + 1}:`, margin + 3, yPos);
-      
-      // Add error text with word wrap
-      doc.setFont("helvetica", "normal");
-      const errorLines = doc.splitTextToSize(cleanError, maxWidth - 12);
-      errorLines.forEach((line, lineIdx) => {
-        if (lineIdx === 0) {
-          doc.text(line, margin + 12, yPos);
+      // 2. GRAMMAR ERRORS - with proper formatting
+      if (analysis.grammar.total) {
+        addSubSection(`2. ${t.grammarSection}`);
+
+        // Show total count
+        addText(`${t.totalErrors}: ${analysis.grammar.total}`, 9, true);
+        yPos += 5;
+
+        // ✅ Display individual errors with proper spacing
+        if (analysis.grammar.errors.length > 0) {
+          analysis.grammar.errors.slice(0, 5).forEach((error, idx) => {
+            // Clean and format each error
+            const cleanError = error
+              .replace(/\s+/g, " ") // Multiple spaces → single
+              .trim();
+
+            // Add numbered bullet point
+            checkPageBreak(15);
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text(`#${idx + 1}:`, margin + 3, yPos);
+
+            // Add error text with word wrap
+            doc.setFont("helvetica", "normal");
+            const errorLines = doc.splitTextToSize(cleanError, maxWidth - 12);
+            errorLines.forEach((line, lineIdx) => {
+              if (lineIdx === 0) {
+                doc.text(line, margin + 12, yPos);
+              } else {
+                yPos += 4.5;
+                checkPageBreak();
+                doc.text(line, margin + 12, yPos);
+              }
+            });
+
+            yPos += 6; // Space after each error
+          });
         } else {
-          yPos += 4.5;
-          checkPageBreak();
-          doc.text(line, margin + 12, yPos);
+          addText("Xatolar aniqlanmadi", 9);
         }
-      });
-      
-      yPos += 6; // Space after each error
-    });
-  } else {
-    addText('Xatolar aniqlanmadi', 9);
-  }
-  
-  yPos += 3;
-}
 
-console.log('✅ PDF Grammar Fix loaded!');
+        yPos += 3;
+      }
 
+      console.log("✅ PDF Grammar Fix loaded!");
 
       // 3. GRAMMAR PATTERNS (eski 5-section)
-      if (analysis.patterns.recommended.length > 0 || analysis.patterns.commonErrors.length > 0) {
+      if (
+        analysis.patterns.recommended.length > 0 ||
+        analysis.patterns.commonErrors.length > 0
+      ) {
         addSubSection(`3. ${t.grammarPatterns}`);
-        
+
         if (analysis.patterns.recommended.length > 0) {
-          addText(`${t.recommended}: ${analysis.patterns.recommended.join("; ")}`, 9);
+          addText(
+            `${t.recommended}: ${analysis.patterns.recommended.join("; ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         if (analysis.patterns.commonErrors.length > 0) {
-          addText(`${t.commonErrors}: ${analysis.patterns.commonErrors.join("; ")}`, 9);
+          addText(
+            `${t.commonErrors}: ${analysis.patterns.commonErrors.join("; ")}`,
+            9
+          );
           yPos += 3;
         }
-        
+
         yPos += 3;
       }
 
- // 4. BAND REASONS (eski 6-section) - IMPROVED DISPLAY ✅
-if (analysis.bandReasons.length > 0) {
-  addSubSection(`4. ${t.bandReasons}`);
-  
-  // Display all reasons with proper formatting
-  analysis.bandReasons.forEach((reason, idx) => {
-    checkPageBreak(15);
-    
-    // Add numbered bullet
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${idx + 1}.`, margin + 3, yPos);
-    
-    // Add reason text with word wrap
-    doc.setFont("helvetica", "normal");
-    const reasonLines = doc.splitTextToSize(reason, maxWidth - 12);
-    
-    reasonLines.forEach((line, lineIdx) => {
-      if (lineIdx === 0) {
-        doc.text(line, margin + 12, yPos);
+      // 4. BAND REASONS (eski 6-section) - IMPROVED DISPLAY ✅
+      if (analysis.bandReasons.length > 0) {
+        addSubSection(`4. ${t.bandReasons}`);
+
+        // Display all reasons with proper formatting
+        analysis.bandReasons.forEach((reason, idx) => {
+          checkPageBreak(15);
+
+          // Add numbered bullet
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.text(`${idx + 1}.`, margin + 3, yPos);
+
+          // Add reason text with word wrap
+          doc.setFont("helvetica", "normal");
+          const reasonLines = doc.splitTextToSize(reason, maxWidth - 12);
+
+          reasonLines.forEach((line, lineIdx) => {
+            if (lineIdx === 0) {
+              doc.text(line, margin + 12, yPos);
+            } else {
+              yPos += 4.5;
+              checkPageBreak();
+              doc.text(line, margin + 12, yPos);
+            }
+          });
+
+          yPos += 7; // More space between reasons
+        });
+
+        yPos += 5;
+        console.log(
+          "✅ Displayed",
+          analysis.bandReasons.length,
+          "band reasons in PDF"
+        );
       } else {
-        yPos += 4.5;
-        checkPageBreak();
-        doc.text(line, margin + 12, yPos);
-      }
-    });
-    
-    yPos += 7; // More space between reasons
-  });
-  
-  yPos += 5;
-  console.log('✅ Displayed', analysis.bandReasons.length, 'band reasons in PDF');
-} else {
-  // Fallback: agar bandReasons bo'sh bo'lsa, to'g'ridan-to'g'ri textdan qidirish
-  const reasonAlt = fullText.match(/(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i);
-  
-  if (reasonAlt) {
-    addSubSection(`4. ${t.bandReasons}`);
-    const reasonText = reasonAlt[1].trim();
-    
-    console.log('⚠️ Using fallback - full reason text length:', reasonText.length);
-    
-    // Split into manageable chunks
-    const chunks = [];
-    let currentChunk = '';
-    const lines = reasonText.split(/\n+/);
-    
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed.length > 0) {
-        // Start new chunk if current is too long
-        if (currentChunk.length > 200) {
-          chunks.push(currentChunk);
-          currentChunk = trimmed;
+        // Fallback: agar bandReasons bo'sh bo'lsa, to'g'ridan-to'g'ri textdan qidirish
+        const reasonAlt = fullText.match(
+          /(?:NEGA BU BAND|WHY THIS BAND|POCHEMU ETOT BAND)[:\s?]*([\s\S]*?)(?:KEYINGI BANDGA|TO REACH|DLYA SLEDUYUSHCHEGO|MODEL|$)/i
+        );
+
+        if (reasonAlt) {
+          addSubSection(`4. ${t.bandReasons}`);
+          const reasonText = reasonAlt[1].trim();
+
+          console.log(
+            "⚠️ Using fallback - full reason text length:",
+            reasonText.length
+          );
+
+          // Split into manageable chunks
+          const chunks = [];
+          let currentChunk = "";
+          const lines = reasonText.split(/\n+/);
+
+          lines.forEach((line) => {
+            const trimmed = line.trim();
+            if (trimmed.length > 0) {
+              // Start new chunk if current is too long
+              if (currentChunk.length > 200) {
+                chunks.push(currentChunk);
+                currentChunk = trimmed;
+              } else {
+                currentChunk += (currentChunk ? " " : "") + trimmed;
+              }
+            }
+          });
+
+          if (currentChunk) {
+            chunks.push(currentChunk);
+          }
+
+          // Display chunks
+          chunks.slice(0, 8).forEach((chunk, idx) => {
+            if (chunk.length > 15) {
+              checkPageBreak(15);
+
+              doc.setFontSize(9);
+              doc.setFont("helvetica", "bold");
+              doc.text(`${idx + 1}.`, margin + 3, yPos);
+
+              doc.setFont("helvetica", "normal");
+              const lines = doc.splitTextToSize(chunk, maxWidth - 12);
+
+              lines.forEach((line, lineIdx) => {
+                if (lineIdx === 0) {
+                  doc.text(line, margin + 12, yPos);
+                } else {
+                  yPos += 4.5;
+                  checkPageBreak();
+                  doc.text(line, margin + 12, yPos);
+                }
+              });
+
+              yPos += 7;
+            }
+          });
+
+          yPos += 5;
+          console.log("✅ Displayed", chunks.length, "reasons from fallback");
         } else {
-          currentChunk += (currentChunk ? ' ' : '') + trimmed;
+          console.warn("⚠️ No band reasons found in text");
         }
       }
-    });
-    
-    if (currentChunk) {
-      chunks.push(currentChunk);
-    }
-    
-    // Display chunks
-    chunks.slice(0, 8).forEach((chunk, idx) => {
-      if (chunk.length > 15) {
-        checkPageBreak(15);
-        
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "bold");
-        doc.text(`${idx + 1}.`, margin + 3, yPos);
-        
-        doc.setFont("helvetica", "normal");
-        const lines = doc.splitTextToSize(chunk, maxWidth - 12);
-        
-        lines.forEach((line, lineIdx) => {
-          if (lineIdx === 0) {
-            doc.text(line, margin + 12, yPos);
-          } else {
-            yPos += 4.5;
-            checkPageBreak();
-            doc.text(line, margin + 12, yPos);
-          }
-        });
-        
-        yPos += 7;
-      }
-    });
-    
-    yPos += 5;
-    console.log('✅ Displayed', chunks.length, 'reasons from fallback');
-  } else {
-    console.warn('⚠️ No band reasons found in text');
-  }
-}
 
       // 5. NEXT BAND (eski 7-section)
-      if (analysis.nextBand.fix.length > 0 || 
-          analysis.nextBand.add.length > 0 || 
-          analysis.nextBand.improve.length > 0) {
+      if (
+        analysis.nextBand.fix.length > 0 ||
+        analysis.nextBand.add.length > 0 ||
+        analysis.nextBand.improve.length > 0
+      ) {
         addSubSection(`5. ${t.nextBand}`);
-        
+
         if (analysis.nextBand.fix.length > 0) {
           addText(`${t.fix}:`, 9, true);
           yPos += 2;
-          analysis.nextBand.fix.forEach(item => addBulletPoint(item, 8));
+          analysis.nextBand.fix.forEach((item) => addBulletPoint(item, 8));
           yPos += 2;
         }
-        
+
         if (analysis.nextBand.add.length > 0) {
           addText(`${t.add}:`, 9, true);
           yPos += 2;
-          analysis.nextBand.add.forEach(item => addBulletPoint(item, 8));
+          analysis.nextBand.add.forEach((item) => addBulletPoint(item, 8));
           yPos += 2;
         }
-        
+
         if (analysis.nextBand.improve.length > 0) {
           addText(`${t.improve}:`, 9, true);
           yPos += 2;
-          analysis.nextBand.improve.forEach(item => addBulletPoint(item, 8));
+          analysis.nextBand.improve.forEach((item) => addBulletPoint(item, 8));
           yPos += 2;
         }
-        
+
         yPos += 5;
       }
     }
@@ -3553,32 +4307,36 @@ if (analysis.bandReasons.length > 0) {
     // MODEL ANSWER
     if (modelAnswerElement && modelAnswerElement.textContent) {
       addSection(t.modelAnswer, [254, 243, 199], [245, 158, 11]);
-      const modelText = cleanText(modelAnswerElement.innerText || modelAnswerElement.textContent);
-      const paragraphs = modelText.split(/\n+/).filter(p => p.trim().length > 10);
-      paragraphs.forEach(para => {
+      const modelText = cleanText(
+        modelAnswerElement.innerText || modelAnswerElement.textContent
+      );
+      const paragraphs = modelText
+        .split(/\n+/)
+        .filter((p) => p.trim().length > 10);
+      paragraphs.forEach((para) => {
         addText(para.trim(), 9, false);
         yPos += 3;
       });
     }
 
-// YOUR ORIGINAL TEXT - Paragraflar bilan ✅
-if (yourText && yourText.trim()) {
-  addSection(t.yourOriginal, [254, 243, 199], [245, 158, 11]);
-  
-  // ✅ cleanText ishlatmaslik - faqat HTML taglarni olib tashlash
-  const cleanOriginal = yourText.trim().replace(/<[^>]*>/g, '');
-  
-  // ✅ Ikki yoki undan ortiq newline = paragraf ajratish
-  const paragraphs = cleanOriginal.split(/\n\n+/);
-  
-  paragraphs.forEach(para => {
-    const trimmed = para.trim();
-    if (trimmed.length > 10) {
-      addText(trimmed, 9, false);
-      yPos += 4; // Paragraflar orasida bo'sh joy
+    // YOUR ORIGINAL TEXT - Paragraflar bilan ✅
+    if (yourText && yourText.trim()) {
+      addSection(t.yourOriginal, [254, 243, 199], [245, 158, 11]);
+
+      // ✅ cleanText ishlatmaslik - faqat HTML taglarni olib tashlash
+      const cleanOriginal = yourText.trim().replace(/<[^>]*>/g, "");
+
+      // ✅ Ikki yoki undan ortiq newline = paragraf ajratish
+      const paragraphs = cleanOriginal.split(/\n\n+/);
+
+      paragraphs.forEach((para) => {
+        const trimmed = para.trim();
+        if (trimmed.length > 10) {
+          addText(trimmed, 9, false);
+          yPos += 4; // Paragraflar orasida bo'sh joy
+        }
+      });
     }
-  });
-}
 
     // FOOTER
     const totalPages = doc.internal.getNumberOfPages();
@@ -3588,26 +4346,36 @@ if (yourText && yourText.trim()) {
       doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
-      doc.text(`${t.generated} - ${t.page} ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+      doc.text(
+        `${t.generated} - ${t.page} ${i} of ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: "center" }
+      );
     }
 
     // SAVE
-    const filename = `ZiyoAI_${actualTaskType.replace(' ', '_')}_Report_${Date.now()}.pdf`;
+    const filename = `ZiyoAI_${actualTaskType.replace(
+      " ",
+      "_"
+    )}_Report_${Date.now()}.pdf`;
     doc.save(filename);
     console.log("✅ PDF exported:", filename);
 
     // Success feedback
-    const exportBtn = document.querySelector('button[onclick="exportWritingToPDF()"]');
+    const exportBtn = document.querySelector(
+      'button[onclick="exportWritingToPDF()"]'
+    );
     if (exportBtn) {
       const originalHTML = exportBtn.innerHTML;
-      exportBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded!';
+      exportBtn.innerHTML =
+        '<i class="bi bi-check-circle-fill"></i> Downloaded!';
       exportBtn.style.background = "#10b981";
       setTimeout(() => {
         exportBtn.innerHTML = originalHTML;
         exportBtn.style.background = "";
       }, 2500);
     }
-
   } catch (error) {
     console.error("❌ PDF export error:", error);
     alert("PDF export failed: " + error.message);
@@ -3713,16 +4481,16 @@ let isVocabProcessing = false;
 
 async function buildVocab() {
   // 🪙 COIN CHECK - MUST BLOCK EXECUTION
-  console.log('💰 Checking coins for Vocabulary...');
-  const canProceed = await checkAndSpendCoins('vocabulary');
-  
+  console.log("💰 Checking coins for Vocabulary...");
+  const canProceed = await checkAndSpendCoins("vocabulary");
+
   if (!canProceed) {
-    console.error('❌ BLOCKED: Insufficient coins for Vocabulary');
+    console.error("❌ BLOCKED: Insufficient coins for Vocabulary");
     return; // ✅ STOP HERE
   }
-  
-  console.log('✅ Coins deducted for Vocabulary, proceeding...');
-  
+
+  console.log("✅ Coins deducted for Vocabulary, proceeding...");
+
   // ✅ Prevent duplicate calls
   if (isVocabProcessing) {
     console.log("⚠️ Vocabulary already processing, skipping...");
@@ -3736,10 +4504,10 @@ async function buildVocab() {
   const languageDropdown = document.getElementById("vocab-language");
   const language = languageDropdown ? languageDropdown.value : "uz";
 
-    if (!input.trim()) {
+  if (!input.trim()) {
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(1, 'Refund: No word entered');
+      window.coinManager.addCoins(1, "Refund: No word entered");
     }
     alert("Please enter a word!");
     return;
@@ -3816,7 +4584,7 @@ async function buildVocab() {
     console.error("❌ Error:", error);
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(1, 'Refund: Vocabulary error');
+      window.coinManager.addCoins(1, "Refund: Vocabulary error");
     }
     showError(output, error.message);
   } finally {
@@ -4033,10 +4801,10 @@ console.log("   Type window.debugDashboard() to see current state");
 function roundToIELTSBand(score) {
   const num = parseFloat(score);
   if (isNaN(num)) return null;
-  
+
   // IELTS rounding: 0.25+ → round up, 0.24- → round down
   const rounded = Math.round(num * 2) / 2;
-  
+
   // Ensure within valid range (0-9)
   return Math.max(0, Math.min(9, rounded)).toFixed(1);
 }
@@ -4045,13 +4813,15 @@ function roundToIELTSBand(score) {
  * Calculate IELTS overall band from 4 criteria
  */
 function calculateIELTSOverall(task, coherence, lexical, grammar) {
-  const scores = [task, coherence, lexical, grammar].map(s => parseFloat(s)).filter(s => !isNaN(s));
-  
+  const scores = [task, coherence, lexical, grammar]
+    .map((s) => parseFloat(s))
+    .filter((s) => !isNaN(s));
+
   if (scores.length !== 4) {
-    console.warn('⚠️ Not all 4 scores available for overall calculation');
+    console.warn("⚠️ Not all 4 scores available for overall calculation");
     return null;
   }
-  
+
   const average = scores.reduce((sum, score) => sum + score, 0) / 4;
   return roundToIELTSBand(average);
 }
@@ -4067,7 +4837,7 @@ function extractScoresFromResponse(resultText) {
   };
 
   if (!resultText) {
-    console.warn('⚠️ No result text provided');
+    console.warn("⚠️ No result text provided");
     return scores;
   }
 
@@ -4075,86 +4845,115 @@ function extractScoresFromResponse(resultText) {
     // ============================================
     // 1️⃣ INDIVIDUAL SCORES (extract first)
     // ============================================
-    
+
     // Task Achievement / Response
-    const taskMatch = resultText.match(/(?:Task\s+Achievement|Task\s+Response)[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    const taskMatch = resultText.match(
+      /(?:Task\s+Achievement|Task\s+Response)[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+    );
     if (taskMatch) {
       scores.task = roundToIELTSBand(taskMatch[1]);
-      console.log('✅ Task score:', taskMatch[1], '→', scores.task);
+      console.log("✅ Task score:", taskMatch[1], "→", scores.task);
     }
-    
+
     // Coherence & Cohesion
-    const cohMatch = resultText.match(/Coherence\s*(?:and|&)?\s*Cohesion[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    const cohMatch = resultText.match(
+      /Coherence\s*(?:and|&)?\s*Cohesion[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+    );
     if (cohMatch) {
       scores.coherence = roundToIELTSBand(cohMatch[1]);
-      console.log('✅ Coherence score:', cohMatch[1], '→', scores.coherence);
+      console.log("✅ Coherence score:", cohMatch[1], "→", scores.coherence);
     }
-    
+
     // Lexical Resource
-    const lexMatch = resultText.match(/Lexical\s+Resource[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    const lexMatch = resultText.match(
+      /Lexical\s+Resource[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+    );
     if (lexMatch) {
       scores.lexical = roundToIELTSBand(lexMatch[1]);
-      console.log('✅ Lexical score:', lexMatch[1], '→', scores.lexical);
+      console.log("✅ Lexical score:", lexMatch[1], "→", scores.lexical);
     }
-    
+
     // Grammar & Accuracy
-    const gramMatch = resultText.match(/Gramm(?:ar|atical)\s+(?:Range\s+(?:and|&)\s+)?Accuracy[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+    const gramMatch = resultText.match(
+      /Gramm(?:ar|atical)\s+(?:Range\s+(?:and|&)\s+)?Accuracy[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+    );
     if (gramMatch) {
       scores.grammar = roundToIELTSBand(gramMatch[1]);
-      console.log('✅ Grammar score:', gramMatch[1], '→', scores.grammar);
+      console.log("✅ Grammar score:", gramMatch[1], "→", scores.grammar);
     }
 
     // ============================================
     // 2️⃣ OVERALL SCORE - PRIORITIZE EXTRACTION
     // ============================================
-    
+
     // Pattern 1: "OVERALL BAND SCORE: 8.0/9"
-    let overallMatch = resultText.match(/OVERALL\s+BAND\s+SCORE[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9?/i);
-    
+    let overallMatch = resultText.match(
+      /OVERALL\s+BAND\s+SCORE[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9?/i
+    );
+
     // Pattern 2: "Band Score: 8.0/9.0"
     if (!overallMatch) {
-      overallMatch = resultText.match(/Band\s+Score[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+      overallMatch = resultText.match(
+        /Band\s+Score[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+      );
     }
-    
+
     // Pattern 3: "Overall: 8.0/9"
     if (!overallMatch) {
-      overallMatch = resultText.match(/Overall[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i);
+      overallMatch = resultText.match(
+        /Overall[:\s]*(\d+(?:\.\d+)?)\s*\/?\s*9/i
+      );
     }
-    
+
     // Pattern 4: Just the number after "OVERALL"
     if (!overallMatch) {
       overallMatch = resultText.match(/OVERALL.*?(\d+\.\d+)/i);
     }
-    
+
     if (overallMatch) {
       scores.overall = roundToIELTSBand(overallMatch[1]);
-      console.log('✅ Overall score extracted:', overallMatch[1], '→', scores.overall);
+      console.log(
+        "✅ Overall score extracted:",
+        overallMatch[1],
+        "→",
+        scores.overall
+      );
     }
-    
+
     // ============================================
     // 3️⃣ FALLBACK: CALCULATE OVERALL IF MISSING
     // ============================================
-    
-    if (!scores.overall && scores.task && scores.coherence && scores.lexical && scores.grammar) {
-      scores.overall = calculateIELTSOverall(scores.task, scores.coherence, scores.lexical, scores.grammar);
-      console.log('✅ Overall calculated from criteria:', scores.overall);
+
+    if (
+      !scores.overall &&
+      scores.task &&
+      scores.coherence &&
+      scores.lexical &&
+      scores.grammar
+    ) {
+      scores.overall = calculateIELTSOverall(
+        scores.task,
+        scores.coherence,
+        scores.lexical,
+        scores.grammar
+      );
+      console.log("✅ Overall calculated from criteria:", scores.overall);
     }
-    
+
     // ============================================
     // 4️⃣ FINAL VALIDATION
     // ============================================
-    
+
     if (!scores.overall) {
-      console.error('❌ Overall score still not found!');
-      console.log('First 500 chars of result:', resultText.substring(0, 500));
+      console.error("❌ Overall score still not found!");
+      console.log("First 500 chars of result:", resultText.substring(0, 500));
       scores.overall = "N/A";
     }
-
   } catch (error) {
-    console.error('❌ Score extraction error:', error);
+    console.error("❌ Score extraction error:", error);
   }
 
-  console.log('📊 Final IELTS scores (rounded):', scores);
+  console.log("📊 Final IELTS scores (rounded):", scores);
   return scores;
 }
 
@@ -4475,16 +5274,16 @@ let quizTimerInterval = null;
 // Generate Quiz Questions - SERVER ORQALI
 async function generateQuizQuestions() {
   // 🪙 COIN CHECK - MUST BLOCK EXECUTION
-  console.log('💰 Checking coins for Quiz...');
-  const canProceed = await checkAndSpendCoins('quiz');
-  
+  console.log("💰 Checking coins for Quiz...");
+  const canProceed = await checkAndSpendCoins("quiz");
+
   if (!canProceed) {
-    console.error('❌ BLOCKED: Insufficient coins for Quiz');
+    console.error("❌ BLOCKED: Insufficient coins for Quiz");
     return; // ✅ STOP HERE
   }
-  
-  console.log('✅ Coins deducted for Quiz, proceeding...');
-  
+
+  console.log("✅ Coins deducted for Quiz, proceeding...");
+
   const article = document.getElementById("quizArticleInput").value.trim();
   const questionCount = parseInt(
     document.getElementById("quizQuestionCount").value
@@ -4495,7 +5294,7 @@ async function generateQuizQuestions() {
   if (!article) {
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(2, 'Refund: No text provided');
+      window.coinManager.addCoins(2, "Refund: No text provided");
     }
     alert("Iltimos, matn kiriting!");
     return;
@@ -4572,7 +5371,7 @@ async function generateQuizQuestions() {
     console.error("❌ Xatolik:", error);
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(2, 'Refund: Quiz generation error');
+      window.coinManager.addCoins(2, "Refund: Quiz generation error");
     }
     alert("Xatolik yuz berdi: " + error.message);
   } finally {
@@ -4899,8 +5698,8 @@ function selectStudyMode(mode) {
 // STUDY ASSISTANT - TRACKING FAQAT SUCCESS DA ✅
 // ============================================
 async function submitStudyAssistant() {
-    // 🪙 COIN CHECK
-  if (!checkAndSpendCoins('study')) {
+  // 🪙 COIN CHECK
+  if (!checkAndSpendCoins("study")) {
     return;
   }
   const input = document.getElementById("studyInput").value;
@@ -4913,7 +5712,7 @@ async function submitStudyAssistant() {
   if (!selectedMode) {
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(2, 'Refund: No mode selected');
+      window.coinManager.addCoins(2, "Refund: No mode selected");
     }
     alert("Iltimos, avval rejim tanlang!");
     return;
@@ -4922,7 +5721,7 @@ async function submitStudyAssistant() {
   if (!input.trim()) {
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(2, 'Refund: No input provided');
+      window.coinManager.addCoins(2, "Refund: No input provided");
     }
     alert("Iltimos, matn kiriting!");
     return;
@@ -5000,7 +5799,7 @@ async function submitStudyAssistant() {
     console.error("❌ Study Assistant xatosi:", error);
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(2, 'Refund: Study assistant error');
+      window.coinManager.addCoins(2, "Refund: Study assistant error");
     }
     showError(output, error.message);
   }
@@ -5035,8 +5834,6 @@ function clearStudyAssistant() {
 // ============================================
 // SPEAKING FEEDBACK - TUZATILGAN ✅
 // ============================================
-
-
 
 // Exam type tanlash
 function selectExamType(type) {
@@ -5220,16 +6017,16 @@ function showFeedbackButton() {
 // ============================================
 async function submitRecordedAudio() {
   // 🪙 COIN CHECK - MUST BLOCK EXECUTION
-  console.log('💰 Checking coins for Speaking...');
-  const canProceed = await checkAndSpendCoins('speaking');
-  
+  console.log("💰 Checking coins for Speaking...");
+  const canProceed = await checkAndSpendCoins("speaking");
+
   if (!canProceed) {
-    console.error('❌ BLOCKED: Insufficient coins for Speaking');
+    console.error("❌ BLOCKED: Insufficient coins for Speaking");
     return; // ✅ STOP HERE
   }
-  
-  console.log('✅ Coins deducted for Speaking, proceeding...');
-  
+
+  console.log("✅ Coins deducted for Speaking, proceeding...");
+
   if (!recordedAudioBlob) {
     alert("❌ Audio yozilmagan!");
     return;
@@ -5348,7 +6145,7 @@ async function submitRecordedAudio() {
     console.error("❌ Xatolik:", error);
     // ⚠️ REFUND COINS
     if (window.coinManager) {
-      window.coinManager.addCoins(3, 'Refund: Speaking feedback error');
+      window.coinManager.addCoins(3, "Refund: Speaking feedback error");
     }
     showError(output, error.message);
   }
@@ -5397,121 +6194,125 @@ function showLoading(element) {
 // UPDATE PROFILE COIN DISPLAY - FIXED ✅
 // ============================================
 async function updateProfileCoinDisplay() {
-  console.log('🔄 Updating profile coin display...');
-  
+  console.log("🔄 Updating profile coin display...");
+
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
-    console.log('❌ No user logged in');
+    console.log("❌ No user logged in");
     return;
   }
-  
+
   // ✅ 1. UPDATE COINS
-  if (typeof getUserCoins === 'function') {
+  if (typeof getUserCoins === "function") {
     try {
       const coins = await getUserCoins();
-      const coinBalance = document.getElementById('profileCoinBalance');
+      const coinBalance = document.getElementById("profileCoinBalance");
       if (coinBalance) {
         coinBalance.textContent = coins;
-        
+
         // Animation
-        coinBalance.style.transform = 'scale(1.1)';
+        coinBalance.style.transform = "scale(1.1)";
         setTimeout(() => {
-          coinBalance.style.transform = 'scale(1)';
+          coinBalance.style.transform = "scale(1)";
         }, 200);
-        
-        console.log('💰 Profile coins updated:', coins);
+
+        console.log("💰 Profile coins updated:", coins);
       }
     } catch (error) {
-      console.error('❌ Error getting coins:', error);
+      console.error("❌ Error getting coins:", error);
     }
   } else {
-    console.warn('⚠️ getUserCoins function not available');
+    console.warn("⚠️ getUserCoins function not available");
   }
-  
+
   // ✅ 2. UPDATE SUBSCRIPTION FROM FIREBASE
   try {
     const db = window.firebaseDatabase;
     if (!db) {
-      console.error('❌ Database not initialized');
+      console.error("❌ Database not initialized");
       return;
     }
-    
+
     const subRef = window.firebaseRef(db, `users/${user.uid}/subscription`);
     const snapshot = await window.firebaseGet(subRef);
-    
-    let subType = 'free';
+
+    let subType = "free";
     let subExpiry = null;
-    
+
     if (snapshot.exists()) {
       const subData = snapshot.val();
-      subType = (subData.type || 'free').toLowerCase();
+      subType = (subData.type || "free").toLowerCase();
       subExpiry = subData.expiry;
     }
-    
-    console.log('✅ Subscription type:', subType);
-    
+
+    console.log("✅ Subscription type:", subType);
+
     // ✅ 3. UPDATE BADGE
-    const subBadge = document.getElementById('subscriptionBadgeProfile');
+    const subBadge = document.getElementById("subscriptionBadgeProfile");
     if (subBadge) {
       subBadge.textContent = subType.toUpperCase();
-      
-      if (subType === 'pro') {
-        subBadge.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
-        subBadge.style.color = 'white';
-      } else if (subType === 'standard') {
-        subBadge.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        subBadge.style.color = 'white';
+
+      if (subType === "pro") {
+        subBadge.style.background =
+          "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)";
+        subBadge.style.color = "white";
+      } else if (subType === "standard") {
+        subBadge.style.background =
+          "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+        subBadge.style.color = "white";
       } else {
-        subBadge.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
-        subBadge.style.color = 'white';
+        subBadge.style.background = "linear-gradient(135deg, #6b7280, #4b5563)";
+        subBadge.style.color = "white";
       }
     }
-    
+
     // ✅ 4. UPDATE EXPIRY
-    const subExpiryElement = document.getElementById('subscriptionExpiry');
+    const subExpiryElement = document.getElementById("subscriptionExpiry");
     if (subExpiryElement) {
-      if (subType === 'free' || !subExpiry) {
-        subExpiryElement.textContent = 'No expiry';
+      if (subType === "free" || !subExpiry) {
+        subExpiryElement.textContent = "No expiry";
       } else {
         const expiryDate = new Date(subExpiry);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        subExpiryElement.textContent = `Expires: ${expiryDate.toLocaleDateString('en-US', options)}`;
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        subExpiryElement.textContent = `Expires: ${expiryDate.toLocaleDateString(
+          "en-US",
+          options
+        )}`;
       }
     }
-    
+
     // ✅ 5. UPDATE DAILY LIMIT
-    const dailyLimit = document.getElementById('dailyCoinLimit');
+    const dailyLimit = document.getElementById("dailyCoinLimit");
     if (dailyLimit) {
-      if (subType === 'free') {
-        dailyLimit.textContent = '5 coins/day';
-      } else if (subType === 'standard') {
-        dailyLimit.textContent = '100 coins/day';
-      } else if (subType === 'pro') {
-        dailyLimit.textContent = 'Unlimited coins';
+      if (subType === "free") {
+        dailyLimit.textContent = "5 coins/day";
+      } else if (subType === "standard") {
+        dailyLimit.textContent = "20 coins/day";
+      } else if (subType === "pro") {
+        dailyLimit.textContent = "50 coins/day";
       }
     }
-    
   } catch (error) {
-    console.error('❌ Error updating subscription:', error);
+    console.error("❌ Error updating subscription:", error);
   }
-  
+
   // ✅ 6. Load transaction history
-  if (typeof loadTransactionHistory === 'function') {
+  if (typeof loadTransactionHistory === "function") {
     loadTransactionHistory();
   }
-  
-  console.log('✅ Profile display update complete');
+
+  console.log("✅ Profile display update complete");
 }
 
-console.log('✅ Fixed Profile Tool Switching loaded!');
+console.log("✅ Fixed Profile Tool Switching loaded!");
 
 // ============================================
 // LOAD TRANSACTION HISTORY - FIREBASE VERSION ✅
 // ============================================
 async function loadTransactionHistory() {
-  const transactionList = document.getElementById('transactionList');
+  const transactionList = document.getElementById("transactionList");
   if (!transactionList) return;
-  
+
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
     transactionList.innerHTML = `
@@ -5521,15 +6322,18 @@ async function loadTransactionHistory() {
     `;
     return;
   }
-  
+
   const db = window.firebaseDatabase;
   if (!db) return;
-  
+
   try {
     // Get transactions from Firebase
-    const transRef = window.firebaseRef(db, `users/${user.uid}/coin_transactions`);
+    const transRef = window.firebaseRef(
+      db,
+      `users/${user.uid}/coin_transactions`
+    );
     const snapshot = await window.firebaseGet(transRef);
-    
+
     if (!snapshot.exists()) {
       transactionList.innerHTML = `
         <div style="text-align: center; padding: 20px; color: #9ca3af;">
@@ -5538,33 +6342,34 @@ async function loadTransactionHistory() {
       `;
       return;
     }
-    
+
     const transactions = [];
     snapshot.forEach((childSnapshot) => {
       transactions.push({
         id: childSnapshot.key,
-        ...childSnapshot.val()
+        ...childSnapshot.val(),
       });
     });
-    
+
     // Sort by timestamp (newest first)
     transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
     // Show last 10 transactions
     const recentTransactions = transactions.slice(0, 10);
-    
-    transactionList.innerHTML = recentTransactions.map(tx => {
-      const icon = tx.type === 'earn' ? '💰' : '🪙';
-      const amountClass = tx.type === 'earn' ? 'earn' : 'spend';
-      const amountPrefix = tx.type === 'earn' ? '+' : '-';
-      const date = new Date(tx.timestamp).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      return `
+
+    transactionList.innerHTML = recentTransactions
+      .map((tx) => {
+        const icon = tx.type === "earn" ? "💰" : "🪙";
+        const amountClass = tx.type === "earn" ? "earn" : "spend";
+        const amountPrefix = tx.type === "earn" ? "+" : "-";
+        const date = new Date(tx.timestamp).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return `
         <div class="transaction-item">
           <span class="transaction-icon">${icon}</span>
           <div class="transaction-info">
@@ -5576,11 +6381,12 @@ async function loadTransactionHistory() {
           </div>
         </div>
       `;
-    }).join('');
-    
-    console.log('✅ Loaded', recentTransactions.length, 'transactions');
+      })
+      .join("");
+
+    console.log("✅ Loaded", recentTransactions.length, "transactions");
   } catch (error) {
-    console.error('❌ Error loading transactions:', error);
+    console.error("❌ Error loading transactions:", error);
     transactionList.innerHTML = `
       <div style="text-align: center; padding: 20px; color: #ef4444;">
         Error loading transactions
@@ -5771,37 +6577,37 @@ function showError(element, message) {
 // addTestCoins(50) - test coinlar qo'shish
 // resetCoins() - reset qilish
 
-window.enableCoinCheck = function() {
+window.enableCoinCheck = function () {
   isCoinCheckEnabled = true;
-  console.log('✅ Coin check enabled');
+  console.log("✅ Coin check enabled");
 };
 
-window.disableCoinCheck = function() {
+window.disableCoinCheck = function () {
   isCoinCheckEnabled = false;
-  console.log('⚠️ Coin check disabled (testing mode)');
+  console.log("⚠️ Coin check disabled (testing mode)");
 };
 
-window.addTestCoins = function(amount) {
+window.addTestCoins = function (amount) {
   if (window.coinManager) {
-    window.coinManager.addCoins(amount, 'Test coins');
+    window.coinManager.addCoins(amount, "Test coins");
     console.log(`✅ Added ${amount} test coins`);
   } else {
-    console.error('❌ Coin manager not initialized');
+    console.error("❌ Coin manager not initialized");
   }
 };
 
-window.resetCoins = function() {
+window.resetCoins = function () {
   if (window.coinManager) {
     window.coinManager.reset();
-    console.log('🔄 Coins reset to default');
+    console.log("🔄 Coins reset to default");
   }
 };
 
-window.showCoinInfo = function() {
+window.showCoinInfo = function () {
   if (window.coinManager) {
-    console.log('🪙 Current Coins:', window.coinManager.getCoins());
-    console.log('📊 Subscription:', window.coinManager.data.subscription);
-    console.log('💰 Total Earned:', window.coinManager.data.totalEarned);
-    console.log('💸 Total Spent:', window.coinManager.data.totalSpent);
+    console.log("🪙 Current Coins:", window.coinManager.getCoins());
+    console.log("📊 Subscription:", window.coinManager.data.subscription);
+    console.log("💰 Total Earned:", window.coinManager.data.totalEarned);
+    console.log("💸 Total Spent:", window.coinManager.data.totalSpent);
   }
 };
