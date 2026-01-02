@@ -142,6 +142,54 @@
       </div>
     </section>
     <!-- End of Team Section -->
+<!-- ============================================ -->
+<!-- TESTIMONIALS SECTION WITH CAROUSEL -->
+<!-- ============================================ -->
+<section class="testimonials-section">
+  <div class="testimonials-container">
+    
+    <!-- Section Header -->
+    <div class="section-header">
+      <h2>
+        What Our <span class="highlight">Students Say</span>
+      </h2>
+      <p>
+        Don't just take our word for it — hear from students who have transformed their learning with ZiyoAI
+      </p>
+    </div>
+
+    <!-- Carousel Container -->
+    <div class="carousel-container">
+      <!-- Testimonials Carousel -->
+      <div class="testimonials-carousel" id="testimonialsCarousel">
+        <!-- Testimonials will be loaded here by JavaScript -->
+        <div class="testimonials-loading">
+          <div class="spinner"></div>
+          <p style="color: #6b7280; font-size: 16px; margin-top: 20px;">Loading testimonials...</p>
+        </div>
+      </div>
+
+      <!-- Navigation Arrows -->
+      <button class="carousel-arrow carousel-arrow-prev" onclick="moveCarousel(-1)">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="carousel-arrow carousel-arrow-next" onclick="moveCarousel(1)">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <!-- Dots Indicator -->
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <!-- Call to Action Button -->
+    <div style="text-align: center; margin-top: 50px;">
+      <button class="main-btn secondary-btn" onclick="window.location.href='./Templates/signup.html'">
+        <i class="bi bi-star-fill"></i> Share Your Experience
+      </button>
+    </div>
+
+  </div>
+</section>
     <!-- Premium Subscription  -->
     <section class="premium-section">
       <div class="container">
@@ -209,29 +257,257 @@
       integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y"
       crossorigin="anonymous"
     ></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+<!-- ============================================ -->
+<!-- FIREBASE CONFIG & CAROUSEL LOGIC -->
+<!-- ============================================ -->
+<script type="module">
+  // Firebase Config
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
     authDomain: "zioai-96e9f.firebaseapp.com",
+    databaseURL: "https://zioai-96e9f-default-rtdb.firebaseio.com",
     projectId: "zioai-96e9f",
     storageBucket: "zioai-96e9f.firebasestorage.app",
     messagingSenderId: "766076125152",
-    appId: "1:766076125152:web:9cd609efb7895386547585",
-    measurementId: "G-2EDVXFZFHQ"
+    appId: "1:766076125152:web:9cd609efb7895386547585"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  const database = getDatabase(app);
+
+  // Global variables
+  let currentSlide = 0;
+  let totalSlides = 0;
+  let autoPlayInterval = null;
+  let testimonials = [];
+
+  // Load testimonials
+  async function loadTestimonials() {
+    try {
+      console.log('📥 Loading testimonials...');
+      
+      const testimonialsRef = ref(database, 'public_testimonials');
+      const snapshot = await get(testimonialsRef);
+
+      const carousel = document.getElementById('testimonialsCarousel');
+      if (!carousel) return;
+
+      if (!snapshot.exists()) {
+        console.log('ℹ️ No testimonials found in public_testimonials');
+        carousel.innerHTML = `
+          <div style="width: 100%; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
+            <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
+            <p style="color: #9ca3af; font-size: 16px;">Be the first to share your experience!</p>
+          </div>
+        `;
+        return;
+      }
+
+      testimonials = [];
+      snapshot.forEach(child => {
+        const data = child.val();
+        if (data.rating >= 4) {
+          testimonials.push({ id: child.key, ...data });
+        }
+      });
+
+      console.log(`✅ Found ${testimonials.length} testimonials`);
+
+      if (testimonials.length === 0) {
+        carousel.innerHTML = `
+          <div style="width: 100%; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
+            <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
+            <p style="color: #9ca3af; font-size: 16px;">Be the first to share your experience!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Sort testimonials
+      testimonials.sort((a, b) => {
+        if (b.rating !== a.rating) return b.rating - a.rating;
+        if (b.featured !== a.featured) return b.featured ? 1 : -1;
+        return new Date(b.submittedAt) - new Date(a.submittedAt);
+      });
+
+      // Display all testimonials
+      carousel.innerHTML = testimonials.map(t => `
+        <div class="testimonial-card">
+          ${t.featured ? `
+            <div style="
+              position: absolute;
+              top: 15px;
+              right: 15px;
+              background: linear-gradient(135deg, #fbbf24, #f59e0b);
+              color: white;
+              padding: 6px 14px;
+              border-radius: 20px;
+              font-size: 11px;
+              font-weight: 700;
+              z-index: 2;
+              box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+            ">
+              <i class="bi bi-star-fill"></i> FEATURED
+            </div>
+          ` : ''}
+          
+          <div class="rating">
+            ${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}
+          </div>
+          
+          ${t.title ? `
+            <h4 class="testimonial-title">"${t.title}"</h4>
+          ` : ''}
+          
+          <p class="testimonial-message">${t.message}</p>
+          
+          <div class="testimonial-author">
+            <span class="author-avatar">${t.avatar || '👤'}</span>
+            <div class="author-info">
+              <div class="author-name">
+                ${t.displayType === 'anonymous' ? 'Anonymous User' : t.username}
+              </div>
+              <div class="author-date">
+                ${new Date(t.submittedAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      totalSlides = testimonials.length;
+      createDots();
+      startAutoPlay();
+
+      console.log('✅ Carousel initialized with', totalSlides, 'slides');
+
+    } catch (error) {
+      console.error('❌ Error loading testimonials:', error);
+      const carousel = document.getElementById('testimonialsCarousel');
+      if (carousel) {
+        carousel.innerHTML = `
+          <div style="width: 100%; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">⚠️</div>
+            <h3 style="color: #ef4444; font-size: 24px; margin-bottom: 10px;">Failed to load testimonials</h3>
+            <p style="color: #9ca3af; font-size: 14px;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Create dots indicator
+  function createDots() {
+    const dotsContainer = document.getElementById('carouselDots');
+    if (!dotsContainer || totalSlides === 0) return;
+
+    dotsContainer.innerHTML = '';
+    
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+      dot.onclick = () => goToSlide(i);
+      dotsContainer.appendChild(dot);
+    }
+  }
+
+  // Move carousel
+  window.moveCarousel = function(direction) {
+    const carousel = document.getElementById('testimonialsCarousel');
+    if (!carousel) return;
+
+    const cardWidth = 380 + 30; // card width + gap
+    currentSlide += direction;
+
+    // Loop around
+    if (currentSlide < 0) {
+      currentSlide = totalSlides - 1;
+    } else if (currentSlide >= totalSlides) {
+      currentSlide = 0;
+    }
+
+    carousel.scrollTo({
+      left: currentSlide * cardWidth,
+      behavior: 'smooth'
+    });
+
+    updateActiveDot();
+    resetAutoPlay();
+  }
+
+  // Go to specific slide
+  function goToSlide(index) {
+    const carousel = document.getElementById('testimonialsCarousel');
+    if (!carousel) return;
+
+    currentSlide = index;
+    const cardWidth = 380 + 30;
+
+    carousel.scrollTo({
+      left: currentSlide * cardWidth,
+      behavior: 'smooth'
+    });
+
+    updateActiveDot();
+    resetAutoPlay();
+  }
+
+  // Update active dot
+  function updateActiveDot() {
+    const dots = document.querySelectorAll('.carousel-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentSlide);
+    });
+  }
+
+  // Auto play
+  function startAutoPlay() {
+    // Auto-scroll every 5 seconds
+    autoPlayInterval = setInterval(() => {
+      window.moveCarousel(1);
+    }, 5000);
+  }
+
+  function resetAutoPlay() {
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+    }
+    startAutoPlay();
+  }
+
+  // Pause on hover
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('testimonialsCarousel');
+    if (carousel) {
+      carousel.addEventListener('mouseenter', () => {
+        if (autoPlayInterval) {
+          clearInterval(autoPlayInterval);
+        }
+      });
+
+      carousel.addEventListener('mouseleave', () => {
+        startAutoPlay();
+      });
+    }
+  });
+
+  // Load on page ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadTestimonials);
+  } else {
+    loadTestimonials();
+  }
 </script>
 <!-- <script src="server.js"></script> -->
   </body>

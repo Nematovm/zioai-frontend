@@ -1,653 +1,847 @@
-// PROFILE TOOL JAVASCRIPT - FIREBASE INTEGRATED ✅
+// ============================================
+// 📱 PROFILE MANAGEMENT SYSTEM - FULLY FIXED
+// ============================================
 
-// Current user data (Firebase dan olinadi)
-let currentUser = null;
-let selectedEmoji = '👤';
+console.log('🔧 Loading profile.js...');
 
-// Emoji list
-const emojis = [
-  '👤', '😀', '😃', '😄', '😁', '😊', '😎', '🤓', '🧐', '🤩',
-  '🥳', '😇', '🤠', '🥰', '😍', '🤗', '🤔', '🤨', '😏', '😌',
-  '👨', '👩', '👦', '👧', '🧑', '👶', '🧓', '🎭', '🎨', '🎪', '🎬', '🎤',
-  '🎧', '🎮', '🏀', '⚽', '🏈', '⚾', '🎾', '🏐', '🏆', '🥇'
-];
+// ============================================
+// GLOBAL STATE
+// ============================================
+let currentSelectedEmoji = null;
+let currentUserData = null;
 
-// Page yuklanganida
-document.addEventListener('DOMContentLoaded', function() {
-  generateEmojiGrid();
-  loadDarkMode();
-});
-
-function showProfileTool() {
-  const auth = window.firebaseAuth;
-  if (!auth) {
-    console.error('❌ Firebase auth not initialized');
+// ============================================
+// FIXED: INITIALIZE PROFILE
+// ============================================
+async function initializeProfile() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    console.error('❌ No user logged in');
     return;
   }
-  
-  currentUser = auth.currentUser;
-  
-  if (currentUser) {
-    loadProfileData();
-  } else {
-    console.error('❌ No user logged in');
+
+  const db = window.firebaseDatabase;
+  if (!db) {
+    console.error('❌ Database not available');
+    return;
   }
-  
-  // ✅ FIXED - coinSystemReady dan foydalanmaslik
-  if (window.coinManager && typeof updateProfileCoinDisplay === 'function') {
-    updateProfileCoinDisplay();
-  } else {
-    console.warn('⚠️ Coin system not ready, waiting...');
-    setTimeout(() => {
-      if (window.coinManager && typeof updateProfileCoinDisplay === 'function') {
-        updateProfileCoinDisplay();
+
+  try {
+    console.log('🔄 Loading profile for:', user.uid);
+
+    // ✅ LOAD FROM DATABASE (SINGLE SOURCE OF TRUTH)
+    const userRef = window.firebaseRef(db, `users/${user.uid}`);
+    const snapshot = await window.firebaseGet(userRef);
+
+    if (snapshot.exists()) {
+      currentUserData = snapshot.val();
+      
+      // ✅ SYNC AUTH displayName WITH DATABASE
+      const dbAvatar = currentUserData.avatar || '👤';
+      const dbUsername = currentUserData.displayName || user.email.split('@')[0];
+      const expectedDisplayName = `${dbAvatar} ${dbUsername}`;
+      
+      // Update auth if different
+      if (user.displayName !== expectedDisplayName) {
+        await window.updateProfile(user, {
+          displayName: expectedDisplayName
+        });
+        console.log('✅ Auth synced with database');
       }
-    }, 1000);
-  }
-}
-
-function loadProfileData() {
-  if (!currentUser) return;
-  
-  let userAvatar = '👤';
-  let username = '';
-  
-  if (currentUser.displayName) {
-    const displayName = currentUser.displayName;
-    
-    // Emoji ni topish
-    const emojiRegex = /[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-    const emojiMatch = displayName.match(emojiRegex);
-    
-    if (emojiMatch) {
-      userAvatar = emojiMatch[0];
+      
+      updateProfileUI(user, currentUserData);
+    } else {
+      await initializeNewUser(user);
     }
-    
-    // Username ni olish - BARCHA emoji va probellarni olib tashlash
-    username = displayName
-      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-      .replace(/[\u{2600}-\u{26FF}]/gu, '')
-      .replace(/[\u{2700}-\u{27BF}]/gu, '')
-      .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
-      .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
-      .replace(/\s+/g, '')  // ⬅️ MUHIM: barcha probellarni olib tashlash
-      .trim();
+
+    await loadTransactions(user.uid);
+
+    // Check dark mode
+    const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+    if (darkModeEnabled) {
+      document.body.classList.add('dark-mode');
+      const toggle = document.getElementById('darkModeToggle');
+      if (toggle) toggle.checked = true;
+    }
+
+  } catch (error) {
+    console.error('❌ Error initializing profile:', error);
+    showNotification('Failed to load profile data', 'error');
   }
-  
-  if (!username || username.length === 0) {
-    username = currentUser.email.split('@')[0];
-  }
-  
-  console.log('✅ Extracted Avatar:', userAvatar);
-  console.log('✅ Extracted Username:', username);
-  
-  selectedEmoji = userAvatar;
-  document.getElementById('profileAvatar').textContent = userAvatar;
-  document.getElementById('profileName').textContent = username;
-  document.getElementById('profileEmail').textContent = currentUser.email;
-  
-  // Member since
-  const creationTime = currentUser.metadata.creationTime;
-  const memberDate = new Date(creationTime).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  document.getElementById('profileDate').innerHTML = `<i class="bi bi-calendar3"></i> Member since: ${memberDate}`;
-  
-  document.getElementById('usernameInput').value = username;
-  document.getElementById('emailInput').value = currentUser.email;
-  
-  console.log('✅ Profile data loaded');
 }
 
-// Username yangilash - FIREBASE BILAN ✅
+// ============================================
+// 2️⃣ INITIALIZE NEW USER
+// ============================================
+async function initializeNewUser(user) {
+  const db = window.firebaseDatabase;
+  const userRef = window.firebaseRef(db, `users/${user.uid}`);
+
+  const userData = {
+    email: user.email,
+    displayName: user.displayName || user.email.split('@')[0],
+    avatar: '👤',
+    coins: 0,
+    createdAt: new Date().toISOString(),
+    subscription: {
+      type: 'free',
+      expiry: null
+    }
+  };
+
+  await window.firebaseSet(userRef, userData);
+  currentUserData = userData;
+  console.log('✅ New user initialized');
+}
+
+// ============================================
+// FIXED: UPDATE PROFILE UI
+// ============================================
+function updateProfileUI(user, userData) {
+  // ✅ USE DATABASE DATA (NOT AUTH)
+  const avatar = userData.avatar || '👤';
+  const username = userData.displayName || user.email.split('@')[0];
+
+  // Avatar
+  const profileAvatar = document.getElementById('profileAvatar');
+  if (profileAvatar) {
+    profileAvatar.textContent = avatar;
+  }
+
+  // Name
+  const profileName = document.getElementById('profileName');
+  if (profileName) {
+    profileName.textContent = username;
+  }
+
+  // Email
+  const profileEmail = document.getElementById('profileEmail');
+  if (profileEmail) {
+    profileEmail.textContent = user.email;
+  }
+
+  // Member since
+  const profileDate = document.getElementById('profileDate');
+  if (profileDate && userData.createdAt) {
+    const date = new Date(userData.createdAt);
+    profileDate.innerHTML = `<i class="bi bi-calendar3"></i> Member since: ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+  }
+
+  // Coins
+  const profileCoinBalance = document.getElementById('profileCoinBalance');
+  if (profileCoinBalance) {
+    profileCoinBalance.textContent = userData.coins || 0;
+  }
+
+  // Username input
+  const usernameInput = document.getElementById('usernameInput');
+  if (usernameInput) {
+    usernameInput.value = username;
+  }
+
+  // Email input
+  const emailInput = document.getElementById('emailInput');
+  if (emailInput) {
+    emailInput.value = user.email;
+  }
+
+  // Subscription
+  updateSubscriptionInfo(userData.subscription);
+
+  console.log('✅ Profile UI updated:', { avatar, username });
+}
+
+// ============================================
+// 4️⃣ UPDATE SUBSCRIPTION INFO
+// ============================================
+function updateSubscriptionInfo(subscription) {
+  const badge = document.getElementById('subscriptionBadgeProfile');
+  const expiry = document.getElementById('subscriptionExpiry');
+  const dailyLimit = document.getElementById('dailyCoinLimit');
+
+  if (!subscription || subscription.type === 'free') {
+    if (badge) {
+      badge.textContent = 'FREE';
+      badge.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+    }
+    if (expiry) expiry.textContent = 'No expiry';
+    if (dailyLimit) dailyLimit.textContent = '5 coins/day';
+  } else if (subscription.type === 'pro') {
+    if (badge) {
+      badge.textContent = 'PRO';
+      badge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+    }
+    if (expiry && subscription.expiry) {
+      const expiryDate = new Date(subscription.expiry);
+      expiry.textContent = `Expires: ${expiryDate.toLocaleDateString()}`;
+    }
+    if (dailyLimit) dailyLimit.textContent = 'Unlimited coins';
+  } else if (subscription.type === 'standard') {
+    if (badge) {
+      badge.textContent = 'STANDARD';
+      badge.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+    }
+    if (expiry && subscription.expiry) {
+      const expiryDate = new Date(subscription.expiry);
+      expiry.textContent = `Expires: ${expiryDate.toLocaleDateString()}`;
+    }
+    if (dailyLimit) dailyLimit.textContent = '20 coins/day';
+  }
+}
+
+// ============================================
+// 5️⃣ LOAD TRANSACTIONS
+// ============================================
+async function loadTransactions(uid) {
+  const db = window.firebaseDatabase;
+  if (!db) return;
+
+  try {
+    const transactionsRef = window.firebaseRef(db, `users/${uid}/transactions`);
+    const snapshot = await window.firebaseGet(transactionsRef);
+
+    const transactionList = document.getElementById('transactionList');
+    if (!transactionList) return;
+
+    if (!snapshot.exists()) {
+      transactionList.innerHTML = '<div style="text-align: center; padding: 20px; color: #9ca3af;">No transactions yet</div>';
+      return;
+    }
+
+    const transactions = [];
+    snapshot.forEach(child => {
+      transactions.push({
+        id: child.key,
+        ...child.val()
+      });
+    });
+
+    // Sort by timestamp (newest first)
+    transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Display last 10 transactions
+    transactionList.innerHTML = transactions.slice(0, 10).map(tx => `
+      <div class="transaction-item" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      ">
+        <div>
+          <div style="font-weight: 600; color: #1f2937;">${tx.description || 'Transaction'}</div>
+          <div style="font-size: 12px; color: #9ca3af;">
+            ${new Date(tx.timestamp).toLocaleString()}
+          </div>
+        </div>
+        <div style="font-weight: 700; color: ${tx.type === 'add' ? '#10b981' : '#ef4444'};">
+          ${tx.type === 'add' ? '+' : '-'}${tx.amount} 🪙
+        </div>
+      </div>
+    `).join('');
+
+    console.log('✅ Loaded', transactions.length, 'transactions');
+
+  } catch (error) {
+    console.error('❌ Error loading transactions:', error);
+  }
+}
+
+// ============================================
+// FIXED: UPDATE USERNAME
+// ============================================
 async function updateUsername() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
+    return;
+  }
+
   const newUsername = document.getElementById('usernameInput').value.trim();
   
   if (!newUsername) {
-    showNotification('Username cannot be empty!', 'error');
+    showNotification('⚠️ Username cannot be empty', 'error');
     return;
   }
-  
-  // Current username ni olish
-  let currentUsername = '';
-  if (currentUser.displayName) {
-    currentUsername = currentUser.displayName
-      .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-      .replace(/[\u{2600}-\u{26FF}]/gu, '')
-      .replace(/[\u{2700}-\u{27BF}]/gu, '')
-      .replace(/\s+/g, '')
-      .trim();
-  }
-  
-  if (!currentUsername || currentUsername.length === 0) {
-    currentUsername = currentUser.email.split('@')[0];
-  }
-  
-  if (newUsername === currentUsername) {
-    showNotification('No changes detected!', 'info');
+
+  if (newUsername.length < 3) {
+    showNotification('⚠️ Username must be at least 3 characters', 'error');
     return;
   }
-  
+
+  const db = window.firebaseDatabase;
+  if (!db) {
+    showNotification('❌ Database not available', 'error');
+    return;
+  }
+
   try {
-    const auth = window.firebaseAuth;
-    const updateProfile = window.updateProfile;
-    
-    // Yangi displayName (PROBEL YO'Q!)
-    const newDisplayName = `${selectedEmoji}${newUsername}`;
-    
-    console.log('📝 New displayName:', newDisplayName);
-    
-    await updateProfile(auth.currentUser, {
-      displayName: newDisplayName
+    showNotification('🔄 Updating username...', 'info');
+
+    // ✅ 1. UPDATE DATABASE FIRST
+    const userRef = window.firebaseRef(db, `users/${user.uid}`);
+    await window.firebaseUpdate(userRef, {
+      displayName: newUsername
     });
-    
-    document.getElementById('profileName').textContent = newUsername;
-    currentUser = auth.currentUser;
-    
-    // ✅ BARCHA USERNAME-LARNI YANGILASH
-    updateAllUsernames(newUsername);
-    
-    showNotification('Username updated successfully! ✅', 'success');
-    console.log('✅ Firebase username updated');
-    
+
+    // ✅ 2. UPDATE AUTH (WITH CURRENT AVATAR)
+    const currentAvatar = currentUserData?.avatar || '👤';
+    await window.updateProfile(user, {
+      displayName: `${currentAvatar} ${newUsername}` // Format: emoji + space + username
+    });
+
+    // ✅ 3. UPDATE LOCAL STATE
+    if (currentUserData) {
+      currentUserData.displayName = newUsername;
+    }
+
+    // ✅ 4. UPDATE UI
+    const profileName = document.getElementById('profileName');
+    if (profileName) profileName.textContent = newUsername;
+
+    const headerUserName = document.getElementById('userName');
+    if (headerUserName) headerUserName.textContent = newUsername;
+
+    showNotification('✅ Username updated successfully!', 'success');
+    console.log('✅ Username updated to:', newUsername);
+
   } catch (error) {
-    console.error('❌ Username update error:', error);
-    showNotification('Failed to update username: ' + error.message, 'error');
+    console.error('❌ Error updating username:', error);
+    showNotification('❌ Failed to update username: ' + error.message, 'error');
   }
 }
-// Avatar Modal
+
+// ============================================
+// 7️⃣ AVATAR MODAL FUNCTIONS
+// ============================================
 function openAvatarModal() {
-  document.getElementById('avatarModal').classList.add('active');
-  updateEmojiSelection();
+  try {
+    const modal = document.getElementById('avatarModal');
+    if (!modal) {
+      console.error('❌ Avatar modal not found');
+      return;
+    }
+
+    // Generate emoji grid
+    const emojiGrid = document.getElementById('emojiGrid');
+    if (emojiGrid) {
+      const emojis = [
+        '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
+        '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
+        '😎', '🤓', '🧐', '🤠', '🥳', '🤗', '🤔', '🤨',
+        '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮',
+        '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛',
+        '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙁',
+        '👤', '👨', '👩', '👶', '👧', '👦', '👴', '👵',
+        '🧑', '🧒', '🧓', '👨‍💼', '👩‍💼', '👨‍🎓', '👩‍🎓', '👨‍🏫',
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+        '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔'
+      ];
+
+      emojiGrid.innerHTML = emojis.map(emoji => `
+        <div class="emoji-item-inline" data-emoji="${emoji}" onclick="selectEmoji('${emoji}')">
+          ${emoji}
+        </div>
+      `).join('');
+    }
+
+    // Set current emoji as selected
+    if (currentUserData?.avatar) {
+      currentSelectedEmoji = currentUserData.avatar;
+      setTimeout(() => {
+        const item = emojiGrid.querySelector(`[data-emoji="${currentSelectedEmoji}"]`);
+        if (item) item.classList.add('selected');
+      }, 100);
+    }
+
+    modal.classList.add('active');
+    console.log('✅ Avatar modal opened');
+  } catch (error) {
+    console.error('❌ Error opening avatar modal:', error);
+  }
 }
 
 function closeAvatarModal() {
-  document.getElementById('avatarModal').classList.remove('active');
-}
-
-function generateEmojiGrid() {
-  const emojiGrid = document.getElementById('emojiGrid');
-  if (!emojiGrid) return;
-  
-  emojiGrid.innerHTML = '';
-  
-  emojis.forEach(emoji => {
-    const emojiDiv = document.createElement('div');
-    emojiDiv.className = 'emoji-option-inline';
-    emojiDiv.textContent = emoji;
-    emojiDiv.onclick = () => selectEmoji(emoji);
-    emojiGrid.appendChild(emojiDiv);
-  });
+  try {
+    const modal = document.getElementById('avatarModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    currentSelectedEmoji = null;
+    console.log('✅ Avatar modal closed');
+  } catch (error) {
+    console.error('❌ Error closing avatar modal:', error);
+  }
 }
 
 function selectEmoji(emoji) {
-  selectedEmoji = emoji;
-  updateEmojiSelection();
-}
-
-function updateEmojiSelection() {
-  document.querySelectorAll('.emoji-option-inline').forEach(el => {
-    el.classList.remove('selected');
-    if (el.textContent === selectedEmoji) {
-      el.classList.add('selected');
-    }
-  });
-}
-
-// Avatar saqlash - FIREBASE BILAN ✅
-async function saveAvatar() {
   try {
-    const auth = window.firebaseAuth;
-    const updateProfile = window.updateProfile;
+    currentSelectedEmoji = emoji;
     
-    // Username ni input fielddan olish
-    let username = document.getElementById('usernameInput').value.trim();
-    
-    if (!username || username.length === 0) {
-      if (currentUser.displayName) {
-        username = currentUser.displayName
-          .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-          .replace(/[\u{2600}-\u{26FF}]/gu, '')
-          .replace(/[\u{2700}-\u{27BF}]/gu, '')
-          .replace(/\s+/g, '')
-          .trim();
-      }
-      
-      if (!username || username.length === 0) {
-        username = currentUser.email.split('@')[0];
-      }
-    }
-    
-    // Yangi displayName (PROBEL YO'Q!)
-    const newDisplayName = `${selectedEmoji}${username}`;
-    
-    console.log('📝 New displayName:', newDisplayName);
-    
-    await updateProfile(auth.currentUser, {
-      displayName: newDisplayName
+    // Remove previous selection
+    const allEmojis = document.querySelectorAll('.emoji-item-inline');
+    allEmojis.forEach(item => {
+      item.classList.remove('selected');
     });
     
-    document.getElementById('profileAvatar').textContent = selectedEmoji;
-    currentUser = auth.currentUser;
+    // Add selection to clicked emoji
+    const selectedItem = document.querySelector(`[data-emoji="${emoji}"]`);
+    if (selectedItem) {
+      selectedItem.classList.add('selected');
+    }
     
-    // ✅ BARCHA USERNAME-LARNI YANGILASH
-    updateAllUsernames(username);
-    
-    closeAvatarModal();
-    showNotification('Avatar updated successfully! ✅', 'success');
-    console.log('✅ Firebase avatar updated');
-    
+    console.log('✅ Emoji selected:', emoji);
   } catch (error) {
-    console.error('❌ Avatar update error:', error);
-    showNotification('Failed to update avatar: ' + error.message, 'error');
+    console.error('❌ Error selecting emoji:', error);
   }
 }
 
-// Password Modal
+// ============================================
+// FIXED: SAVE AVATAR
+// ============================================
+async function saveAvatar() {
+  if (!currentSelectedEmoji) {
+    showNotification('⚠️ Please select an emoji', 'error');
+    return;
+  }
+
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
+    return;
+  }
+
+  const db = window.firebaseDatabase;
+  if (!db) {
+    showNotification('❌ Database not available', 'error');
+    return;
+  }
+
+  try {
+    showNotification('🔄 Updating avatar...', 'info');
+
+    // ✅ 1. UPDATE DATABASE FIRST
+    const userRef = window.firebaseRef(db, `users/${user.uid}`);
+    await window.firebaseUpdate(userRef, {
+      avatar: currentSelectedEmoji
+    });
+
+    // ✅ 2. UPDATE AUTH displayName (KEEP USERNAME)
+    const currentUsername = currentUserData?.displayName || user.email.split('@')[0];
+    await window.updateProfile(user, {
+      displayName: `${currentSelectedEmoji} ${currentUsername}`
+    });
+
+    // ✅ 3. UPDATE LOCAL STATE
+    if (currentUserData) {
+      currentUserData.avatar = currentSelectedEmoji;
+    }
+
+    // ✅ 4. UPDATE UI
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) {
+      profileAvatar.textContent = currentSelectedEmoji;
+    }
+
+    closeAvatarModal();
+    showNotification('✅ Avatar updated!', 'success');
+    console.log('✅ Avatar updated to:', currentSelectedEmoji);
+
+  } catch (error) {
+    console.error('❌ Error updating avatar:', error);
+    showNotification('❌ Failed to update avatar: ' + error.message, 'error');
+  }
+}
+
+// ============================================
+// 8️⃣ PASSWORD MODAL FUNCTIONS - FIXED
+// ============================================
 function openPasswordModal() {
-  document.getElementById('passwordModal').classList.add('active');
+  try {
+    const modal = document.getElementById('passwordModal');
+    if (modal) {
+      modal.classList.add('active');
+      console.log('✅ Password modal opened');
+    } else {
+      console.error('❌ Password modal not found');
+    }
+  } catch (error) {
+    console.error('❌ Error opening password modal:', error);
+  }
 }
 
 function closePasswordModal() {
-  document.getElementById('passwordModal').classList.remove('active');
-  document.getElementById('currentPassword').value = '';
-  document.getElementById('newPassword').value = '';
-  document.getElementById('confirmPassword').value = '';
+  try {
+    const modal = document.getElementById('passwordModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    
+    // Clear inputs safely
+    const currentPassword = document.getElementById('currentPassword');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (currentPassword) currentPassword.value = '';
+    if (newPassword) newPassword.value = '';
+    if (confirmPassword) confirmPassword.value = '';
+    
+    console.log('✅ Password modal closed');
+  } catch (error) {
+    console.error('❌ Error closing password modal:', error);
+  }
 }
 
-// Password o'zgartirish - FIREBASE BILAN ✅
 async function changePassword() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
+    return;
+  }
+
   const currentPassword = document.getElementById('currentPassword').value;
   const newPassword = document.getElementById('newPassword').value;
   const confirmPassword = document.getElementById('confirmPassword').value;
-  
+
+  // Validation
   if (!currentPassword || !newPassword || !confirmPassword) {
-    showNotification('All fields are required!', 'error');
+    showNotification('⚠️ All fields are required', 'error');
     return;
   }
-  
-  if (newPassword !== confirmPassword) {
-    showNotification('New passwords do not match!', 'error');
-    return;
-  }
-  
+
   if (newPassword.length < 6) {
-    showNotification('Password must be at least 6 characters!', 'error');
+    showNotification('⚠️ New password must be at least 6 characters', 'error');
     return;
   }
-  
+
+  if (newPassword !== confirmPassword) {
+    showNotification('⚠️ Passwords do not match', 'error');
+    return;
+  }
+
   try {
-    const auth = window.firebaseAuth;
-    const user = auth.currentUser;
-    const EmailAuthProvider = window.EmailAuthProvider;
-    const reauthenticateWithCredential = window.reauthenticateWithCredential;
-    const updatePassword = window.updatePassword;
-    
-    // Reauthenticate (xavfsizlik uchun)
-    const credential = EmailAuthProvider.credential(
+    showNotification('🔄 Changing password...', 'info');
+
+    // Re-authenticate user
+    const credential = window.EmailAuthProvider.credential(
       user.email,
       currentPassword
     );
-    
-    await reauthenticateWithCredential(user, credential);
-    
-    // Password ni yangilash
-    await updatePassword(user, newPassword);
-    
+    await window.reauthenticateWithCredential(user, credential);
+
+    // Update password
+    await window.updatePassword(user, newPassword);
+
     closePasswordModal();
-    showNotification('Password changed successfully! ✅', 'success');
-    console.log('✅ Firebase password updated');
-    
+    showNotification('✅ Password changed successfully!', 'success');
+
+    console.log('✅ Password changed');
+
   } catch (error) {
-    console.error('❌ Password change error:', error);
+    console.error('❌ Error changing password:', error);
     
     if (error.code === 'auth/wrong-password') {
-      showNotification('Current password is incorrect!', 'error');
+      showNotification('❌ Current password is incorrect', 'error');
     } else if (error.code === 'auth/weak-password') {
-      showNotification('Password is too weak!', 'error');
+      showNotification('❌ Password is too weak', 'error');
     } else {
-      showNotification('Failed to change password: ' + error.message, 'error');
+      showNotification('❌ Failed to change password', 'error');
     }
   }
 }
 
-// Dark Mode
-function toggleDarkMode() {
-  const isDark = document.getElementById('darkModeToggle').checked;
-  
-  if (isDark) {
-    document.body.classList.add('dark-mode');
-    localStorage.setItem('darkMode', 'true');
-    showNotification('Dark mode enabled 🌙', 'info');
-  } else {
-    document.body.classList.remove('dark-mode');
-    localStorage.setItem('darkMode', 'false');
-    showNotification('Dark mode disabled ☀️', 'info');
-  }
-}
-
-function loadDarkMode() {
-  const darkMode = localStorage.getItem('darkMode') === 'true';
-  const toggle = document.getElementById('darkModeToggle');
-  if (toggle) {
-    toggle.checked = darkMode;
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    }
-  }
-}
-
-// Export Data - FIREBASE BILAN ✅
-function exportData() {
-  if (!currentUser) {
-    showNotification('Please login first!', 'error');
-    return;
-  }
-  
-  const username = currentUser.displayName 
-    ? currentUser.displayName
-        .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')
-        .replace(/[\u{2600}-\u{26FF}]/gu, '')
-        .replace(/[\u{2700}-\u{27BF}]/gu, '')
-        .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
-        .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-        .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-        .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
-        .replace(/\s+/g, '')
-        .trim()
-    : currentUser.email.split('@')[0];
-  
-  const data = {
-    uid: currentUser.uid,
-    username: username,
-    email: currentUser.email,
-    avatar: selectedEmoji,
-    emailVerified: currentUser.emailVerified,
-    creationTime: currentUser.metadata.creationTime,
-    lastSignInTime: currentUser.metadata.lastSignInTime,
-    exportDate: new Date().toISOString()
-  };
-  
-  const dataStr = JSON.stringify(data, null, 2);
-  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(dataBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `ziyoai_profile_${username}_${Date.now()}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-  
-  showNotification('Data exported successfully! 📥', 'success');
-  console.log('✅ Data exported:', data);
-}
-
-// Delete Account Modal
+// ============================================
+// 9️⃣ DELETE ACCOUNT MODAL - FIXED
+// ============================================
 function openDeleteModal() {
-  document.getElementById('deleteModal').classList.add('active');
+  try {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+      modal.classList.add('active');
+      console.log('✅ Delete modal opened');
+    } else {
+      console.error('❌ Delete modal not found');
+    }
+  } catch (error) {
+    console.error('❌ Error opening delete modal:', error);
+  }
 }
 
 function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.remove('active');
-  document.getElementById('deleteConfirm').value = '';
+  try {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    
+    const deleteConfirm = document.getElementById('deleteConfirm');
+    if (deleteConfirm) {
+      deleteConfirm.value = '';
+    }
+    
+    console.log('✅ Delete modal closed');
+  } catch (error) {
+    console.error('❌ Error closing delete modal:', error);
+  }
 }
-
-// Account o'chirish - FIREBASE BILAN ✅
-// profile.js - deleteAccount() funksiyasi
 
 async function deleteAccount() {
   const confirmText = document.getElementById('deleteConfirm').value;
   
   if (confirmText !== 'DELETE') {
-    showNotification('Please type "DELETE" to confirm!', 'error');
+    showNotification('⚠️ Please type "DELETE" to confirm', 'error');
     return;
   }
-  
-  const finalConfirm = confirm(
-    '⚠️ ARE YOU ABSOLUTELY SURE?\n\n' +
-    'This action CANNOT be undone!\n' +
-    'Your account and ALL data will be PERMANENTLY deleted.\n\n' +
-    'Click OK to DELETE your account forever, or Cancel to go back.'
-  );
-  
-  if (!finalConfirm) {
-    showNotification('Account deletion cancelled.', 'info');
+
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
     return;
   }
-  
+
+  const db = window.firebaseDatabase;
+  if (!db) {
+    showNotification('❌ Database not available', 'error');
+    return;
+  }
+
   try {
-    const auth = window.firebaseAuth;
-    const user = auth.currentUser;
-    const deleteUser = window.deleteUser;
-    
-    console.log('🗑️ Deleting account:', user.email);
-    
-    // ✅ 1. localStorage ni tozalash
-    if (typeof window.clearAllUserData === 'function') {
-      window.clearAllUserData();
-    }
-    
-    // ✅ 2. Firebase dan account ni o'chirish
-    await deleteUser(user);
-    
-    // ✅ 3. Barcha cookielarni o'chirish (agar bor bo'lsa)
-    document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-    });
-    
-    // ✅ 4. SessionStorage ni tozalash
-    sessionStorage.clear();
-    
-    showNotification('Account deleted successfully. Redirecting...', 'success');
-    console.log('✅ Firebase account deleted');
-    
-    // ✅ 5. Login sahifasiga yo'naltirish (2 soniya kutish)
+    showNotification('🔄 Deleting account...', 'info');
+
+    // Delete user data from database
+    const userRef = window.firebaseRef(db, `users/${user.uid}`);
+    await window.firebaseRemove(userRef);
+
+    // Delete user account
+    await window.deleteUser(user);
+
+    showNotification('✅ Account deleted successfully', 'success');
+
     setTimeout(() => {
       window.location.href = './login.html';
     }, 2000);
-    
+
+    console.log('✅ Account deleted');
+
   } catch (error) {
-    console.error('❌ Account deletion error:', error);
+    console.error('❌ Error deleting account:', error);
     
     if (error.code === 'auth/requires-recent-login') {
-      showNotification(
-        'For security reasons, please log out and log in again before deleting your account.', 
-        'error'
-      );
+      showNotification('❌ Please log out and log back in, then try again', 'error');
     } else {
-      showNotification('Failed to delete account: ' + error.message, 'error');
+      showNotification('❌ Failed to delete account', 'error');
     }
   }
 }
 
-// Email o'zgartirish modali
-function openEmailModal() {
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay-inline';
-  modal.id = 'emailModal';
-  modal.innerHTML = `
-    <div class="modal-inline">
-      <div class="modal-header-inline">
-        <h3>Change Email Address</h3>
-        <button class="modal-close-inline" onclick="closeEmailModal()">×</button>
-      </div>
-      <div class="modal-body-inline">
-        <div class="input-group-inline">
-          <label>Current Password (for verification)</label>
-          <input type="password" id="emailCurrentPassword" placeholder="Enter current password">
-        </div>
-        <div class="input-group-inline">
-          <label>New Email Address</label>
-          <input type="email" id="newEmailInput" placeholder="Enter new email">
-        </div>
-        <div class="input-group-inline">
-          <label>Confirm New Email</label>
-          <input type="email" id="confirmEmailInput" placeholder="Confirm new email">
-        </div>
-      </div>
-      <div class="modal-footer-inline">
-        <button class="btn-inline btn-secondary-inline" onclick="closeEmailModal()">Cancel</button>
-        <button class="btn-inline btn-primary-inline" onclick="changeEmail()">
-          <i class="bi bi-check-circle"></i> Update Email
-        </button>
-      </div>
+// ============================================
+// 🔟 DARK MODE TOGGLE
+// ============================================
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', isDark);
+  console.log('🌓 Dark mode:', isDark ? 'enabled' : 'disabled');
+}
+
+// ============================================
+// 1️⃣1️⃣ EXPORT DATA
+// ============================================
+async function exportData() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
+    return;
+  }
+
+  const db = window.firebaseDatabase;
+  if (!db) {
+    showNotification('❌ Database not available', 'error');
+    return;
+  }
+
+  try {
+    showNotification('📦 Exporting data...', 'info');
+
+    const userRef = window.firebaseRef(db, `users/${user.uid}`);
+    const snapshot = await window.firebaseGet(userRef);
+
+    if (!snapshot.exists()) {
+      showNotification('❌ No data to export', 'error');
+      return;
+    }
+
+    const userData = snapshot.val();
+    const exportData = {
+      email: user.email,
+      exportDate: new Date().toISOString(),
+      ...userData
+    };
+
+    // Create and download JSON file
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ziyoai-data-${user.uid}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showNotification('✅ Data exported successfully!', 'success');
+
+    console.log('✅ Data exported');
+
+  } catch (error) {
+    console.error('❌ Error exporting data:', error);
+    showNotification('❌ Failed to export data', 'error');
+  }
+}
+
+// ============================================
+// 1️⃣2️⃣ CLAIM DAILY BONUS FROM UI
+// ============================================
+async function claimDailyBonusFromUI() {
+  try {
+    if (typeof window.claimDailyBonus === 'function') {
+      await window.claimDailyBonus();
+    } else {
+      console.warn('⚠️ Coin system not loaded yet');
+      showNotification('Coin system not loaded. Please wait...', 'warning');
+    }
+  } catch (error) {
+    console.error('❌ Error claiming daily bonus:', error);
+  }
+}
+
+// ============================================
+// 1️⃣3️⃣ NOTIFICATION HELPER - FIXED
+// ============================================
+function showNotification(message, type = 'info') {
+  // Check if external notification system exists
+  if (typeof window.showNotification === 'function' && window.showNotification !== showNotification) {
+    window.showNotification(message, type);
+    return;
+  }
+
+  // Built-in notification system (fallback)
+  const notification = document.createElement('div');
+  notification.className = 'profile-notification';
+  
+  // Icon based on type
+  let icon = '📢';
+  let bgColor = '#3b82f6';
+  
+  if (type === 'success') {
+    icon = '✅';
+    bgColor = '#10b981';
+  } else if (type === 'error') {
+    icon = '❌';
+    bgColor = '#ef4444';
+  } else if (type === 'info') {
+    icon = '📢';
+    bgColor = '#3b82f6';
+  } else if (type === 'warning') {
+    icon = '⚠️';
+    bgColor = '#f59e0b';
+  }
+  
+  notification.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999;
+      background: ${bgColor};
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      max-width: 500px;
+      animation: slideInFromRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+      font-weight: 600;
+      font-size: 15px;
+    ">
+      <span style="font-size: 24px;">${icon}</span>
+      <span style="flex: 1;">${message}</span>
     </div>
   `;
-  document.body.appendChild(modal);
-  setTimeout(() => modal.classList.add('active'), 10);
-}
-
-function closeEmailModal() {
-  const modal = document.getElementById('emailModal');
-  if (modal) {
-    modal.classList.remove('active');
-    setTimeout(() => modal.remove(), 300);
-  }
-}
-
-// Email o'zgartirish - FIREBASE BILAN ✅
-async function changeEmail() {
-  const currentPassword = document.getElementById('emailCurrentPassword').value;
-  const newEmail = document.getElementById('newEmailInput').value.trim();
-  const confirmEmail = document.getElementById('confirmEmailInput').value.trim();
   
-  if (!currentPassword || !newEmail || !confirmEmail) {
-    showNotification('All fields are required!', 'error');
-    return;
-  }
-  
-  if (newEmail !== confirmEmail) {
-    showNotification('Emails do not match!', 'error');
-    return;
-  }
-  
-  // Email format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(newEmail)) {
-    showNotification('Invalid email format!', 'error');
-    return;
+  // Add animation styles if not exists
+  if (!document.getElementById('notificationStyles')) {
+    const style = document.createElement('style');
+    style.id = 'notificationStyles';
+    style.textContent = `
+      @keyframes slideInFromRight {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
   
-  if (newEmail === currentUser.email) {
-    showNotification('New email is same as current email!', 'info');
-    return;
-  }
-  
-  try {
-    const auth = window.firebaseAuth;
-    const user = auth.currentUser;
-    const EmailAuthProvider = window.EmailAuthProvider;
-    const reauthenticateWithCredential = window.reauthenticateWithCredential;
-    const updateEmail = window.updateEmail;
-    
-    // Reauthenticate (xavfsizlik uchun)
-    const credential = EmailAuthProvider.credential(
-      user.email,
-      currentPassword
-    );
-    
-    await reauthenticateWithCredential(user, credential);
-    
-    // Email ni yangilash
-    await updateEmail(user, newEmail);
-    
-    // UI ni yangilash
-    document.getElementById('profileEmail').textContent = newEmail;
-    document.getElementById('emailInput').value = newEmail;
-    currentUser = auth.currentUser;
-    
-    closeEmailModal();
-    showNotification('Email updated successfully! ✅ Please verify your new email.', 'success');
-    console.log('✅ Firebase email updated:', newEmail);
-    
-  } catch (error) {
-    console.error('❌ Email change error:', error);
-    
-    if (error.code === 'auth/wrong-password') {
-      showNotification('Current password is incorrect!', 'error');
-    } else if (error.code === 'auth/email-already-in-use') {
-      showNotification('This email is already in use!', 'error');
-    } else if (error.code === 'auth/requires-recent-login') {
-      showNotification('Please log out and log in again before changing email.', 'error');
-    } else {
-      showNotification('Failed to change email: ' + error.message, 'error');
-    }
-  }
-}
-
-// Notification System
-function showNotification(message, type = 'info') {
-  // Custom notification div yaratish
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    background: ${type === 'success' ? '#10b981' : 
-                  type === 'error' ? '#ef4444' : 
-                  type === 'info' ? '#3b82f6' : '#6b7280'};
-    color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10000;
-    font-weight: 600;
-    animation: slideIn 0.3s ease;
-  `;
-  notification.textContent = message;
   document.body.appendChild(notification);
   
+  // Auto remove after 3 seconds
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
+    notification.remove();
   }, 3000);
   
-  console.log(`${type.toUpperCase()}: ${message}`);
+  console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
-function updateAllUsernames(username) {
-  // Sidebar username
-  const userNameElement = document.getElementById('userName');
-  if (userNameElement) {
-    userNameElement.textContent = username;
-  }
-  
-  // Dashboard header title
-  const headerTitle = document.getElementById('headerTitle');
-  if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
-    headerTitle.textContent = `Welcome back, ${username}!`;
-  }
-  
-  console.log('✅ All usernames updated to:', username);
-}
+// ============================================
+// 1️⃣4️⃣ GLOBAL EXPORTS
+// ============================================
+window.initializeProfile = initializeProfile;
+window.updateUsername = updateUsername;
+window.openAvatarModal = openAvatarModal;
+window.closeAvatarModal = closeAvatarModal;
+window.selectEmoji = selectEmoji;
+window.saveAvatar = saveAvatar;
+window.openPasswordModal = openPasswordModal;
+window.closePasswordModal = closePasswordModal;
+window.changePassword = changePassword;
+window.openDeleteModal = openDeleteModal;
+window.closeDeleteModal = closeDeleteModal;
+window.deleteAccount = deleteAccount;
+window.toggleDarkMode = toggleDarkMode;
+window.exportData = exportData;
+window.claimDailyBonusFromUI = claimDailyBonusFromUI;
 
-// Modal tashqarisiga bosilganda yopish
-window.addEventListener('click', function(event) {
-  const modals = ['avatarModal', 'passwordModal', 'deleteModal', 'emailModal'];
-  modals.forEach(modalId => {
-    const modal = document.getElementById(modalId);
-    if (modal && event.target === modal) {
-      modal.classList.remove('active');
-    }
+// ============================================
+// 1️⃣5️⃣ AUTO INITIALIZE
+// ============================================
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('📱 Profile system ready');
+    // Wait for auth to be ready
+    setTimeout(initializeProfile, 1500);
   });
-});
-
-// profile.js oxiriga qo'shing
-function clearUserStats() {
-  const auth = window.firebaseAuth;
-  const user = auth?.currentUser;
-  
-  if (user) {
-    const statsKey = `ziyoai_stats_${user.uid}`;
-    const toolUsageKey = `ziyoai_tool_usage_${user.uid}`;
-    
-    localStorage.removeItem(statsKey);
-    localStorage.removeItem(toolUsageKey);
-    
-    console.log('🗑️ User stats cleared:', statsKey, toolUsageKey);
-  }
+} else {
+  console.log('📱 Profile system ready');
+  setTimeout(initializeProfile, 1500);
 }
 
+console.log('✅ profile.js loaded successfully');

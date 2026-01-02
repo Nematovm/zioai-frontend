@@ -1129,3 +1129,242 @@ body.dark-mode .modal-close-btn {
 body.dark-mode .modal-close-btn:hover {
   background: rgba(255, 255, 255, 0.25) !important;
 }
+
+/* Feedback Message Dark Mode */
+
+body.dark-mode .profile-section-inline {
+    border: 2px solid var(--border-bc) !important;
+}
+
+body.dark-mode #feedbackMessage, .feedback-sended-message {
+    background: var(--primary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode .priority-btn {
+    background: var(--secondary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+}
+
+body.dark-mode .feedback-note {
+    background: linear-gradient(135deg, #a1aab7 0%, #5e7795 100%) !important;
+}
+
+body.dark-mode .feedback-item {
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .feedback-title h4 {
+    color: var(--text-dc) !important;
+}
+
+/* Dark mode styles for testimonials section */
+body.dark-mode .testimonials-section p {
+  color: #9ca3af !important;
+}
+
+/* Quick Info Cards - Dark Mode */
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(1) {
+  background: linear-gradient(135deg, #422006 0%, #713f12 100%) !important;
+}
+
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) {
+  color: #fcd34d !important;
+}
+
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(2) {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+}
+
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(2) > div:nth-child(2) {
+  color: #93c5fd !important;
+}
+
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(3) {
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
+}
+
+body.dark-mode .testimonials-section > div:nth-child(3) > div:nth-child(3) > div:nth-child(2) {
+  color: #86efac !important;
+}
+
+/* Info Box - Dark Mode */
+body.dark-mode .testimonials-section > div:last-child {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  border-left-color: #9ca3af !important;
+}
+
+body.dark-mode .testimonials-section > div:last-child p {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .testimonials-section > div:last-child strong {
+  color: #f3f4f6 !important;
+}
+
+/* Dark mode for testimonial modal */
+body.dark-mode .testimonial-modal .modal-inline {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+body.dark-mode .testimonial-modal .modal-header-inline {
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .testimonial-modal .modal-header-inline h3 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .testimonial-modal label {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .testimonial-modal #ratingText {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .testimonial-modal input,
+body.dark-mode .testimonial-modal textarea {
+  background: #374151;
+  border-color: #4b5563 !important;
+  color: #f3f4f6;
+}
+
+body.dark-mode .testimonial-modal input::placeholder,
+body.dark-mode .testimonial-modal textarea::placeholder {
+  color: #6b7280;
+}
+
+body.dark-mode .testimonial-modal .display-name-btn[data-type="username"] {
+  background: linear-gradient(135deg, #667eea30, #764ba230);
+  border-color: #667eea;
+  color: #a5b4fc;
+}
+
+body.dark-mode .testimonial-modal .display-name-btn[data-type="anonymous"] {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+body.dark-mode .testimonial-modal .display-name-btn.active[data-type="username"] {
+  background: linear-gradient(135deg, #667eea50, #764ba250);
+}
+
+body.dark-mode .testimonial-modal .display-name-btn.active[data-type="anonymous"] {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+/* Info box dark mode */
+body.dark-mode .testimonial-modal .modal-body-inline > div:last-child {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  border-left-color: #3b82f6;
+}
+
+body.dark-mode .testimonial-modal .modal-body-inline > div:last-child p {
+  color: #bfdbfe;
+}
+
+body.dark-mode .testimonial-modal .modal-body-inline > div:last-child strong {
+  color: #dbeafe;
+}
+
+body.dark-mode .testimonial-modal .modal-footer-inline {
+  border-top-color: #374151;
+}
+
+/* Star rating dark mode */
+body.dark-mode .testimonial-modal .star {
+  filter: brightness(1.2);
+}
+
+/* Dark mode for My Testimonial Modal */
+body.dark-mode .my-testimonial-modal .modal-inline {
+  background: #1f2937;
+}
+
+body.dark-mode .my-testimonial-modal .modal-header-inline {
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .my-testimonial-modal .modal-header-inline h3 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-card {
+  background: #374151 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-username {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-title {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-message {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-footer {
+  border-top-color: #4b5563 !important;
+}
+
+body.dark-mode .my-testimonial-modal .testimonial-date {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .my-testimonial-modal .featured-badge {
+  color: #c4b5fd !important;
+}
+
+/* Status badges - dark mode */
+body.dark-mode .my-testimonial-modal .status-badge {
+  opacity: 0.95;
+}
+
+/* Info boxes - dark mode */
+body.dark-mode .my-testimonial-modal .success-box {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
+  border-left-color: #10b981 !important;
+}
+
+body.dark-mode .my-testimonial-modal .success-box p {
+  color: #d1fae5 !important;
+}
+
+body.dark-mode .my-testimonial-modal .error-box {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
+  border-left-color: #ef4444 !important;
+}
+
+body.dark-mode .my-testimonial-modal .error-box p {
+  color: #fecaca !important;
+}
+
+body.dark-mode .my-testimonial-modal .warning-box {
+  background: linear-gradient(135deg, #78350f 0%, #92400e 100%) !important;
+  border-left-color: #f59e0b !important;
+}
+
+body.dark-mode .my-testimonial-modal .warning-box p {
+  color: #fef3c7 !important;
+}
+
+body.dark-mode .my-testimonial-modal .modal-footer-inline {
+  border-top-color: #374151;
+}
+
+body.dark-mode .testimonials-footer-inline {
+    background: var(--secondary-dc) !important;
+}
+
+body.dark-mode .btn-secondary-inline {
+    background: var(--primary-dc) !important;
+    border: 2px solid var(--border-bc) !important;
+}

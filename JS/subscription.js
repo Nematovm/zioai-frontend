@@ -622,7 +622,7 @@ async function logPaymentAttempt(productType, userName, userId, userEmail) {
 }
 
 // ============================================
-// ADMIN PANEL - FIXED
+// SAFE OPEN ADMIN PANEL - WITH ERROR HANDLING ✅
 // ============================================
 
 async function openAdminPanel() {
@@ -646,18 +646,85 @@ async function openAdminPanel() {
   modal.innerHTML = `
     <div class="modal-inline" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header-inline" style="position: sticky; top: 0; background: white; z-index: 10;">
-        <h3>👨‍💼 Admin Panel - To'lovlarni tasdiqlash</h3>
+        <h3>👨‍💼 Admin Panel</h3>
         <button class="modal-close-inline" onclick="closeAdminPanel()">×</button>
       </div>
       <div class="modal-body-inline" style="padding: 20px;">
-        <div id="pendingPaymentsList">
-          <div style="text-align: center; padding: 40px; color: #6b7280;">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-              <span class="visually-hidden">Loading...</span>
+        
+        <!-- BUTTONS SECTION -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 30px;">
+          
+          <!-- Coin Management Button -->
+          <button onclick="viewAllUsersCoins()" style="
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          ">
+            <i class="bi bi-coin" style="font-size: 20px;"></i>
+            <span>Coin Management</span>
+          </button>
+          
+          <!-- Feedbacks Button -->
+          <button onclick="openFeedbackManager()" style="
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+          ">
+            <i class="bi bi-chat-left-text-fill" style="font-size: 20px;"></i>
+            <span>Feedbacks</span>
+            <span id="feedbackBadge" style="
+              background: #fbbf24;
+              color: #1f2937;
+              padding: 4px 10px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 700;
+              display: none;
+            ">0</span>
+          </button>
+          
+        </div>
+        
+        <!-- PAYMENTS LIST -->
+        <div style="
+          background: linear-gradient(135deg, #667eea15, #764ba215);
+          padding: 20px;
+          border-radius: 12px;
+          border: 2px solid #e0e7ff;
+        ">
+          <h4 style="margin: 0 0 15px 0; color: #4b5563;">
+            <i class="bi bi-credit-card"></i> Pending Payments
+          </h4>
+          <div id="pendingPaymentsList">
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+              <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p style="margin-top: 15px;">Yuklanmoqda...</p>
             </div>
-            <p style="margin-top: 15px;">Yuklanmoqda...</p>
           </div>
         </div>
+        
       </div>
     </div>
   `;
@@ -666,8 +733,735 @@ async function openAdminPanel() {
   setTimeout(() => modal.classList.add('active'), 10);
   document.body.style.overflow = 'hidden';
   
+  // Load pending payments (this should work since it doesn't require special permissions)
   await loadPendingPayments();
+  
+  // Try to update feedback badge (will fail silently if no permission)
+  updateAdminFeedbackBadge().catch(err => {
+    console.warn('⚠️ Could not load feedback count:', err.message);
+  });
 }
+
+// Export to window
+window.updateAdminFeedbackBadge = updateAdminFeedbackBadge;
+window.openAdminPanel = openAdminPanel;
+
+console.log('✅ Fixed admin panel functions loaded');
+
+// ============================================
+// UPDATE FEEDBACK BADGE IN ADMIN PANEL - FIXED VERSION ✅
+// ============================================
+
+async function updateAdminFeedbackBadge() {
+  const db = window.firebaseDatabase;
+  const auth = window.firebaseAuth;
+  
+  if (!db || !auth?.currentUser) {
+    console.warn('⚠️ Database or user not available');
+    return;
+  }
+  
+  // Check if user is admin first
+  const userIsAdmin = await isAdmin(auth.currentUser.uid);
+  if (!userIsAdmin) {
+    console.warn('⚠️ User is not admin, skipping feedback count');
+    return;
+  }
+  
+  try {
+    const feedbackRef = window.firebaseRef(db, 'feedback');
+    const snapshot = await window.firebaseGet(feedbackRef);
+    
+    let pendingCount = 0;
+    
+    if (snapshot.exists()) {
+      snapshot.forEach(userSnapshot => {
+        userSnapshot.forEach(feedbackSnapshot => {
+          const feedback = feedbackSnapshot.val();
+          if (feedback && feedback.status === 'pending') {
+            pendingCount++;
+          }
+        });
+      });
+    }
+    
+    const badge = document.getElementById('feedbackBadge');
+    if (badge) {
+      badge.textContent = pendingCount;
+      badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+    }
+    
+    console.log('✅ Feedback badge updated:', pendingCount, 'pending');
+    
+  } catch (error) {
+    console.error('❌ Error counting feedbacks:', error);
+    
+    // Don't show error to user, just hide badge
+    const badge = document.getElementById('feedbackBadge');
+    if (badge) {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+
+// ============================================
+// 📬 ADMIN FEEDBACK MANAGEMENT SYSTEM
+// ============================================
+// Bu kodni subscription.js ga qo'shing (openAdminPanel funksiyasidan keyin)
+
+// ============================================
+// OPEN FEEDBACK MANAGER
+// ============================================
+async function openFeedbackManager() {
+  const db = window.firebaseDatabase;
+  if (!db) {
+    alert('❌ Database not initialized!');
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'feedbackManagerOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  `;
+
+  overlay.innerHTML = `
+    <div style="
+      background: white;
+      width: 95%;
+      max-width: 1400px;
+      height: 90vh;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    ">
+      <!-- HEADER -->
+      <div style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px 30px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      ">
+        <div>
+          <h2 style="margin: 0; font-size: 28px; font-weight: 700;">
+            <i class="bi bi-chat-left-text-fill"></i> Feedback Manager
+          </h2>
+          <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">
+            Manage user feedback and suggestions
+          </p>
+        </div>
+        <button onclick="closeFeedbackManager()" style="
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          font-size: 28px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s;
+        ">×</button>
+      </div>
+
+      <!-- STATS BAR -->
+      <div style="
+        padding: 20px 30px;
+        background: #f9fafb;
+        border-bottom: 2px solid #e5e7eb;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      " id="feedbackStats">
+        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #fbbf24;">
+          <div style="font-size: 24px; font-weight: 700; color: #1f2937;" id="totalFeedbacks">0</div>
+          <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">Total Feedbacks</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #ef4444;">
+          <div style="font-size: 24px; font-weight: 700; color: #1f2937;" id="pendingFeedbacks">0</div>
+          <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">⏳ Pending</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+          <div style="font-size: 24px; font-weight: 700; color: #1f2937;" id="reviewedFeedbacks">0</div>
+          <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">👀 Reviewed</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+          <div style="font-size: 24px; font-weight: 700; color: #1f2937;" id="resolvedFeedbacks">0</div>
+          <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">✅ Resolved</div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div style="
+        padding: 20px 30px;
+        background: white;
+        border-bottom: 2px solid #e5e7eb;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+      ">
+        <select id="feedbackFilterStatus" onchange="filterFeedbacks()" style="
+          padding: 10px 15px;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          <option value="all">All Status</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="reviewed">👀 Reviewed</option>
+          <option value="resolved">✅ Resolved</option>
+        </select>
+
+        <select id="feedbackFilterCategory" onchange="filterFeedbacks()" style="
+          padding: 10px 15px;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          <option value="all">All Categories</option>
+          <option value="bug">🐛 Bug Report</option>
+          <option value="feature">✨ Feature Request</option>
+          <option value="suggestion">💡 Suggestion</option>
+          <option value="complaint">😕 Complaint</option>
+          <option value="other">📝 Other</option>
+        </select>
+
+        <select id="feedbackFilterPriority" onchange="filterFeedbacks()" style="
+          padding: 10px 15px;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          <option value="all">All Priorities</option>
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+
+        <input type="text" id="feedbackSearchInput" placeholder="🔍 Search by title or user..." oninput="filterFeedbacks()" style="
+          flex: 1;
+          min-width: 250px;
+          padding: 10px 15px;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+        ">
+
+        <button onclick="refreshFeedbacks()" style="
+          padding: 10px 20px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        ">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      <!-- FEEDBACKS LIST -->
+      <div style="
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 30px;
+        background: #f9fafb;
+      " id="feedbacksList">
+        <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p style="margin-top: 20px; font-size: 16px; font-weight: 600;">Loading feedbacks...</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  
+  // Load feedbacks
+  await loadAllFeedbacks();
+  
+  console.log('✅ Feedback Manager opened');
+}
+
+// ============================================
+// LOAD ALL FEEDBACKS
+// ============================================
+let allFeedbacksData = [];
+
+async function loadAllFeedbacks() {
+  const db = window.firebaseDatabase;
+  const feedbackRef = window.firebaseRef(db, 'feedback');
+  
+  try {
+    const snapshot = await window.firebaseGet(feedbackRef);
+    
+    if (!snapshot.exists()) {
+      document.getElementById('feedbacksList').innerHTML = `
+        <div style="text-align: center; padding: 80px 20px;">
+          <div style="font-size: 80px; margin-bottom: 20px;">📭</div>
+          <h3 style="color: #4b5563; margin-bottom: 10px;">No feedbacks yet</h3>
+          <p style="color: #9ca3af;">User feedback will appear here</p>
+        </div>
+      `;
+      updateFeedbackStats(0, 0, 0, 0);
+      return;
+    }
+    
+    // Convert to array
+    allFeedbacksData = [];
+    snapshot.forEach(userSnapshot => {
+      const uid = userSnapshot.key;
+      userSnapshot.forEach(feedbackSnapshot => {
+        allFeedbacksData.push({
+          id: feedbackSnapshot.key,
+          uid: uid,
+          ...feedbackSnapshot.val()
+        });
+      });
+    });
+    
+    // Sort by timestamp (newest first)
+    allFeedbacksData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    console.log('✅ Loaded', allFeedbacksData.length, 'feedbacks');
+    
+    // Update stats
+    const total = allFeedbacksData.length;
+    const pending = allFeedbacksData.filter(f => f.status === 'pending').length;
+    const reviewed = allFeedbacksData.filter(f => f.status === 'reviewed').length;
+    const resolved = allFeedbacksData.filter(f => f.status === 'resolved').length;
+    
+    updateFeedbackStats(total, pending, reviewed, resolved);
+    
+    // Display feedbacks
+    displayFeedbacks(allFeedbacksData);
+    
+  } catch (error) {
+    console.error('❌ Error loading feedbacks:', error);
+    document.getElementById('feedbacksList').innerHTML = `
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; color: #ef4444; margin-bottom: 15px;">❌</div>
+        <p style="color: #6b7280; font-size: 16px;">Failed to load feedbacks</p>
+        <p style="color: #9ca3af; font-size: 14px; margin-top: 10px;">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// ============================================
+// UPDATE STATS
+// ============================================
+function updateFeedbackStats(total, pending, reviewed, resolved) {
+  document.getElementById('totalFeedbacks').textContent = total;
+  document.getElementById('pendingFeedbacks').textContent = pending;
+  document.getElementById('reviewedFeedbacks').textContent = reviewed;
+  document.getElementById('resolvedFeedbacks').textContent = resolved;
+}
+
+// ============================================
+// DISPLAY FEEDBACKS
+// ============================================
+function displayFeedbacks(feedbacks) {
+  const container = document.getElementById('feedbacksList');
+  
+  if (feedbacks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
+        <h3 style="color: #4b5563; margin-bottom: 10px;">No feedbacks found</h3>
+        <p style="color: #9ca3af;">Try adjusting your filters</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const categoryEmoji = {
+    'bug': '🐛',
+    'feature': '✨',
+    'suggestion': '💡',
+    'complaint': '😕',
+    'other': '📝'
+  };
+  
+  const priorityEmoji = {
+    'low': '🟢',
+    'medium': '🟡',
+    'high': '🔴'
+  };
+  
+  container.innerHTML = feedbacks.map(fb => {
+    const date = new Date(fb.timestamp).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    return `
+      <div style="
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s;
+      " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e5e7eb'">
+        
+        <!-- HEADER -->
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <h4 style="margin: 0; font-size: 18px; color: #1f2937;">
+                ${categoryEmoji[fb.category] || '📝'} ${fb.title}
+              </h4>
+              <span style="
+                padding: 4px 12px;
+                background: ${fb.category === 'bug' ? '#fee2e2' : 
+                            fb.category === 'feature' ? '#dbeafe' : 
+                            fb.category === 'suggestion' ? '#fef3c7' : '#f3f4f6'};
+                color: ${fb.category === 'bug' ? '#991b1b' : 
+                         fb.category === 'feature' ? '#1e40af' : 
+                         fb.category === 'suggestion' ? '#92400e' : '#4b5563'};
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+              ">${fb.category}</span>
+            </div>
+            <div style="display: flex; gap: 20px; font-size: 13px; color: #6b7280;">
+              <span><i class="bi bi-person-circle"></i> ${fb.username || 'Unknown'}</span>
+              <span><i class="bi bi-envelope"></i> ${fb.email}</span>
+              <span><i class="bi bi-calendar3"></i> ${date}</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="
+              padding: 6px 14px;
+              background: ${fb.priority === 'high' ? '#fee2e2' : 
+                          fb.priority === 'medium' ? '#fef3c7' : '#dcfce7'};
+              color: ${fb.priority === 'high' ? '#991b1b' : 
+                       fb.priority === 'medium' ? '#92400e' : '#166534'};
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 700;
+            ">${priorityEmoji[fb.priority]} ${fb.priority.toUpperCase()}</span>
+            
+            <select onchange="updateFeedbackStatus('${fb.uid}', '${fb.id}', this.value)" style="
+              padding: 6px 12px;
+              border: 2px solid #e5e7eb;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              <option value="pending" ${fb.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+              <option value="reviewed" ${fb.status === 'reviewed' ? 'selected' : ''}>👀 Reviewed</option>
+              <option value="resolved" ${fb.status === 'resolved' ? 'selected' : ''}>✅ Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- MESSAGE -->
+        <div style="
+          background: #f9fafb;
+          padding: 15px;
+          border-radius: 8px;
+          border-left: 4px solid #667eea;
+          margin-bottom: 15px;
+          line-height: 1.6;
+          color: #374151;
+        ">${fb.message}</div>
+
+        <!-- ADMIN RESPONSE -->
+        <div style="margin-top: 15px;">
+          ${fb.adminResponse ? `
+            <div style="
+              background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #10b981;
+              margin-bottom: 10px;
+            ">
+              <div style="font-weight: 700; color: #166534; margin-bottom: 5px;">
+                <i class="bi bi-shield-check"></i> Admin Response:
+              </div>
+              <div style="color: #14532d;">${fb.adminResponse}</div>
+            </div>
+          ` : ''}
+          
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="response_${fb.uid}_${fb.id}" placeholder="Type admin response..." style="
+              flex: 1;
+              padding: 10px 15px;
+              border: 2px solid #e5e7eb;
+              border-radius: 8px;
+              font-size: 14px;
+            ">
+            <button onclick="sendAdminResponse('${fb.uid}', '${fb.id}')" style="
+              padding: 10px 20px;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              <i class="bi bi-send-fill"></i> Send Response
+            </button>
+            <button onclick="deleteFeedback('${fb.uid}', '${fb.id}')" style="
+              padding: 10px 20px;
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              <i class="bi bi-trash-fill"></i> Delete
+            </button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================
+// FILTER FEEDBACKS
+// ============================================
+function filterFeedbacks() {
+  const statusFilter = document.getElementById('feedbackFilterStatus').value;
+  const categoryFilter = document.getElementById('feedbackFilterCategory').value;
+  const priorityFilter = document.getElementById('feedbackFilterPriority').value;
+  const searchQuery = document.getElementById('feedbackSearchInput').value.toLowerCase();
+  
+  let filtered = allFeedbacksData;
+  
+  // Filter by status
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(f => f.status === statusFilter);
+  }
+  
+  // Filter by category
+  if (categoryFilter !== 'all') {
+    filtered = filtered.filter(f => f.category === categoryFilter);
+  }
+  
+  // Filter by priority
+  if (priorityFilter !== 'all') {
+    filtered = filtered.filter(f => f.priority === priorityFilter);
+  }
+  
+  // Filter by search query
+  if (searchQuery) {
+    filtered = filtered.filter(f => 
+      f.title.toLowerCase().includes(searchQuery) ||
+      f.message.toLowerCase().includes(searchQuery) ||
+      f.username.toLowerCase().includes(searchQuery) ||
+      f.email.toLowerCase().includes(searchQuery)
+    );
+  }
+  
+  displayFeedbacks(filtered);
+  console.log('🔍 Filtered:', filtered.length, 'feedbacks');
+}
+
+// ============================================
+// UPDATE FEEDBACK STATUS
+// ============================================
+async function updateFeedbackStatus(uid, feedbackId, newStatus) {
+  const db = window.firebaseDatabase;
+  const feedbackRef = window.firebaseRef(db, `feedback/${uid}/${feedbackId}/status`);
+  
+  try {
+    await window.firebaseSet(feedbackRef, newStatus);
+    console.log('✅ Status updated:', feedbackId, '→', newStatus);
+    
+    // Update local data
+    const feedback = allFeedbacksData.find(f => f.id === feedbackId && f.uid === uid);
+    if (feedback) {
+      feedback.status = newStatus;
+    }
+    
+    // Update stats
+    const total = allFeedbacksData.length;
+    const pending = allFeedbacksData.filter(f => f.status === 'pending').length;
+    const reviewed = allFeedbacksData.filter(f => f.status === 'reviewed').length;
+    const resolved = allFeedbacksData.filter(f => f.status === 'resolved').length;
+    
+    updateFeedbackStats(total, pending, reviewed, resolved);
+    
+  } catch (error) {
+    console.error('❌ Error updating status:', error);
+    alert('Failed to update status: ' + error.message);
+  }
+}
+
+// ============================================
+// SEND ADMIN RESPONSE
+// ============================================
+async function sendAdminResponse(uid, feedbackId) {
+  const responseInput = document.getElementById(`response_${uid}_${feedbackId}`);
+  const response = responseInput.value.trim();
+  
+  if (!response) {
+    alert('⚠️ Please enter a response!');
+    return;
+  }
+  
+  const db = window.firebaseDatabase;
+  const feedbackRef = window.firebaseRef(db, `feedback/${uid}/${feedbackId}`);
+  
+  try {
+    await window.firebaseUpdate(feedbackRef, {
+      adminResponse: response,
+      status: 'reviewed',
+      respondedAt: new Date().toISOString()
+    });
+    
+    console.log('✅ Admin response sent:', feedbackId);
+    
+    // Reload feedbacks
+    await loadAllFeedbacks();
+    
+    // Show success
+    responseInput.value = '';
+    
+  } catch (error) {
+    console.error('❌ Error sending response:', error);
+    alert('Failed to send response: ' + error.message);
+  }
+}
+
+// ============================================
+// DELETE FEEDBACK
+// ============================================
+async function deleteFeedback(uid, feedbackId) {
+  if (!confirm('⚠️ Are you sure you want to DELETE this feedback? This action cannot be undone!')) {
+    return;
+  }
+  
+  const db = window.firebaseDatabase;
+  const feedbackRef = window.firebaseRef(db, `feedback/${uid}/${feedbackId}`);
+  
+  try {
+    await window.firebaseRemove(feedbackRef);
+    console.log('✅ Feedback deleted:', feedbackId);
+    
+    // Reload feedbacks
+    await loadAllFeedbacks();
+    
+  } catch (error) {
+    console.error('❌ Error deleting feedback:', error);
+    alert('Failed to delete feedback: ' + error.message);
+  }
+}
+
+// ============================================
+// REFRESH FEEDBACKS
+// ============================================
+async function refreshFeedbacks() {
+  document.getElementById('feedbacksList').innerHTML = `
+    <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p style="margin-top: 20px; font-size: 16px; font-weight: 600;">Refreshing feedbacks...</p>
+    </div>
+  `;
+  
+  await loadAllFeedbacks();
+  console.log('🔄 Feedbacks refreshed');
+}
+
+// ============================================
+// CLOSE FEEDBACK MANAGER
+// ============================================
+function closeFeedbackManager() {
+  const overlay = document.getElementById('feedbackManagerOverlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => overlay.remove(), 300);
+  }
+}
+
+// ============================================
+// GLOBAL EXPORTS
+// ============================================
+window.openFeedbackManager = openFeedbackManager;
+window.closeFeedbackManager = closeFeedbackManager;
+window.loadAllFeedbacks = loadAllFeedbacks;
+window.filterFeedbacks = filterFeedbacks;
+window.updateFeedbackStatus = updateFeedbackStatus;
+window.sendAdminResponse = sendAdminResponse;
+window.deleteFeedback = deleteFeedback;
+window.refreshFeedbacks = refreshFeedbacks;
+
+console.log('✅ Admin Feedback Manager loaded!');
+
+// ============================================
+// ANIMATIONS (CSS)
+// ============================================
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  #feedbacksList::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #feedbacksList::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  #feedbacksList::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  
+  #feedbacksList::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
+document.head.appendChild(style);
 
 async function loadPendingPayments() {
   const db = getDatabase();
@@ -764,7 +1558,7 @@ function closeAdminPanel() {
 // ============================================
 
 // ============================================
-// APPROVE PAYMENT - UPDATED ✅
+// APPROVE PAYMENT - COMPLETELY FIXED ✅
 // ============================================
 async function approvePayment(paymentKey, userId, productType) {
   const db = getDatabase();
@@ -799,13 +1593,12 @@ async function approvePayment(paymentKey, userId, productType) {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30);
       
+      // ✅ USE BATCH UPDATE (ATOMIC)
       const updates = {};
       updates[`users/${userId}/subscription/type`] = 'pro';
       updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
       updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
       updates[`users/${userId}/subscription/status`] = 'active';
-      
-      // ✅ RESET LAST DAILY COIN TIME (important!)
       updates[`users/${userId}/lastDailyCoin`] = null;
       
       const rootRef = window.firebaseRef(db, '/');
@@ -823,8 +1616,6 @@ async function approvePayment(paymentKey, userId, productType) {
       updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
       updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
       updates[`users/${userId}/subscription/status`] = 'active';
-      
-      // ✅ RESET LAST DAILY COIN TIME
       updates[`users/${userId}/lastDailyCoin`] = null;
       
       const rootRef = window.firebaseRef(db, '/');
@@ -834,32 +1625,51 @@ async function approvePayment(paymentKey, userId, productType) {
       showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
       
     } else if (product.coins) {
-      // Coins purchase (existing code)
+      // ✅ COINS PURCHASE - FIXED VERSION
       const coinsToAdd = product.coins + (product.bonus || 0);
       
-      const updates = {};
+      console.log(`💰 Adding ${coinsToAdd} coins to user ${userId}`);
+      
+      // Get current coins
       const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
       const snapshot = await window.firebaseGet(coinsRef);
       const currentCoins = snapshot.val() || 0;
       const newCoins = currentCoins + coinsToAdd;
       
+      console.log(`Current: ${currentCoins}, Adding: ${coinsToAdd}, New: ${newCoins}`);
+      
+      // ✅ UPDATE COINS USING ROOT UPDATE (ATOMIC)
+      const updates = {};
       updates[`users/${userId}/coins`] = newCoins;
       
       const rootRef = window.firebaseRef(db, '/');
       await window.firebaseUpdate(rootRef, updates);
       
-      console.log(`✅ Coins added: ${currentCoins} + ${coinsToAdd} = ${newCoins}`);
-      showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
+      console.log(`✅ Coins updated successfully: ${currentCoins} → ${newCoins}`);
       
-      const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
-      const newTransactionRef = window.firebasePush(transactionRef);
-      await window.firebaseSet(newTransactionRef, {
-        type: 'purchase',
-        amount: coinsToAdd,
-        productType: productType,
-        timestamp: new Date().toISOString(),
-        paymentKey: paymentKey
-      });
+      // ✅ LOG TRANSACTION - WITH PROPER ERROR HANDLING
+      try {
+        const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+        const newTransactionRef = window.firebasePush(transactionRef);
+        
+        await window.firebaseSet(newTransactionRef, {
+          type: 'purchase',
+          amount: coinsToAdd,
+          productType: productType,
+          productName: product.nameUz || product.name,
+          timestamp: new Date().toISOString(),
+          paymentKey: paymentKey,
+          adminId: window.firebaseAuth?.currentUser?.uid,
+          reason: `Purchased ${product.nameUz || product.name}`
+        });
+        
+        console.log('✅ Transaction logged successfully');
+      } catch (transactionError) {
+        console.error('⚠️ Transaction log failed (non-critical):', transactionError);
+        // Don't throw error - coins were added successfully
+      }
+      
+      showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
       
     } else {
       throw new Error('Unknown product type: ' + productType);
@@ -872,7 +1682,20 @@ async function approvePayment(paymentKey, userId, productType) {
     
   } catch (error) {
     console.error('❌ Approve error:', error);
-    showNotification('❌ Xatolik: ' + error.message, 'error');
+    
+    // ✅ USER-FRIENDLY ERROR MESSAGES
+    let errorMessage = 'Xatolik yuz berdi';
+    
+    if (error.code === 'PERMISSION_DENIED') {
+      errorMessage = '❌ Ruxsat yo\'q! Firebase Rules ni tekshiring.';
+      console.error('🔴 PERMISSION_DENIED - Check Firebase Rules for coin_transactions');
+    } else if (error.message.includes('not found')) {
+      errorMessage = '❌ Mahsulot topilmadi!';
+    } else {
+      errorMessage = `❌ Xatolik: ${error.message}`;
+    }
+    
+    showNotification(errorMessage, 'error');
   }
 }
 

@@ -6,7 +6,7 @@
 const COIN_CONFIG = {
   INITIAL_COINS: 10,
   DAILY_BONUS: 5,
-  DAILY_BONUS_COOLDOWN: 24 * 60 * 60 * 1000,
+  DAILY_BONUS_COOLDOWN: 24 * 60 * 60 * 1000, // 24 hours in ms
   
   TOOL_COSTS: {
     homework: 2,
@@ -350,8 +350,8 @@ async function claimDailyBonus() {
   const subscription = await checkUserSubscription();
   
   let bonusAmount = 5;
-  if (subscription.type === 'standard') bonusAmount = 10;
-  if (subscription.type === 'pro') bonusAmount = 20;
+  if (subscription.type === 'standard') bonusAmount = 20;
+  if (subscription.type === 'pro') bonusAmount = 50;
   
   const success = await addCoins(bonusAmount, 'Daily login bonus');
   

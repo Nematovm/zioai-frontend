@@ -14,14 +14,19 @@ let selectedArticle = null;
 let selectedArticleLanguage = 'uz';
 let userSummary = '';
 let highlightedText = '';
+// Line ~10 atrofida, boshqa global variables bilan
+let highlightedWordsCount = 0; // ✅ Track how many words user highlighted
+const MAX_HIGHLIGHT_WORDS = 7; // ✅ Maximum allowed
 
-// ✅ STORAGE KEYS - FAQAT BIR MARTA!
+// ✅ STORAGE KEYS - yangilangan
 const ARTICLES_STORAGE = {
   CURRENT_ARTICLE: 'articles_current_article',
   ARTICLE_VIEW: 'articles_current_view',
   CUSTOM_VOCABULARY: 'articles_custom_vocabulary',
   USER_SUMMARY: 'articles_user_summary',
-  ARTICLES_DATA: 'articles_data_cache'
+  ARTICLES_DATA: 'articles_data_cache',
+  HIGHLIGHT_COUNT: 'articles_highlight_count_', // ✅ per article
+  HIGHLIGHT_RESET_DATE: 'articles_highlight_reset_date'
 };
 
 console.log('🌐 Using API URL:', ARTICLE_API_URL);
@@ -56,7 +61,7 @@ function clearArticleStorage() {
 }
 
 // ============================================
-// INITIALIZE ARTICLES - ✅ WITH RESTORE STATE + DEBUG
+// INITIALIZE ARTICLES - ✅ IMPROVED ERROR HANDLING
 // ============================================
 async function initArticles() {
   console.log('📚 Initializing Articles Tool...');
@@ -71,7 +76,7 @@ async function initArticles() {
   
   console.log('✅ Container found:', container);
   
-  // ✅ CHECK IF USER WAS READING AN ARTICLE (ARTICLES_STORAGE ishlatiladi)
+  // ✅ CHECK IF USER WAS READING AN ARTICLE
   const savedArticleId = loadFromLocalStorage(ARTICLES_STORAGE.CURRENT_ARTICLE);
   const savedView = loadFromLocalStorage(ARTICLES_STORAGE.ARTICLE_VIEW);
   
@@ -118,14 +123,14 @@ async function initArticles() {
     }
   }
   
-  // ✅ DEFAULT: SHOW ARTICLES LIST
+  // ✅ DEFAULT: SHOW LOADING
   container.innerHTML = `
     <div class="articles-loading" style="text-align: center; padding: 60px;">
       <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p style="margin-top: 20px; color: #6b7280; font-size: 1.1rem; font-weight: 600;">
-        📄 Loading PDF articles...
+        📄 Maqolalar yuklanmoqda...
       </p>
     </div>
   `;
@@ -134,7 +139,16 @@ async function initArticles() {
   
   try {
     console.log('📡 Fetching articles from:', `${ARTICLE_API_URL}/articles`);
-    const response = await fetch(`${ARTICLE_API_URL}/articles`);
+    
+    // ✅ ADD TIMEOUT
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
+    const response = await fetch(`${ARTICLE_API_URL}/articles`, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
     
     console.log('📥 Response received:', response.status, response.statusText);
     
@@ -149,18 +163,42 @@ async function initArticles() {
       articlesData = data.articles;
       console.log(`✅ Loaded ${articlesData.length} articles:`, articlesData);
       
-      // ✅ FORCE RENDER
+      // ✅ CACHE ARTICLES
+      saveToLocalStorage(ARTICLES_STORAGE.ARTICLES_DATA, articlesData);
+      
+      // ✅ RENDER
       setTimeout(() => {
         console.log('🎨 Rendering articles list...');
         renderArticlesList();
       }, 100);
     } else {
-      throw new Error('No articles found in response');
+      throw new Error('Maqolalar topilmadi');
     }
     
   } catch (error) {
     console.error('❌ Error loading articles:', error);
-    showArticlesError(`Failed to load articles: ${error.message}`);
+    
+    // ✅ TRY LOADING FROM CACHE
+    const cachedArticles = loadFromLocalStorage(ARTICLES_STORAGE.ARTICLES_DATA);
+    if (cachedArticles && cachedArticles.length > 0) {
+      console.log('🔄 Loading from cache:', cachedArticles.length);
+      articlesData = cachedArticles;
+      renderArticlesList();
+      return;
+    }
+    
+    // ✅ IMPROVED ERROR MESSAGE
+    let errorMessage = 'Maqolalarni yuklashda xatolik yuz berdi';
+    
+    if (error.name === 'AbortError') {
+      errorMessage = 'Ulanish vaqti tugadi. Iltimos, internetni tekshiring va qayta urinib ko\'ring.';
+    } else if (error.message.includes('Failed to fetch')) {
+      errorMessage = 'Internet bilan aloqa yo\'q. Iltimos, internetni tekshiring.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    showArticlesError(errorMessage);
   }
 }
 
@@ -229,39 +267,95 @@ function renderArticlesList() {
 }
 
 // ============================================
-// OPEN ARTICLE VIEW - ✅ WITH STATE SAVING + LANGUAGE FIX
+// GET HIGHLIGHT COUNT FOR ARTICLE - YANGI ✅
+// ============================================
+function getHighlightCount(articleId) {
+  const key = ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId;
+  
+  // ✅ Check if it's a new day (reset daily)
+  const lastResetDate = loadFromLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE);
+  const today = new Date().toDateString();
+  
+  if (lastResetDate !== today) {
+    console.log('📅 New day detected, resetting ALL highlight counts');
+    // Clear all highlight counts for ALL articles
+    Object.keys(localStorage).forEach(storageKey => {
+      if (storageKey.startsWith(ARTICLES_STORAGE.HIGHLIGHT_COUNT)) {
+        localStorage.removeItem(storageKey);
+        console.log('🗑️ Cleared:', storageKey);
+      }
+    });
+    saveToLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE, today);
+    console.log('✅ Daily reset complete, returning 0');
+    return 0;
+  }
+  
+  // ✅ Return saved count (PERSISTENT until tomorrow)
+  const saved = loadFromLocalStorage(key);
+  console.log(`📊 Highlight count for ${articleId}: ${saved || 0}/${MAX_HIGHLIGHT_WORDS}`);
+  
+  return saved || 0;
+}
+
+// ============================================
+// SAVE HIGHLIGHT COUNT FOR ARTICLE - YANGI ✅
+// ============================================
+function saveHighlightCount(articleId, count) {
+  const key = ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId;
+  saveToLocalStorage(key, count);
+  
+  // ✅ ALSO save reset date to ensure consistency
+  const today = new Date().toDateString();
+  saveToLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE, today);
+  
+  console.log(`💾 Highlight count SAVED for ${articleId}: ${count}/${MAX_HIGHLIGHT_WORDS}`);
+  console.log(`📅 Reset date: ${today}`);
+}
+
+// ============================================
+// OPEN ARTICLE - UPDATED ✅
 // ============================================
 function openArticle(articleId) {
   console.log('🔍 Opening article with ID:', articleId);
-  console.log('📚 Available articles:', articlesData);
   
   selectedArticle = articlesData.find(a => a.id === articleId);
   
   if (!selectedArticle) {
     console.error('❌ Article not found:', articleId);
-    console.log('Available IDs:', articlesData.map(a => a.id));
     alert('Article not found!');
     return;
   }
   
   console.log('📖 Opening article:', selectedArticle.title);
+  console.log('📊 Article level:', selectedArticle.level);
   currentArticleView = 'article';
+  
+  // ✅ RESTORE HIGHLIGHT COUNT (PERSISTENT PER ARTICLE!)
+  highlightedWordsCount = getHighlightCount(articleId);
+  
+  // ✅ VALIDATION: Ensure count doesn't exceed max
+  if (highlightedWordsCount > MAX_HIGHLIGHT_WORDS) {
+    console.warn(`⚠️ Invalid count ${highlightedWordsCount}, resetting to ${MAX_HIGHLIGHT_WORDS}`);
+    highlightedWordsCount = MAX_HIGHLIGHT_WORDS;
+    saveHighlightCount(articleId, MAX_HIGHLIGHT_WORDS);
+  }
+  
+  console.log(`✅ Highlight count restored: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
   
   // ✅ SAVE STATE
   saveToLocalStorage(ARTICLES_STORAGE.CURRENT_ARTICLE, articleId);
   saveToLocalStorage(ARTICLES_STORAGE.ARTICLE_VIEW, 'article');
+  saveToLocalStorage('articles_current_level', selectedArticle.level);
   
-// ✅ RESTORE USER-ADDED VOCABULARY
+  // ✅ RESTORE USER-ADDED VOCABULARY
   const customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY);
   if (customVocab && customVocab[articleId]) {
     console.log('🔄 Restoring custom vocabulary:', customVocab[articleId].length, 'words');
     
-    // ✅ FIXED: Merge with existing vocabulary
     const existingWords = (selectedArticle.vocabulary || []).map(v => v.word.toLowerCase());
     
     customVocab[articleId].forEach(customWord => {
       if (!existingWords.includes(customWord.word.toLowerCase())) {
-        // ✅ CRITICAL FIX: Check if Russian translation is actually valid (MORE LENIENT)
         if (!customWord.translation_uz || customWord.translation_uz === customWord.word) {
           customWord.translation_uz = customWord.word;
         }
@@ -271,7 +365,6 @@ function openArticle(articleId) {
                                 /[а-яА-ЯёЁ]/.test(customWord.translation_ru);
         
         if (!hasValidRussian) {
-          // ✅ Set fallback that will be detected later
           customWord.translation_ru = `${customWord.word} (перевод не найден)`;
         }
         
@@ -281,8 +374,6 @@ function openArticle(articleId) {
         ];
       }
     });
-    
-    console.log('✅ Custom vocabulary restored with validated translations');
   }
   
   // ✅ RESTORE USER SUMMARY (if exists)
@@ -300,35 +391,32 @@ function openArticle(articleId) {
 }
 
 // ============================================
-// RENDER ARTICLE VIEW - ✅ FIXED WITH LANGUAGE-AWARE RESTORE
+// RENDER ARTICLE VIEW - HIDE HIGHLIGHT IF LIMIT REACHED ✅
+// Replace the entire renderArticleView() function
 // ============================================
 function renderArticleView() {
   const container = document.getElementById('articlesListContainer');
   
-  if (!container) {
-    console.error('❌ Container not found!');
+  if (!container || !selectedArticle) {
+    console.error('❌ Container or article not found!');
     return;
   }
   
-  if (!selectedArticle) {
-    console.error('❌ No article selected!');
-    return;
-  }
+  // ✅ Calculate remaining highlights
+  const remaining = MAX_HIGHLIGHT_WORDS - highlightedWordsCount;
+  const isLimitReached = highlightedWordsCount >= MAX_HIGHLIGHT_WORDS;
+  
+  const badgeColor = remaining <= 2 ? '#ef4444' : remaining <= 4 ? '#f59e0b' : '#fbbf24';
+  const badgeShadow = remaining <= 2 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(251, 191, 36, 0.3)';
   
   console.log('📄 Rendering article:', selectedArticle.title);
-  console.log('🌐 Current language:', selectedArticleLanguage);
-  console.log('📚 Vocabulary count:', selectedArticle.vocabulary?.length || 0);
+  console.log(`🎨 Highlight status: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS} (${remaining} left)`);
+  console.log(`🔒 Limit reached:`, isLimitReached);
   
-  // ✅ FIXED: Ensure all vocabulary has translations for current language
   if (selectedArticle.vocabulary) {
     selectedArticle.vocabulary.forEach(vocab => {
-      // Check if translations exist, if not set fallbacks
-      if (!vocab.translation_uz) {
-        vocab.translation_uz = vocab.word;
-      }
-      if (!vocab.translation_ru) {
-        vocab.translation_ru = vocab.definition || vocab.word;
-      }
+      if (!vocab.translation_uz) vocab.translation_uz = vocab.word;
+      if (!vocab.translation_ru) vocab.translation_ru = vocab.definition || vocab.word;
     });
   }
   
@@ -368,23 +456,43 @@ function renderArticleView() {
     </div>
     
     <div class="article-view-content">
-      <div id="articleTextContent" class="article-text" onmouseup="handleTextSelection()">
+      <div id="articleTextContent" class="article-text" ${!isLimitReached ? 'onmouseup="handleTextSelection()"' : ''}>
         ${highlightedContent}
       </div>
       
+      ${!isLimitReached ? `
       <div id="selectedTextTooltip" class="selected-text-tooltip" style="display: none;">
-        <button onclick="highlightSelectedText()" class="highlight-btn">
-          <i class="bi bi-pen-fill"></i> Highlight
+        <button onclick="highlightSelectedText()" class="highlight-btn" style="display: flex; align-items: center; gap: 8px;">
+          <i class="bi bi-pen-fill"></i> 
+          <span>Highlight</span>
+          <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700;">
+            ${remaining} left
+          </span>
         </button>
       </div>
+      ` : ''}
     </div>
     
     ${(selectedArticle.vocabulary && selectedArticle.vocabulary.length > 0) ? `
     <div class="article-vocabulary-section">
-      <h2 class="section-title">
-        <i class="bi bi-book-half"></i>
-        Advanced Vocabulary
-      </h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h2 class="section-title">
+          <i class="bi bi-book-half"></i>
+          Advanced Vocabulary
+        </h2>
+        
+        ${isLimitReached ? `
+        <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);">
+          <i class="bi bi-lock-fill"></i>
+          <span>Highlight limit reached (${MAX_HIGHLIGHT_WORDS}/${MAX_HIGHLIGHT_WORDS})</span>
+        </div>
+        ` : `
+        <div style="background: linear-gradient(135deg, ${badgeColor} 0%, ${badgeColor === '#ef4444' ? '#dc2626' : badgeColor === '#f59e0b' ? '#d97706' : '#f59e0b'} 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px ${badgeShadow};">
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>Highlight: 1 🪙/word (${remaining} left today)</span>
+        </div>
+        `}
+      </div>
       
       <div id="vocabularyGridContainer" class="vocabulary-grid">
         ${renderVocabularyCards(selectedArticle.vocabulary)}
@@ -393,10 +501,17 @@ function renderArticleView() {
     ` : ''}
     
     <div class="article-summary-section">
-      <h2 class="section-title">
-        <i class="bi bi-pencil-square"></i>
-        Write Your Summary
-      </h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 class="section-title">
+          <i class="bi bi-pencil-square"></i>
+          Write Your Summary
+        </h2>
+        
+        <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);">
+          <i class="bi bi-stars"></i>
+          <span>Feedback: ${selectedArticle.level === 'C1' ? '14' : selectedArticle.level === 'B2' ? '9' : '6'} 🪙</span>
+        </div>
+      </div>
       
       <p class="summary-instruction">
         📝 Summarize the article in your own words (50-500 words). AI will analyze and give feedback.
@@ -436,7 +551,8 @@ function renderArticleView() {
   }, 100);
   
   enableVocabularyTooltips();
-  console.log('✅ Article view rendered successfully with language:', selectedArticleLanguage);
+  console.log('✅ Article view rendered');
+  console.log(`🔒 Highlight feature ${isLimitReached ? 'HIDDEN' : 'ACTIVE'}`);
 }
 
 // ============================================
@@ -607,7 +723,17 @@ function getVocabTranslation(vocab) {
 }
 
 
+// ============================================
+// HANDLE TEXT SELECTION - WITH LIMIT CHECK ✅
+// Replace the entire handleTextSelection() function
+// ============================================
 function handleTextSelection() {
+  // ✅ CHECK IF LIMIT REACHED
+  if (highlightedWordsCount >= MAX_HIGHLIGHT_WORDS) {
+    console.log('🔒 Highlight limit reached, ignoring selection');
+    return;
+  }
+  
   const selection = window.getSelection();
   const text = selection.toString().trim();
   
@@ -615,6 +741,13 @@ function handleTextSelection() {
     highlightedText = text;
     
     const tooltip = document.getElementById('selectedTextTooltip');
+    
+    // ✅ Check if tooltip exists (it won't if limit is reached)
+    if (!tooltip) {
+      console.log('⚠️ Tooltip not found (limit reached)');
+      return;
+    }
+    
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     
@@ -623,7 +756,10 @@ function handleTextSelection() {
     tooltip.style.top = `${rect.top - 50}px`;
     tooltip.style.left = `${rect.left + (rect.width / 2) - 50}px`;
   } else {
-    document.getElementById('selectedTextTooltip').style.display = 'none';
+    const tooltip = document.getElementById('selectedTextTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
   }
 }
 
@@ -906,6 +1042,10 @@ function showWordTranslation(vocab) {
       0% { transform: scale(0.9); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
+    @keyframes fadeOut {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.9); }
+    }
   `;
   document.head.appendChild(style);
   
@@ -923,13 +1063,72 @@ function showWordTranslation(vocab) {
   
   console.log('✅ Translation popup shown:', selectedArticleLanguage, '→', translation, '(valid:', hasTranslation, ')');
 }
+// ============================================
+// HIGHLIGHT SELECTED TEXT - WITH DOUBLE CHECK ✅
+// Replace the beginning of highlightSelectedText() function
+// ============================================
 async function highlightSelectedText() {
   if (!highlightedText) {
-    console.log('⚠️ No text selected');
+    console.warn('⚠️ No text selected');
     return;
   }
   
   console.log('🎯 Highlighting text:', highlightedText);
+  console.log(`📊 Current count BEFORE: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
+  
+  // ✅ DOUBLE CHECK HIGHLIGHT LIMIT (in case of race condition)
+  if (highlightedWordsCount >= MAX_HIGHLIGHT_WORDS) {
+    console.error(`❌ BLOCKED: Limit already reached (${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS})`);
+    
+    // Show message
+    const tooltip = document.getElementById('selectedTextTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
+    
+    // Show alert
+    alert(`⚠️ Daily highlight limit reached!\n\n` +
+          `You've used all ${MAX_HIGHLIGHT_WORDS} highlights for today.\n\n` +
+          `Limit resets tomorrow. 📅`);
+    
+    // ✅ Reload article view to hide highlight feature
+    renderArticleView();
+    
+    return;
+  }
+  
+  // 🪙 1 COIN CHECK
+  console.log(`💰 Checking 1 coin for user-highlighted word...`);
+  
+  if (typeof checkAndSpendCoins === 'function') {
+    const canProceed = await checkAndSpendCoins('article-highlight', 1);
+    
+    if (!canProceed) {
+      console.error('❌ BLOCKED: Insufficient coins');
+      document.getElementById('selectedTextTooltip').style.display = 'none';
+      return;
+    }
+    
+    console.log(`✅ 1 coin deducted, proceeding...`);
+  }
+  
+  // ✅ INCREMENT COUNTER (SAVE TO LOCALSTORAGE IMMEDIATELY!)
+  highlightedWordsCount++;
+  saveHighlightCount(selectedArticle.id, highlightedWordsCount);
+  
+  console.log(`📊 Highlighted words AFTER: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS} (saved to localStorage)`);
+  
+  // ✅ VERIFY SAVE
+  const verifyCount = getHighlightCount(selectedArticle.id);
+  if (verifyCount !== highlightedWordsCount) {
+    console.error(`⚠️ SAVE VERIFICATION FAILED! Expected ${highlightedWordsCount}, got ${verifyCount}`);
+    highlightedWordsCount = verifyCount; // Use verified value
+  } else {
+    console.log(`✅ Save verified: ${verifyCount}/${MAX_HIGHLIGHT_WORDS}`);
+  }
+  
+  // ✅ UPDATE UI (show remaining highlights)
+  updateHighlightCountDisplay();
   
   // Hide selection tooltip immediately
   document.getElementById('selectedTextTooltip').style.display = 'none';
@@ -951,19 +1150,20 @@ async function highlightSelectedText() {
   } else {
     console.log('➕ Fetching translation for new word:', highlightedText);
     
-    // ✅ Show loading state
     showTranslationLoading(highlightedText);
     
     try {
-    // ✅ Call NEW endpoint for articles
-    const response = await fetch(`${ARTICLE_API_URL}/article-vocabulary`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        word: highlightedText,
-        language: selectedArticleLanguage
-      })
-    });
+      const articleLevel = loadFromLocalStorage('articles_current_level') || 'B1';
+      
+      const response = await fetch(`${ARTICLE_API_URL}/article-vocabulary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: highlightedText,
+          language: selectedArticleLanguage,
+          level: articleLevel
+        })
+      });
       
       if (!response.ok) {
         throw new Error('Translation failed');
@@ -972,12 +1172,10 @@ async function highlightSelectedText() {
       const data = await response.json();
       console.log('🔍 Backend response:', data);
       
-      // ✅ FIXED: Remove loading popup first
       const loadingPopup = document.querySelector('.translation-loading-popup');
       if (loadingPopup) loadingPopup.remove();
       
       if (data.success && data.result) {
-        // ✅ Parse AI response to extract translations
         vocabToShow = parseVocabularyResponse(data.result, highlightedText);
         console.log('✅ Parsed vocabulary:', vocabToShow);
       } else {
@@ -987,11 +1185,22 @@ async function highlightSelectedText() {
     } catch (error) {
       console.error('❌ Translation error:', error);
       
-      // ✅ Remove loading popup on error too
+      // ⚠️ REFUND 1 COIN ON ERROR
+      if (typeof window.coinManager !== 'undefined') {
+        window.coinManager.addCoins(1, 'Refund: Vocabulary error');
+        updateCoinDisplay();
+      }
+      
+      // ⚠️ DECREMENT COUNTER ON ERROR (AND SAVE!)
+      highlightedWordsCount--;
+      saveHighlightCount(selectedArticle.id, highlightedWordsCount);
+      updateHighlightCountDisplay();
+      
+      console.log(`📊 Refunded: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
+      
       const loadingPopup = document.querySelector('.translation-loading-popup');
       if (loadingPopup) loadingPopup.remove();
       
-      // ✅ Fallback with basic info
       vocabToShow = {
         word: highlightedText,
         definition: 'Selected word from the article',
@@ -1010,7 +1219,40 @@ async function highlightSelectedText() {
   highlightedText = '';
   window.getSelection().removeAllRanges();
   
-  console.log('✅ Highlight complete!');
+  console.log('✅ Highlight complete! Final count:', highlightedWordsCount);
+}
+
+// ============================================
+// UPDATE HIGHLIGHT COUNT DISPLAY - YANGI ✅
+// ============================================
+function updateHighlightCountDisplay() {
+  const remaining = MAX_HIGHLIGHT_WORDS - highlightedWordsCount;
+  
+  // Update section header badge
+  const highlightBadge = document.querySelector('.article-vocabulary-section [style*="background: linear-gradient(135deg, #fbbf24"]');
+  
+  if (highlightBadge) {
+    highlightBadge.innerHTML = `
+      <i class="bi bi-lightbulb-fill"></i>
+      <span>Highlight: 1 🪙/word (${remaining} left today)</span>
+    `;
+    
+    // Change color when low
+    if (remaining <= 2) {
+      highlightBadge.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      highlightBadge.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
+    } else if (remaining <= 4) {
+      highlightBadge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    }
+  }
+  
+  // Update tooltip button text
+  const tooltipBtn = document.querySelector('#selectedTextTooltip .highlight-btn span:last-child');
+  if (tooltipBtn) {
+    tooltipBtn.textContent = `${remaining} left`;
+  }
+  
+  console.log(`🎨 UI updated: ${remaining}/${MAX_HIGHLIGHT_WORDS} highlights remaining`);
 }
 
 function showTranslationLoading(word) {
@@ -1235,14 +1477,7 @@ function deleteVocabularyCard(word) {
 }
 
 // Add fadeOut animation to CSS (add this to your styles)
-const style = document.createElement('style');
-style.textContent = `
-@keyframes fadeOut {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.9); }
-}
-`;
-document.head.appendChild(style);
+
 // ============================================
 // SAVE CUSTOM VOCABULARY - ✅ YANGI
 // ============================================
@@ -1304,16 +1539,45 @@ function removeCustomVocabulary(articleId, word) {
     console.log('💾 Custom vocabulary removed from storage');
   }
 }
-// ============================================
-// SUBMIT SUMMARY - ✅ FIXED WITH WORD COUNT
-// ============================================
 async function submitSummary() {
+  // ✅ GET ARTICLE LEVEL
+  const articleLevel = loadFromLocalStorage('articles_current_level') || 'B1';
+  
+  // ✅ COIN PRICES BY LEVEL (ONLY FOR SUMMARY)
+  const coinPrices = {
+    'B1': 6,   // Simple summary feedback
+    'B2': 9,   // Structured feedback
+    'C1': 14   // Detailed C1 feedback
+  };
+  
+  const coinCost = coinPrices[articleLevel] || 6;
+  
+  // 🪙 COIN CHECK
+  console.log(`💰 Checking ${coinCost} coins for ${articleLevel} summary...`);
+  
+  if (typeof checkAndSpendCoins === 'function') {
+    const canProceed = await checkAndSpendCoins('article-summary', coinCost);
+    
+    if (!canProceed) {
+      console.error('❌ BLOCKED: Insufficient coins for summary');
+      return;
+    }
+    
+    console.log(`✅ ${coinCost} coins deducted, proceeding...`);
+  }
+  
   // ✅ SO'Z SONINI TEKSHIRISH
   const words = userSummary.trim().split(/\s+/).filter(w => w.length > 0);
   const wordCount = words.length;
   
   if (wordCount < 50) {
     alert(`⚠️ Please write at least 50 words for your summary!\n\nYou have written: ${wordCount} words`);
+    
+    // ⚠️ REFUND COINS
+    if (typeof window.coinManager !== 'undefined') {
+      window.coinManager.addCoins(coinCost, 'Refund: Summary too short');
+      updateCoinDisplay();
+    }
     return;
   }
   
@@ -1335,7 +1599,8 @@ async function submitSummary() {
     console.log('📤 Sending summary:', {
       wordCount,
       summaryLength: userSummary.length,
-      articleTitle: selectedArticle.title
+      articleTitle: selectedArticle.title,
+      level: articleLevel
     });
     
     const response = await fetch(`${ARTICLE_API_URL}/article-summary`, {
@@ -1348,7 +1613,8 @@ async function submitSummary() {
         article: selectedArticle.content.substring(0, 2000),
         userSummary: userSummary,
         language: selectedArticleLanguage,
-        articleTitle: selectedArticle.title
+        articleTitle: selectedArticle.title,
+        level: articleLevel // ✅ Send level
       })
     });
     
@@ -1357,6 +1623,13 @@ async function submitSummary() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Server error:', errorText);
+      
+      // ⚠️ REFUND ON ERROR
+      if (typeof window.coinManager !== 'undefined') {
+        window.coinManager.addCoins(coinCost, 'Refund: Server error');
+        updateCoinDisplay();
+      }
+      
       throw new Error(`Server error: ${response.status}`);
     }
     
@@ -1384,6 +1657,13 @@ async function submitSummary() {
     }
   } catch (error) {
     console.error('❌ Error:', error);
+    
+    // ⚠️ REFUND ON ERROR
+    if (typeof window.coinManager !== 'undefined') {
+      window.coinManager.addCoins(coinCost, 'Refund: ' + error.message);
+      updateCoinDisplay();
+    }
+    
     feedbackDisplay.innerHTML = `
       <div class="feedback-error">
         <i class="bi bi-exclamation-triangle"></i>
@@ -1493,21 +1773,28 @@ function resetSummary() {
 }
 
 // ============================================
-// BACK TO ARTICLES LIST - ✅ CLEAR STATE
+// BACK TO ARTICLES LIST - UPDATED ✅
 // ============================================
 function backToArticlesList() {
   currentArticleView = 'list';
+  
+  // ✅ DON'T CLEAR HIGHLIGHT COUNT! (only clear article state)
+  // highlightedWordsCount = 0; // ❌ REMOVE THIS LINE
+  
   selectedArticle = null;
   userSummary = '';
   highlightedText = '';
   
-  // ✅ CLEAR LOCALSTORAGE
-  clearArticleStorage();
+  // ✅ CLEAR ONLY ARTICLE STATE (NOT HIGHLIGHT COUNT!)
+  localStorage.removeItem(ARTICLES_STORAGE.CURRENT_ARTICLE);
+  localStorage.removeItem(ARTICLES_STORAGE.ARTICLE_VIEW);
+  localStorage.removeItem(ARTICLES_STORAGE.USER_SUMMARY);
+  localStorage.removeItem('articles_current_level');
   
   renderArticlesList();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   
-  console.log('🔙 Returned to articles list, state cleared');
+  console.log('🔙 Returned to articles list (highlight counts preserved)');
 }
 
 // ============================================
@@ -1619,16 +1906,110 @@ function getArticleLevelClass(level) {
   return classes[level] || 'level-b1';
 }
 
+// ============================================
+// IMPROVED ERROR DISPLAY
+// ============================================
 function showArticlesError(message) {
   const container = document.getElementById('articlesListContainer');
   if (container) {
     container.innerHTML = `
-      <div class="articles-error">
-        <i class="bi bi-exclamation-triangle"></i>
-        <h3>Oops! Something went wrong</h3>
-        <p>${message}</p>
-        <button onclick="initArticles()" class="retry-btn">
-          <i class="bi bi-arrow-clockwise"></i> Try Again
+      <div class="articles-error" style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+        <h3 style="color: #ef4444; font-size: 1.5rem; margin-bottom: 15px;">Xatolik yuz berdi</h3>
+        <p style="color: #6b7280; font-size: 1.1rem; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+          ${message}
+        </p>
+        
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+          <button onclick="initArticles()" class="retry-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-arrow-clockwise"></i> Qayta urinish
+          </button>
+          
+          <button onclick="checkBackendStatus()" style="background: #f3f4f6; color: #4b5563; border: 2px solid #e5e7eb; padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-info-circle"></i> Server holatini tekshirish
+          </button>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f3f4f6; border-radius: 12px; max-width: 600px; margin-left: auto; margin-right: auto;">
+          <p style="color: #6b7280; font-size: 0.95rem; margin: 0; line-height: 1.6;">
+            <strong>Maslahat:</strong> Agar muammo davom etsa:
+          </p>
+          <ul style="color: #6b7280; font-size: 0.9rem; text-align: left; margin: 10px 0 0 0; padding-left: 20px;">
+            <li>Internet aloqangizni tekshiring</li>
+            <li>Sahifani yangilang (F5)</li>
+            <li>Brauzer keshini tozalang</li>
+            <li>Boshqa brauzerda sinab ko'ring</li>
+          </ul>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ============================================
+// CHECK BACKEND STATUS - YANGI ✅
+// ============================================
+async function checkBackendStatus() {
+  const container = document.getElementById('articlesListContainer');
+  
+  container.innerHTML = `
+    <div style="text-align: center; padding: 60px 20px;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Checking...</span>
+      </div>
+      <p style="margin-top: 20px; color: #6b7280; font-size: 1.1rem; font-weight: 600;">
+        🔍 Server holatini tekshirilmoqda...
+      </p>
+    </div>
+  `;
+  
+  try {
+    console.log('🔍 Checking backend status...');
+    console.log('📍 API URL:', ARTICLE_API_URL);
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    
+    const response = await fetch(`${ARTICLE_API_URL}/health`, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Backend is healthy:', data);
+      
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+          <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+          <h3 style="color: #10b981; font-size: 1.5rem; margin-bottom: 15px;">Server ishlayapti!</h3>
+          <p style="color: #6b7280; font-size: 1rem; margin-bottom: 30px;">
+            Backend server normal ishlayapti. Maqolalarni yuklashni qayta urinib ko'ring.
+          </p>
+          <button onclick="initArticles()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+            <i class="bi bi-arrow-clockwise"></i> Maqolalarni yuklash
+          </button>
+        </div>
+      `;
+    } else {
+      throw new Error('Server javob bermadi');
+    }
+  } catch (error) {
+    console.error('❌ Backend check failed:', error);
+    
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+        <h3 style="color: #ef4444; font-size: 1.5rem; margin-bottom: 15px;">Server javob bermayapti</h3>
+        <p style="color: #6b7280; font-size: 1rem; margin-bottom: 15px;">
+          Backend server bilan aloqa o'rnatib bo'lmadi.
+        </p>
+        <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 30px;">
+          API: <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${ARTICLE_API_URL}</code>
+        </p>
+        <button onclick="initArticles()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+          <i class="bi bi-arrow-clockwise"></i> Qayta urinish
         </button>
       </div>
     `;
@@ -1665,5 +2046,6 @@ window.resetSummary = resetSummary;
 window.handleTextSelection = handleTextSelection;
 window.highlightSelectedText = highlightSelectedText;
 window.deleteVocabularyCard = deleteVocabularyCard; // ✅ YANGI
+window.checkBackendStatus = checkBackendStatus;
 
 console.log('✅ Articles module loaded - Complete Fixed Version');

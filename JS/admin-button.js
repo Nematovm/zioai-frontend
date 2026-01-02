@@ -1,5 +1,5 @@
 // ============================================
-// 👨‍💼 ADMIN PANEL BUTTON - FIXED VERSION
+// 👨‍💼 ADMIN PANEL BUTTON - WITH TESTIMONIALS
 // ============================================
 
 (function() {
@@ -18,6 +18,7 @@
   
   let retryCount = 0;
   let paymentListener = null;
+  let testimonialsListener = null;
   let isAdminVerified = false;
   
   // ============================================
@@ -77,6 +78,7 @@
           if (isAdminVerified) {
             createAdminButton();
             startListeningForPayments();
+            startListeningForTestimonials();
           } else {
             console.warn('⚠️ Admin UID in list but not in database!');
             console.warn('💡 Run: initializeAdmin() in console');
@@ -162,7 +164,7 @@ Please:
   
   function startListeningForPayments() {
     if (!isAdminVerified) {
-      console.error('❌ Cannot start listener - admin not verified');
+      console.error('❌ Cannot start payment listener - admin not verified');
       return;
     }
     
@@ -181,7 +183,7 @@ Please:
       // Create query
       const paymentsRef = window.firebaseRef(db, 'payment_attempts');
       
-      // Listen to all payments first
+      // Listen to all payments
       paymentListener = window.firebaseOnValue(
         paymentsRef,
         (snapshot) => {
@@ -193,14 +195,14 @@ Please:
             }
           });
           
-          updateNotificationBadge(pendingCount);
+          updatePaymentBadge(pendingCount);
           
           if (pendingCount > 0) {
-            console.log(`🔔 ${pendingCount} pending payment(s)`);
+            console.log(`💰 ${pendingCount} pending payment(s)`);
           }
         },
         (error) => {
-          console.error('❌ Listener error:', error);
+          console.error('❌ Payment listener error:', error);
           
           if (error.code === 'PERMISSION_DENIED') {
             console.error('💡 Check:');
@@ -214,11 +216,66 @@ Please:
       console.log('✅ Payment listener started');
       
     } catch (error) {
-      console.error('❌ Listener setup error:', error);
+      console.error('❌ Payment listener setup error:', error);
     }
   }
   
-// ============================================
+  // ============================================
+  // LISTEN FOR TESTIMONIALS
+  // ============================================
+  
+  function startListeningForTestimonials() {
+    if (!isAdminVerified) {
+      console.error('❌ Cannot start testimonials listener - admin not verified');
+      return;
+    }
+    
+    const db = window.firebaseDatabase;
+    if (!db) {
+      console.error('❌ Database not available');
+      return;
+    }
+    
+    try {
+      // Stop previous listener
+      if (testimonialsListener) {
+        testimonialsListener();
+      }
+      
+      // Create query
+      const testimonialsRef = window.firebaseRef(db, 'testimonials');
+      
+      // Listen to all testimonials
+      testimonialsListener = window.firebaseOnValue(
+        testimonialsRef,
+        (snapshot) => {
+          let pendingCount = 0;
+          
+          snapshot.forEach((child) => {
+            if (child.val().status === 'pending') {
+              pendingCount++;
+            }
+          });
+          
+          updateTestimonialsBadge(pendingCount);
+          
+          if (pendingCount > 0) {
+            console.log(`⭐ ${pendingCount} pending testimonial(s)`);
+          }
+        },
+        (error) => {
+          console.error('❌ Testimonials listener error:', error);
+        }
+      );
+      
+      console.log('✅ Testimonials listener started');
+      
+    } catch (error) {
+      console.error('❌ Testimonials listener setup error:', error);
+    }
+  }
+  
+  // ============================================
   // CREATE ADMIN BUTTON
   // ============================================
   
@@ -241,7 +298,9 @@ Please:
       gap: 10px;
     `;
     
-    // ADMIN PANEL BUTTON
+    // ============================================
+    // 1️⃣ ADMIN PANEL BUTTON (Main)
+    // ============================================
     const adminButton = document.createElement('button');
     adminButton.id = 'adminPanelBtn';
     adminButton.onclick = openAdminPanelWithCheck;
@@ -252,7 +311,7 @@ Please:
         <path d="M2 12l10 5 10-5"></path>
       </svg>
       Admin Panel
-      <span id="adminNotificationBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
+      <span id="adminPaymentBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
     `;
     
     adminButton.style.cssText = `
@@ -287,9 +346,58 @@ Please:
     
     buttonContainer.appendChild(adminButton);
     
-    // COINS MANAGEMENT BUTTON
+    // ============================================
+    // 2️⃣ TESTIMONIALS MANAGEMENT BUTTON
+    // ============================================
+    const testimonialsButton = document.createElement('button');
+    testimonialsButton.innerHTML = `
+      <i class="bi bi-star-fill" style="margin-right: 8px;"></i>
+      Testimonials
+      <span id="testimonialsBadge" style="display: none; position: absolute; top: -8px; right: -8px; background: #fbbf24; color: #1f2937; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; animation: pulse 2s infinite;">0</span>
+    `;
+    testimonialsButton.onclick = () => {
+      if (typeof window.openAdminTestimonialsPanel === 'function') {
+        window.openAdminTestimonialsPanel();
+      } else {
+        alert('openAdminTestimonialsPanel funksiyasi topilmadi!');
+        console.error('❌ openAdminTestimonialsPanel is not defined. Is admin-testimonials.js loaded?');
+      }
+    };
+    testimonialsButton.style.cssText = `
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    
+    testimonialsButton.onmouseover = () => {
+      testimonialsButton.style.background = 'linear-gradient(135deg, #7c3aed, #6d28d9)';
+      testimonialsButton.style.transform = 'translateY(-2px)';
+      testimonialsButton.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+    };
+    
+    testimonialsButton.onmouseout = () => {
+      testimonialsButton.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+      testimonialsButton.style.transform = 'translateY(0)';
+      testimonialsButton.style.boxShadow = 'none';
+    };
+    
+    buttonContainer.appendChild(testimonialsButton);
+    
+    // ============================================
+    // 3️⃣ COINS MANAGEMENT BUTTON
+    // ============================================
     const coinsButton = document.createElement('button');
-    coinsButton.innerHTML = '💰 Coinlar';
+    coinsButton.innerHTML = '<i class="bi bi-coin" style="margin-right: 8px;"></i> Coinlar';
     coinsButton.onclick = () => {
       if (typeof window.viewAllUsersCoins === 'function') {
         window.viewAllUsersCoins();
@@ -308,44 +416,74 @@ Please:
       cursor: pointer;
       transition: all 0.3s ease;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     `;
     
     coinsButton.onmouseover = () => {
       coinsButton.style.background = 'linear-gradient(135deg, #059669, #047857)';
       coinsButton.style.transform = 'translateY(-2px)';
+      coinsButton.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
     };
     
     coinsButton.onmouseout = () => {
       coinsButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
       coinsButton.style.transform = 'translateY(0)';
+      coinsButton.style.boxShadow = 'none';
     };
     
     buttonContainer.appendChild(coinsButton);
     document.body.appendChild(buttonContainer);
     
-    console.log('✅ Admin buttons created');
+    console.log('✅ Admin buttons created (with Testimonials)');
   }
   
   // ============================================
-  // UPDATE BADGE
+  // UPDATE BADGES
   // ============================================
   
-  function updateNotificationBadge(count) {
-    const badge = document.getElementById('adminNotificationBadge');
+  function updatePaymentBadge(count) {
+    const badge = document.getElementById('adminPaymentBadge');
     if (!badge) return;
     
     if (count > 0) {
       badge.textContent = count;
       badge.style.display = 'flex';
       
-      if (window.lastNotificationCount !== count) {
-        console.log(`🔔 ${count} pending payment(s)`);
-        window.lastNotificationCount = count;
+      if (window.lastPaymentCount !== count) {
+        console.log(`💰 ${count} pending payment(s)`);
+        window.lastPaymentCount = count;
         
         // Desktop notification
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Yangi to\'lov so\'rovi', {
             body: `${count} ta yangi to'lov kutilmoqda`,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  
+  function updateTestimonialsBadge(count) {
+    const badge = document.getElementById('testimonialsBadge');
+    if (!badge) return;
+    
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'flex';
+      
+      if (window.lastTestimonialsCount !== count) {
+        console.log(`⭐ ${count} pending testimonial(s)`);
+        window.lastTestimonialsCount = count;
+        
+        // Desktop notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Yangi testimonial', {
+            body: `${count} ta yangi testimonial kutilmoqda`,
             icon: '/favicon.ico'
           });
         }
@@ -413,7 +551,7 @@ Please:
     checkAdminAccess();
   }
   
-  console.log('✅ Admin button script (FIXED) loaded');
+  console.log('✅ Admin button script (with Testimonials) loaded');
   
 })();
 
@@ -465,6 +603,17 @@ async function debugFirebase() {
         const paymentsSnap = await window.firebaseGet(paymentsRef);
         console.log('Can read payments:', '✅');
         console.log('Payments count:', paymentsSnap.size);
+        
+        // Try to read testimonials
+        const testimonialsRef = window.firebaseRef(window.firebaseDatabase, 'testimonials');
+        const testimonialsSnap = await window.firebaseGet(testimonialsRef);
+        console.log('Can read testimonials:', '✅');
+        
+        let pending = 0;
+        testimonialsSnap.forEach(child => {
+          if (child.val().status === 'pending') pending++;
+        });
+        console.log('Pending testimonials:', pending);
         
       } catch (error) {
         console.error('❌ Database check error:', error);

@@ -568,28 +568,84 @@ const headerSubtitle = document.getElementById("headerSubtitle");
 console.log("✅ Dashboard.js loaded successfully!");
 
 // ============================================
-// 9️⃣ HELPER FUNCTIONS ✅
+// FIXED: USERNAME EXTRACTION
 // ============================================
 function getUsernameFromDisplayName(displayName, email) {
   if (!displayName) {
-    return email ? email.split("@")[0] : "User";
+    return email ? email.split('@')[0] : 'User';
   }
 
+  // ✅ REMOVE EMOJIS AND GET USERNAME
   let username = displayName
-    .replace(/[\u{1F000}-\u{1F9FF}]/gu, "")
-    .replace(/[\u{2600}-\u{26FF}]/gu, "")
-    .replace(/[\u{2700}-\u{27BF}]/gu, "")
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, "")
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, "")
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, "")
-    .replace(/[\u{1F900}-\u{1F9FF}]/gu, "")
+    .replace(/[\u{1F000}-\u{1F9FF}]/gu, '')  // Remove emojis
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
     .trim();
 
   if (!username || username.length === 0 || /^\s*$/.test(username)) {
-    username = email ? email.split("@")[0] : "User";
+    username = email ? email.split('@')[0] : 'User';
   }
 
   return username;
+}
+
+// ============================================
+// FIXED: UPDATE USERNAME IN UI
+// ============================================
+async function updateUserName(user) {
+  if (!user) return;
+
+  console.log('🔍 User displayName:', user.displayName);
+  console.log('📧 User email:', user.email);
+
+  // ✅ GET FROM DATABASE (PREFERRED)
+  const db = window.firebaseDatabase;
+  if (db) {
+    try {
+      const userRef = window.firebaseRef(db, `users/${user.uid}`);
+      const snapshot = await window.firebaseGet(userRef);
+      
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        const username = userData.displayName || user.email.split('@')[0];
+        
+        console.log('✅ Username from database:', username);
+        
+        // Update UI
+        const userNameElement = document.getElementById('userName');
+        if (userNameElement) {
+          userNameElement.textContent = username;
+        }
+
+        const headerTitle = document.getElementById('headerTitle');
+        if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
+          headerTitle.textContent = `Welcome back, ${username}!`;
+        }
+        
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Database read error:', error);
+    }
+  }
+
+  // ✅ FALLBACK: Extract from auth
+  const username = getUsernameFromDisplayName(user.displayName, user.email);
+  console.log('✅ Username from auth:', username);
+
+  const userNameElement = document.getElementById('userName');
+  if (userNameElement) {
+    userNameElement.textContent = username;
+  }
+
+  const headerTitle = document.getElementById('headerTitle');
+  if (headerTitle && headerTitle.textContent.includes('Welcome back')) {
+    headerTitle.textContent = `Welcome back, ${username}!`;
+  }
 }
 
 function updateWelcomeMessage(username) {
@@ -1128,13 +1184,10 @@ function removeImage() {
 //   }
 // });
 
-// ============================================
-// COIN CHECK FUNCTION - FIREBASE VERSION ✅
-// ============================================
-async function checkAndSpendCoins(toolName) {
-  console.log(`🪙 Checking coins for tool: ${toolName}`);
+// ✅ Eski funksiyani butunlay almashtiring
+async function checkAndSpendCoins(toolName, customCost = null) {
+  console.log(`🪙 Checking coins for tool: ${toolName}, custom cost: ${customCost}`);
 
-  // ✅ Get current user
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
     console.error("❌ User not logged in");
@@ -1142,7 +1195,6 @@ async function checkAndSpendCoins(toolName) {
     return false;
   }
 
-  // ✅ Check if Firebase coin functions exist
   if (typeof canUseTool !== "function" || typeof useTool !== "function") {
     console.error("❌ Coin system not loaded!");
     alert("⚠️ Coin system loading... Please wait and try again.");
@@ -1150,30 +1202,66 @@ async function checkAndSpendCoins(toolName) {
   }
 
   try {
-    // ✅ CRITICAL: Use useTool which checks AND deducts
+    // ✅ USE CUSTOM COST IF PROVIDED
+    if (customCost !== null && customCost !== undefined) {
+      console.log(`💰 Using custom cost: ${customCost} coins for ${toolName}`);
+      
+      // Check if user has enough coins
+      const currentCoins = await getUserCoins();
+      
+      if (currentCoins < customCost) {
+        console.error(`❌ Insufficient coins: have ${currentCoins}, need ${customCost}`);
+        
+        // Show modal
+        if (typeof showInsufficientCoinsModal === 'function') {
+          showInsufficientCoinsModal(customCost);
+        } else {
+          alert(`⚠️ You need ${customCost} coins for this action.\n\nYou have: ${currentCoins} coins`);
+        }
+        
+        return false;
+      }
+      
+      // Deduct coins manually
+      if (typeof spendCoins === 'function') {
+        await spendCoins(customCost, `${toolName}`);
+        console.log(`✅ ${customCost} coins deducted for ${toolName}`);
+      } else {
+        // Fallback: use coinManager directly
+        if (window.coinManager) {
+          window.coinManager.spendCoins(customCost, `${toolName}`);
+        }
+      }
+      
+      if (typeof updateCoinDisplay === 'function') {
+        await updateCoinDisplay();
+      }
+      
+      return true;
+    }
+    
+    // ✅ DEFAULT: Use standard tool cost
     const success = await useTool(toolName);
 
     if (!success) {
       console.error(`❌ Cannot use tool: ${toolName}`);
-      // Modal is already shown by useTool()
       return false;
     }
 
     console.log(`✅ Tool ${toolName} authorized and coins deducted`);
 
-    // Update display
     if (typeof updateCoinDisplay === "function") {
       await updateCoinDisplay();
     }
 
     return true;
+    
   } catch (error) {
     console.error(`❌ Coin check error for ${toolName}:`, error);
     alert("⚠️ Coin system error. Please try again.");
     return false;
   }
 }
-
 // ============================================
 // TESTING HELPERS (Console commands)
 // ============================================
