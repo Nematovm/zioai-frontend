@@ -8,7 +8,7 @@
     <link rel="website icon" type="png" href="./IMG/Logo/ZiyoAIIcon.png" />
 
     <!-- Main CSS - TO'G'RILANDI ✅ -->
-    <link rel="stylesheet" href="./CSS/main.css">
+    <link rel="stylesheet" href="./CSS/main.css" />
 
     <!-- Font-Awesome -->
     <link
@@ -30,26 +30,31 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
     />
-
   </head>
   <body>
     <!-- Spinner -->
     <div class="spinner-wrapper">
       <div class="spinner-grow" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
     <!-- Nav Section -->
     <nav class="navbar" id="nav">
       <div class="container-fluid container">
         <div class="nav-left">
-          <div class="main-logo"><img src="./IMG/Logo/ZiyoAIIcon.png" alt=""></div>
+          <div class="main_logo_img">
+            <img src="./IMG/Logo/ZiyoAIIcon.png" alt="" />
+          </div>
           <a class="navbar-brand"><h3 class="nav-title">ZiyoAI</h3></a>
         </div>
         <div class="nav-right">
           <!-- TO'G'RILANDI ✅ -->
-          <button class="main-btn"><a href="./Templates/login.html" class="a-login">Log In</a></button>
-          <button class="main-btn secondary-btn"><a href="./Templates/signup.html">Get Started</a></button>
+          <button class="main-btn">
+            <a href="./Templates/login.html" class="a-login">Log In</a>
+          </button>
+          <button class="main-btn secondary-btn">
+            <a href="./Templates/signup.html">Get Started</a>
+          </button>
         </div>
       </div>
     </nav>
@@ -94,7 +99,9 @@
             <p>Organize your learning with intelligent to-do lists</p>
           </div>
           <div class="card-1 reveal-card-3">
-            <div class="main-logo"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div class="main-logo">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
             <h4>Progress Tracking</h4>
             <p>Monitor your growth and stay motivated with streaks</p>
           </div>
@@ -115,18 +122,37 @@
           A passionate group dedicated to transforming education with AI
         </p>
         <div class="team-cards">
-          <div class="team-card team-anim-card" data-tilt data-tilt-glare data-tilt-speed="10000">
+          <div
+            class="team-card team-anim-card"
+            data-tilt
+            data-tilt-glare
+            data-tilt-speed="10000"
+          >
             <div class="contacts">
-              <a href="https://www.linkedin.com/in/muhammadali-nematov/"><i class="bi bi-linkedin"></i></a>
-              <a href="https://github.com/Nematovm"><i class="bi bi-github"></i></a>
-              <a href="https://t.me/muhammadali_100"><i class="bi bi-telegram"></i></a>
+              <a href="https://www.linkedin.com/in/muhammadali-nematov/"
+                ><i class="bi bi-linkedin"></i
+              ></a>
+              <a href="https://github.com/Nematovm"
+                ><i class="bi bi-github"></i
+              ></a>
+              <a href="https://t.me/muhammadali_100"
+                ><i class="bi bi-telegram"></i
+              ></a>
             </div>
             <i class="bi bi-person-circle person-circle"></i>
             <h4>Nematov Muhammadali</h4>
             <p>Founder & Lead Developer</p>
-            <p>I'm a young developer passionate about creating smart tools that make studying easier and more productive with modern AI.</p>
+            <p>
+              I'm a young developer passionate about creating smart tools that
+              make studying easier and more productive with modern AI.
+            </p>
           </div>
-          <div class="team-card team-anim-card-2" data-tilt data-tilt-glare data-tilt-speed="10000">
+          <div
+            class="team-card team-anim-card-2"
+            data-tilt
+            data-tilt-glare
+            data-tilt-speed="10000"
+          >
             <div class="contacts">
               <a href="#"><i class="bi bi-linkedin"></i></a>
               <a href="#"><i class="bi bi-github"></i></a>
@@ -135,90 +161,250 @@
             <i class="bi bi-person-circle person-circle"></i>
             <h4>Nomozov Baxtiyor</h4>
             <p>Co-Founder & Product Advisor</p>
-            <p>Supports the project with ideas, planning, and product direction to help build a platform that keeps students disciplined, motivated.</p>
+            <p>
+              Supports the project with ideas, planning, and product direction
+              to help build a platform that keeps students disciplined,
+              motivated.
+            </p>
             <p></p>
           </div>
         </div>
       </div>
     </section>
     <!-- End of Team Section -->
-<!-- ============================================ -->
-<!-- TESTIMONIALS SECTION WITH CAROUSEL -->
-<!-- ============================================ -->
-<section class="testimonials-section">
-  <div class="testimonials-container">
-    
-    <!-- Section Header -->
-    <div class="section-header">
-      <h2>
-        What Our <span class="highlight">Students Say</span>
-      </h2>
-      <p>
-        Don't just take our word for it — hear from students who have transformed their learning with ZiyoAI
-      </p>
-    </div>
+    <!-- ============================================ -->
+    <!-- TESTIMONIALS SECTION WITH CAROUSEL -->
+    <!-- ============================================ -->
+    <section class="testimonials-section">
+      <div class="testimonials-container">
+        <!-- Section Header -->
+        <div class="section-header">
+          <h2>What Our <span class="highlight">Students Say</span></h2>
+          <p>
+            Don't just take our word for it — hear from students who have
+            transformed their learning with ZiyoAI
+          </p>
+        </div>
 
-    <!-- Carousel Container -->
-    <div class="carousel-container">
-      <!-- Testimonials Carousel -->
-      <div class="testimonials-carousel" id="testimonialsCarousel">
-        <!-- Testimonials will be loaded here by JavaScript -->
-        <div class="testimonials-loading">
-          <div class="spinner"></div>
-          <p style="color: #6b7280; font-size: 16px; margin-top: 20px;">Loading testimonials...</p>
+        <!-- Carousel Container -->
+        <div class="carousel-container">
+          <!-- Testimonials Carousel -->
+          <div class="testimonials-carousel" id="testimonialsCarousel">
+            <!-- Testimonials will be loaded here by JavaScript -->
+            <div class="testimonials-loading">
+              <div class="spinner"></div>
+              <p style="color: #6b7280; font-size: 16px; margin-top: 20px">
+                Loading testimonials...
+              </p>
+            </div>
+          </div>
+
+          <!-- Navigation Arrows -->
+          <button
+            class="carousel-arrow carousel-arrow-prev"
+            onclick="moveCarousel(-1)"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button
+            class="carousel-arrow carousel-arrow-next"
+            onclick="moveCarousel(1)"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+          <!-- Dots Indicator -->
+          <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+
+        <!-- Call to Action Button -->
+        <div style="text-align: center; margin-top: 50px">
+          <button
+            class="main-btn secondary-btn"
+            onclick="window.location.href='./Templates/signup.html'"
+          >
+            <i class="bi bi-star-fill"></i> Share Your Experience
+          </button>
+        </div>
+      </div>
+    </section>
+    <section class="premium-section">
+      <!-- <div class="badge"><i class="bi bi-stars"></i> Premium Plans</div> -->
+
+      <h1 class="premium-title">Simple, <span>Transparent Pricing</span></h1>
+      <p class="premium-subtitle">
+        Choose the plan that works best for your learning journey
+      </p>
+
+      <div class="premium-cards">
+        <!-- FREE PLAN -->
+        <div class="premium-card free">
+          <h3>Free Plan</h3>
+          <div class="price">$0</div>
+          <span class="price-period">/forever</span>
+
+          <ul>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>5 coins per day</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Homework Checker</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Writing Checker</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Basic AI Tools</span>
+            </li>
+            <li>
+              <i class="bi bi-x-circle"></i>
+              <span>Image Upload</span>
+            </li>
+            <li>
+              <i class="bi bi-x-circle"></i>
+              <span>Export/Download</span>
+            </li>
+            <li>
+              <i class="bi bi-x-circle"></i>
+              <span>Priority Support</span>
+            </li>
+          </ul>
+
+          <button
+            class="btn-subscription btn-free"
+            onclick="window.location.href='./Templates/signup.html'"
+          >
+            <i class="bi bi-rocket-takeoff"></i>
+            Get Started Free
+          </button>
+        </div>
+
+        <!-- STANDARD PLAN -->
+        <div class="premium-card standard">
+          <h3>Standard Plan</h3>
+          <div class="price">25K</div>
+          <span class="price-period">so'm/month</span>
+
+          <ul>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span><strong>20 coins per day</strong></span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Homework Checker</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Writing Checker</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>All AI Tools</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Image Upload</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Export/Download</span>
+            </li>
+            <li>
+              <i class="bi bi-x-circle"></i>
+              <span>Priority Support</span>
+            </li>
+          </ul>
+
+          <button
+            class="btn-subscription btn-standard"
+            onclick="handleSubscription('standard')"
+          >
+            <i class="bi bi-star-fill"></i>
+            Subscribe to Standard
+          </button>
+        </div>
+
+        <!-- PRO PLAN -->
+        <div class="premium-card premium">
+          <h3>Pro Plan</h3>
+          <div class="price">50K</div>
+          <span class="price-period">so'm/month</span>
+
+          <ul>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span><strong>50 coins per day</strong></span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Article Generator (Bonus)</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Priority Support</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>All Standard Features</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Early Access to New Tools</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Ad-Free Experience</span>
+            </li>
+            <li>
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Custom Study Plans</span>
+            </li>
+          </ul>
+
+          <button
+            class="btn-subscription btn-premium"
+            onclick="handleSubscription('pro')"
+          >
+            <i class="bi bi-crown-fill"></i>
+            Subscribe to Pro
+          </button>
         </div>
       </div>
 
-      <!-- Navigation Arrows -->
-      <button class="carousel-arrow carousel-arrow-prev" onclick="moveCarousel(-1)">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-      <button class="carousel-arrow carousel-arrow-next" onclick="moveCarousel(1)">
-        <i class="bi bi-chevron-right"></i>
-      </button>
-
-      <!-- Dots Indicator -->
-      <div class="carousel-dots" id="carouselDots"></div>
-    </div>
-
-    <!-- Call to Action Button -->
-    <div style="text-align: center; margin-top: 50px;">
-      <button class="main-btn secondary-btn" onclick="window.location.href='./Templates/signup.html'">
-        <i class="bi bi-star-fill"></i> Share Your Experience
-      </button>
-    </div>
-
-  </div>
-</section>
-    <!-- Premium Subscription  -->
-    <section class="premium-section">
-      <div class="container">
-        <h1 class="premium-title">Simple, Transparent Pricing</h1>
-        <p class="premium-subtitle">
-          Choose the plan that works best for you
+      <!-- COMPARISON NOTE -->
+      <div class="comparison-note">
+        <h4>💡 Why Choose a Subscription?</h4>
+        <p>
+          Coins run out, but subscriptions give you fresh coins every single
+          day. Build a consistent learning habit and never run out of AI
+          assistance!
         </p>
-        <div class="premium-cards">
-          <div class="premium-card free">
-            <h3>Free Plan</h3>
-            <p class="price">$0<span class="free-time">/forever</span></p>
-            <ul>
-              <li><i class="fa-solid fa-check"></i>Basic tools included</li>
-              <li><i class="fa-solid fa-check"></i>AI suggestions (limited)</li>
-              <li><i class="fa-solid fa-check"></i>Standard access</li>
-              <li><i class="fa-solid fa-check"></i>Ideal for testing the platform</li>
-            </ul>
-            <button class="main-btn secondary-btn"><a href="/frontend/Templates/login.html">Get Started</a></button>
+
+        <div class="features-grid">
+          <div class="feature-item">
+            <i class="bi bi-coin"></i>
+            <h5>Daily Coins</h5>
+            <p>Never run out with automatic daily refills</p>
           </div>
-          <div class="premium-card premium">
-            <h3>Premium Plan</h3>
-            <p class="price">$9.99<span class="premium-time">/month</span></p>
-            <ul>
-              <li><i class="fa-solid fa-check"></i>Full AI Tools Access</li>
-              <li><i class="fa-solid fa-check"></i>Personalized Study Plans</li>
-              <li><i class="fa-solid fa-check"></i>Advanced Progress Analytics</li>
-              <li><i class="fa-solid fa-check"></i>Priority Support</li>
-            </ul>
-            <button class="main-btn">Start Premium</button>
+          <div class="feature-item">
+            <i class="bi bi-tools"></i>
+            <h5>All Tools</h5>
+            <p>Access every learning feature we offer</p>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-headset"></i>
+            <h5>Priority Help</h5>
+            <p>Get faster support when you need it</p>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-shield-check"></i>
+            <h5>Best Value</h5>
+            <p>More affordable than buying coins</p>
           </div>
         </div>
       </div>
@@ -232,7 +418,10 @@
           <a class="navbar-brand"><h3 class="nav-title">ZiyoAI</h3></a>
         </div>
         <div class="footer-left">
-          <p>Empowering learners to achieve their goals through discipline and smart learning.</p>
+          <p>
+            Empowering learners to achieve their goals through discipline and
+            smart learning.
+          </p>
           <p>© 2025 ZiyoAI. All rights reserved.</p>
         </div>
       </div>
@@ -258,90 +447,141 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<!-- ============================================ -->
-<!-- FIREBASE CONFIG & CAROUSEL LOGIC -->
-<!-- ============================================ -->
-<script type="module">
-  // Firebase Config
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    <script>
+      function handleSubscription(plan) {
+        // Check if user is logged in
+        const isLoggedIn =
+          localStorage.getItem("userToken") ||
+          sessionStorage.getItem("userToken");
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
-    authDomain: "zioai-96e9f.firebaseapp.com",
-    databaseURL: "https://zioai-96e9f-default-rtdb.firebaseio.com",
-    projectId: "zioai-96e9f",
-    storageBucket: "zioai-96e9f.firebasestorage.app",
-    messagingSenderId: "766076125152",
-    appId: "1:766076125152:web:9cd609efb7895386547585"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-
-  // Global variables
-  let currentSlide = 0;
-  let totalSlides = 0;
-  let autoPlayInterval = null;
-  let testimonials = [];
-
-  // Load testimonials
-  async function loadTestimonials() {
-    try {
-      console.log('📥 Loading testimonials...');
-      
-      const testimonialsRef = ref(database, 'public_testimonials');
-      const snapshot = await get(testimonialsRef);
-
-      const carousel = document.getElementById('testimonialsCarousel');
-      if (!carousel) return;
-
-      if (!snapshot.exists()) {
-        console.log('ℹ️ No testimonials found in public_testimonials');
-        carousel.innerHTML = `
-          <div style="width: 100%; text-align: center; padding: 60px 20px;">
-            <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
-            <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
-            <p style="color: #9ca3af; font-size: 16px;">Be the first to share your experience!</p>
-          </div>
-        `;
-        return;
-      }
-
-      testimonials = [];
-      snapshot.forEach(child => {
-        const data = child.val();
-        if (data.rating >= 4) {
-          testimonials.push({ id: child.key, ...data });
+        if (!isLoggedIn) {
+          // Redirect to signup with plan parameter
+          window.location.href = `./Templates/signup.html?plan=${plan}`;
+        } else {
+          // Redirect to dashboard subscription page
+          window.location.href = `./Templates/dashboard.html?openSubscription=${plan}`;
         }
+      }
+
+      // Add scroll animation
+      const cards = document.querySelectorAll(".premium-card");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+              setTimeout(() => {
+                entry.target.style.opacity = "1";
+                entry.target.style.transform = "translateY(0)";
+              }, index * 150);
+            }
+          });
+        },
+        {
+          threshold: 0.1,
+        }
+      );
+
+      cards.forEach((card) => {
+        card.style.opacity = "0";
+        card.style.transform = "translateY(30px)";
+        card.style.transition = "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        observer.observe(card);
       });
+    </script>
 
-      console.log(`✅ Found ${testimonials.length} testimonials`);
+    <!-- ============================================ -->
+    <!-- FIREBASE CONFIG & CAROUSEL LOGIC -->
+    <!-- ============================================ -->
+    <script type="module">
+      // Firebase Config
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        get,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-      if (testimonials.length === 0) {
-        carousel.innerHTML = `
+      const firebaseConfig = {
+        apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
+        authDomain: "zioai-96e9f.firebaseapp.com",
+        databaseURL: "https://zioai-96e9f-default-rtdb.firebaseio.com",
+        projectId: "zioai-96e9f",
+        storageBucket: "zioai-96e9f.firebasestorage.app",
+        messagingSenderId: "766076125152",
+        appId: "1:766076125152:web:9cd609efb7895386547585",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+
+      // Global variables
+      let currentSlide = 0;
+      let totalSlides = 0;
+      let autoPlayInterval = null;
+      let testimonials = [];
+
+      // Load testimonials
+      async function loadTestimonials() {
+        try {
+          console.log("📥 Loading testimonials...");
+
+          const testimonialsRef = ref(database, "public_testimonials");
+          const snapshot = await get(testimonialsRef);
+
+          const carousel = document.getElementById("testimonialsCarousel");
+          if (!carousel) return;
+
+          if (!snapshot.exists()) {
+            console.log("ℹ️ No testimonials found in public_testimonials");
+            carousel.innerHTML = `
           <div style="width: 100%; text-align: center; padding: 60px 20px;">
             <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
             <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
             <p style="color: #9ca3af; font-size: 16px;">Be the first to share your experience!</p>
           </div>
         `;
-        return;
-      }
+            return;
+          }
 
-      // Sort testimonials
-      testimonials.sort((a, b) => {
-        if (b.rating !== a.rating) return b.rating - a.rating;
-        if (b.featured !== a.featured) return b.featured ? 1 : -1;
-        return new Date(b.submittedAt) - new Date(a.submittedAt);
-      });
+          testimonials = [];
+          snapshot.forEach((child) => {
+            const data = child.val();
+            if (data.rating >= 4) {
+              testimonials.push({ id: child.key, ...data });
+            }
+          });
 
-      // Display all testimonials
-      carousel.innerHTML = testimonials.map(t => `
+          console.log(`✅ Found ${testimonials.length} testimonials`);
+
+          if (testimonials.length === 0) {
+            carousel.innerHTML = `
+          <div style="width: 100%; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
+            <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
+            <p style="color: #9ca3af; font-size: 16px;">Be the first to share your experience!</p>
+          </div>
+        `;
+            return;
+          }
+
+          // Sort testimonials
+          testimonials.sort((a, b) => {
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            if (b.featured !== a.featured) return b.featured ? 1 : -1;
+            return new Date(b.submittedAt) - new Date(a.submittedAt);
+          });
+
+          // Display all testimonials
+          carousel.innerHTML = testimonials
+            .map(
+              (t) => `
         <div class="testimonial-card">
-          ${t.featured ? `
+          ${
+            t.featured
+              ? `
             <div style="
               position: absolute;
               top: 15px;
@@ -357,158 +597,167 @@
             ">
               <i class="bi bi-star-fill"></i> FEATURED
             </div>
-          ` : ''}
+          `
+              : ""
+          }
           
           <div class="rating">
-            ${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}
+            ${"★".repeat(t.rating)}${"☆".repeat(5 - t.rating)}
           </div>
           
-          ${t.title ? `
+          ${
+            t.title
+              ? `
             <h4 class="testimonial-title">"${t.title}"</h4>
-          ` : ''}
+          `
+              : ""
+          }
           
           <p class="testimonial-message">${t.message}</p>
           
           <div class="testimonial-author">
-            <span class="author-avatar">${t.avatar || '👤'}</span>
+            <span class="author-avatar">${t.avatar || "👤"}</span>
             <div class="author-info">
               <div class="author-name">
-                ${t.displayType === 'anonymous' ? 'Anonymous User' : t.username}
+                ${t.displayType === "anonymous" ? "Anonymous User" : t.username}
               </div>
               <div class="author-date">
-                ${new Date(t.submittedAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  year: 'numeric'
+                ${new Date(t.submittedAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
                 })}
               </div>
             </div>
           </div>
         </div>
-      `).join('');
+      `
+            )
+            .join("");
 
-      totalSlides = testimonials.length;
-      createDots();
-      startAutoPlay();
+          totalSlides = testimonials.length;
+          createDots();
+          startAutoPlay();
 
-      console.log('✅ Carousel initialized with', totalSlides, 'slides');
-
-    } catch (error) {
-      console.error('❌ Error loading testimonials:', error);
-      const carousel = document.getElementById('testimonialsCarousel');
-      if (carousel) {
-        carousel.innerHTML = `
+          console.log("✅ Carousel initialized with", totalSlides, "slides");
+        } catch (error) {
+          console.error("❌ Error loading testimonials:", error);
+          const carousel = document.getElementById("testimonialsCarousel");
+          if (carousel) {
+            carousel.innerHTML = `
           <div style="width: 100%; text-align: center; padding: 60px 20px;">
             <div style="font-size: 72px; margin-bottom: 20px;">⚠️</div>
             <h3 style="color: #ef4444; font-size: 24px; margin-bottom: 10px;">Failed to load testimonials</h3>
             <p style="color: #9ca3af; font-size: 14px;">${error.message}</p>
           </div>
         `;
+          }
+        }
       }
-    }
-  }
 
-  // Create dots indicator
-  function createDots() {
-    const dotsContainer = document.getElementById('carouselDots');
-    if (!dotsContainer || totalSlides === 0) return;
+      // Create dots indicator
+      function createDots() {
+        const dotsContainer = document.getElementById("carouselDots");
+        if (!dotsContainer || totalSlides === 0) return;
 
-    dotsContainer.innerHTML = '';
-    
-    for (let i = 0; i < totalSlides; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-      dot.onclick = () => goToSlide(i);
-      dotsContainer.appendChild(dot);
-    }
-  }
+        dotsContainer.innerHTML = "";
 
-  // Move carousel
-  window.moveCarousel = function(direction) {
-    const carousel = document.getElementById('testimonialsCarousel');
-    if (!carousel) return;
+        for (let i = 0; i < totalSlides; i++) {
+          const dot = document.createElement("div");
+          dot.className = "carousel-dot" + (i === 0 ? " active" : "");
+          dot.onclick = () => goToSlide(i);
+          dotsContainer.appendChild(dot);
+        }
+      }
 
-    const cardWidth = 380 + 30; // card width + gap
-    currentSlide += direction;
+      // Move carousel
+      window.moveCarousel = function (direction) {
+        const carousel = document.getElementById("testimonialsCarousel");
+        if (!carousel) return;
 
-    // Loop around
-    if (currentSlide < 0) {
-      currentSlide = totalSlides - 1;
-    } else if (currentSlide >= totalSlides) {
-      currentSlide = 0;
-    }
+        const cardWidth = 380 + 30; // card width + gap
+        currentSlide += direction;
 
-    carousel.scrollTo({
-      left: currentSlide * cardWidth,
-      behavior: 'smooth'
-    });
+        // Loop around
+        if (currentSlide < 0) {
+          currentSlide = totalSlides - 1;
+        } else if (currentSlide >= totalSlides) {
+          currentSlide = 0;
+        }
 
-    updateActiveDot();
-    resetAutoPlay();
-  }
+        carousel.scrollTo({
+          left: currentSlide * cardWidth,
+          behavior: "smooth",
+        });
 
-  // Go to specific slide
-  function goToSlide(index) {
-    const carousel = document.getElementById('testimonialsCarousel');
-    if (!carousel) return;
+        updateActiveDot();
+        resetAutoPlay();
+      };
 
-    currentSlide = index;
-    const cardWidth = 380 + 30;
+      // Go to specific slide
+      function goToSlide(index) {
+        const carousel = document.getElementById("testimonialsCarousel");
+        if (!carousel) return;
 
-    carousel.scrollTo({
-      left: currentSlide * cardWidth,
-      behavior: 'smooth'
-    });
+        currentSlide = index;
+        const cardWidth = 380 + 30;
 
-    updateActiveDot();
-    resetAutoPlay();
-  }
+        carousel.scrollTo({
+          left: currentSlide * cardWidth,
+          behavior: "smooth",
+        });
 
-  // Update active dot
-  function updateActiveDot() {
-    const dots = document.querySelectorAll('.carousel-dot');
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentSlide);
-    });
-  }
+        updateActiveDot();
+        resetAutoPlay();
+      }
 
-  // Auto play
-  function startAutoPlay() {
-    // Auto-scroll every 5 seconds
-    autoPlayInterval = setInterval(() => {
-      window.moveCarousel(1);
-    }, 5000);
-  }
+      // Update active dot
+      function updateActiveDot() {
+        const dots = document.querySelectorAll(".carousel-dot");
+        dots.forEach((dot, index) => {
+          dot.classList.toggle("active", index === currentSlide);
+        });
+      }
 
-  function resetAutoPlay() {
-    if (autoPlayInterval) {
-      clearInterval(autoPlayInterval);
-    }
-    startAutoPlay();
-  }
+      // Auto play
+      function startAutoPlay() {
+        // Auto-scroll every 5 seconds
+        autoPlayInterval = setInterval(() => {
+          window.moveCarousel(1);
+        }, 5000);
+      }
 
-  // Pause on hover
-  document.addEventListener('DOMContentLoaded', () => {
-    const carousel = document.getElementById('testimonialsCarousel');
-    if (carousel) {
-      carousel.addEventListener('mouseenter', () => {
+      function resetAutoPlay() {
         if (autoPlayInterval) {
           clearInterval(autoPlayInterval);
         }
-      });
-
-      carousel.addEventListener('mouseleave', () => {
         startAutoPlay();
-      });
-    }
-  });
+      }
 
-  // Load on page ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadTestimonials);
-  } else {
-    loadTestimonials();
-  }
-</script>
-<!-- <script src="server.js"></script> -->
+      // Pause on hover
+      document.addEventListener("DOMContentLoaded", () => {
+        const carousel = document.getElementById("testimonialsCarousel");
+        if (carousel) {
+          carousel.addEventListener("mouseenter", () => {
+            if (autoPlayInterval) {
+              clearInterval(autoPlayInterval);
+            }
+          });
+
+          carousel.addEventListener("mouseleave", () => {
+            startAutoPlay();
+          });
+        }
+      });
+
+      // Load on page ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadTestimonials);
+      } else {
+        loadTestimonials();
+      }
+    </script>
+    <!-- SUBSCRIPTION SYSTEM - ADD BEFORE </body> -->
+<script src="./JS/subscription.js"></script>
+<script src="./JS/coin-system.js"></script>
   </body>
 </html>
