@@ -25,6 +25,11 @@ body.dark-mode .spinner-wrapper .spinner-grow {
 }
 
 /* Sidebar Dark Mode */
+
+body.dark-mode .sidebar-header {
+    background: var(--secondary-dc) !important;
+}
+
 body.dark-mode .main-logo {
     background: var(--secondary-dc) !important;
 }
@@ -1367,4 +1372,17 @@ body.dark-mode .testimonials-footer-inline {
 body.dark-mode .btn-secondary-inline {
     background: var(--primary-dc) !important;
     border: 2px solid var(--border-bc) !important;
+}
+
+body.dark-mode .writing-bkg {
+    background: var(--primary-dc) !important;
+}
+
+body.dark-mode #modelAnswerText {
+    color: var(--text-dc) !important;
+}
+
+body.dark-mode #modelAnswerContent {
+    background: var(--secondary-dc) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }

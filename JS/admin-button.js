@@ -6,7 +6,7 @@
   'use strict';
   
   const ADMIN_CONFIG = {
-    ADMIN_UIDS: ['HYin7lK9AEZNHBnd8zbFVKp2Wc43'],
+    ADMIN_UIDS: ['WVvT3cDLZJUFdAcwHxYCVT0yhTO2'],
     POSITION: { bottom: '20px', left: '20px' },
     STYLE: {
       background: 'linear-gradient(135deg, #ef4444, #dc2626)',

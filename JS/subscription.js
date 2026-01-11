@@ -1753,7 +1753,7 @@ async function rejectPayment(paymentKey) {
 
 
 // ============================================
-// RESET ALL COINS + SUBSCRIPTION - FIXED ✅
+// RESET ALL COINS + SUBSCRIPTION - COMPLETELY FIXED ✅
 // ============================================
 async function resetAllCoins() {
   const user = window.firebaseAuth?.currentUser;
@@ -1826,26 +1826,139 @@ Davom etasizmi?`);
     await window.firebaseUpdate(rootRef, updates);
     
     console.log('✅ All users reset to free');
-    showNotification(`✅ ${userCount} ta user reset qilindi (coins + subscription)!`, 'success');
     
-    // Log the action
-    const logRef = window.firebaseRef(db, 'admin_logs');
-    const newLogRef = window.firebasePush(logRef);
-    await window.firebaseSet(newLogRef, {
-      action: 'reset_all_users',
-      adminId: user.uid,
-      adminEmail: user.email,
-      affectedUsers: userCount,
-      timestamp: new Date().toISOString(),
-      details: 'Coins and subscriptions reset'
+    // ✅ LOG TRANSACTIONS - WITH PROPER ERROR HANDLING
+    const transactionPromises = [];
+    
+    snapshot.forEach((child) => {
+      const userId = child.key;
+      
+      // Create transaction log (non-blocking)
+      const logPromise = (async () => {
+        try {
+          const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+          const newTransactionRef = window.firebasePush(transactionRef);
+          
+          await window.firebaseSet(newTransactionRef, {
+            type: 'admin_full_reset',
+            amount: 0,
+            adminId: user.uid,
+            timestamp: new Date().toISOString(),
+            details: 'Admin reset all users (coins + subscription)'
+          });
+          
+          console.log(`✅ Transaction logged for user ${userId}`);
+        } catch (txError) {
+          // ✅ DON'T THROW - just log warning
+          console.warn(`⚠️ Failed to log transaction for user ${userId}:`, txError.message);
+          // Transaction log is not critical - reset already succeeded
+        }
+      })();
+      
+      transactionPromises.push(logPromise);
     });
+    
+    // Wait for all transaction logs (but don't fail if they error)
+    await Promise.allSettled(transactionPromises);
+    
+    console.log('✅ Transaction logging complete (some may have failed)');
+    
+    // Log admin action
+    try {
+      const logRef = window.firebaseRef(db, 'admin_logs');
+      const newLogRef = window.firebasePush(logRef);
+      await window.firebaseSet(newLogRef, {
+        action: 'reset_all_users',
+        adminId: user.uid,
+        adminEmail: user.email,
+        affectedUsers: userCount,
+        timestamp: new Date().toISOString(),
+        details: 'Coins and subscriptions reset'
+      });
+    } catch (logError) {
+      console.warn('⚠️ Failed to log admin action:', logError.message);
+    }
+    
+    showNotification(`✅ ${userCount} ta user reset qilindi!`, 'success');
     
     // Reload users
     await loadUsersCoins();
     
   } catch (error) {
     console.error('❌ Reset error:', error);
-    showNotification('❌ Xatolik: ' + error.message, 'error');
+    
+    // ✅ USER-FRIENDLY ERROR MESSAGES
+    if (error.code === 'PERMISSION_DENIED') {
+      showNotification('❌ Ruxsat yo\'q! Firebase Rules ni tekshiring.', 'error');
+      console.error('🔴 Check Firebase Rules for /users/$uid/coin_transactions');
+    } else {
+      showNotification('❌ Xatolik: ' + error.message, 'error');
+    }
+  }
+}
+
+// ============================================
+// RESET USER COINS + SUBSCRIPTION - COMPLETELY FIXED ✅
+// ============================================
+async function resetUserCoins(userId, userName) {
+  const confirmation = confirm(`⚠️ ${userName} ning:
+- Coinlari 0 ga qaytarilsinmi?
+- Subscription bekor qilinsinmi?`);
+  if (!confirmation) return;
+  
+  const db = getDatabase();
+  if (!db) {
+    showNotification('❌ Database mavjud emas', 'error');
+    return;
+  }
+  
+  try {
+    showNotification('🔄 Reset qilinmoqda...', 'info');
+    
+    // Reset coins and subscription
+    const updates = {};
+    updates[`users/${userId}/coins`] = 0;
+    updates[`users/${userId}/subscription/type`] = 'free';
+    updates[`users/${userId}/subscription/status`] = 'inactive';
+    updates[`users/${userId}/subscription/expiry`] = null;
+    updates[`users/${userId}/subscription/activatedAt`] = null;
+    
+    const rootRef = window.firebaseRef(db, '/');
+    await window.firebaseUpdate(rootRef, updates);
+    
+    console.log(`✅ User reset: ${userId}`);
+    
+    // ✅ LOG TRANSACTION - NON-CRITICAL, DON'T FAIL
+    try {
+      const logRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+      const newLogRef = window.firebasePush(logRef);
+      await window.firebaseSet(newLogRef, {
+        type: 'admin_full_reset',
+        amount: 0,
+        adminId: window.firebaseAuth?.currentUser?.uid,
+        timestamp: new Date().toISOString(),
+        details: 'Coins and subscription reset by admin'
+      });
+      
+      console.log('✅ Transaction logged successfully');
+    } catch (txError) {
+      console.warn('⚠️ Transaction log failed (non-critical):', txError.message);
+      // Don't throw - reset was successful
+    }
+    
+    showNotification(`✅ ${userName} reset qilindi!`, 'success');
+    
+    // Reload users
+    await loadUsersCoins();
+    
+  } catch (error) {
+    console.error('❌ Reset error:', error);
+    
+    if (error.code === 'PERMISSION_DENIED') {
+      showNotification('❌ Ruxsat yo\'q! Firebase Rules ni tekshiring.', 'error');
+    } else {
+      showNotification('❌ Xatolik: ' + error.message, 'error');
+    }
   }
 }
 

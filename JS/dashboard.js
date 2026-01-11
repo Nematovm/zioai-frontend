@@ -3039,7 +3039,7 @@ async function showModelAnswer() {
       }
 
       content.innerHTML = `
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div class="writing-bkg" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
             <div>
               <h5 style="margin: 0; color: #1f2937; font-weight: 800;">

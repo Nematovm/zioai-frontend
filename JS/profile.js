@@ -521,33 +521,53 @@ async function changePassword() {
     return;
   }
 
+  if (currentPassword === newPassword) {
+    showNotification('⚠️ New password must be different from current password', 'error');
+    return;
+  }
+
   try {
     showNotification('🔄 Changing password...', 'info');
 
-    // Re-authenticate user
+    // ✅ FIXED: Re-authenticate user with correct method
     const credential = window.EmailAuthProvider.credential(
       user.email,
       currentPassword
     );
+    
+    console.log('🔐 Re-authenticating user...');
     await window.reauthenticateWithCredential(user, credential);
+    console.log('✅ Re-authentication successful');
 
-    // Update password
+    // ✅ Update password
+    console.log('🔄 Updating password...');
     await window.updatePassword(user, newPassword);
+    console.log('✅ Password updated');
+
+    // ✅ Clear inputs
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
 
     closePasswordModal();
     showNotification('✅ Password changed successfully!', 'success');
 
-    console.log('✅ Password changed');
-
   } catch (error) {
     console.error('❌ Error changing password:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
     
-    if (error.code === 'auth/wrong-password') {
-      showNotification('❌ Current password is incorrect', 'error');
+    // ✅ FIXED: Better error handling
+    if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      showNotification('❌ Current password is incorrect. Please try again.', 'error');
     } else if (error.code === 'auth/weak-password') {
-      showNotification('❌ Password is too weak', 'error');
+      showNotification('❌ New password is too weak. Use a stronger password.', 'error');
+    } else if (error.code === 'auth/requires-recent-login') {
+      showNotification('❌ Please log out and log back in, then try again.', 'error');
+    } else if (error.code === 'auth/too-many-requests') {
+      showNotification('❌ Too many failed attempts. Please try again later.', 'error');
     } else {
-      showNotification('❌ Failed to change password', 'error');
+      showNotification('❌ Failed to change password: ' + error.message, 'error');
     }
   }
 }
