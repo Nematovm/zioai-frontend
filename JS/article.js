@@ -2,11 +2,25 @@
 // ARTICLES TOOL - COMPLETE FIXED VERSION ✅
 // ============================================
 
-// ✅ DYNAMIC API URL - Render.com bilan ham ishlaydi
-const ARTICLE_API_URL =
-    window.location.hostname.includes("onrender.com")
-    ? "https://zioai-backend.onrender.com/api"
-    : "http://localhost:3000/api";
+// ============================================
+// 1️⃣ API CONFIGURATION - FIXED ✅
+// ============================================
+const ARTICLE_API_URL = (() => {
+  const hostname = window.location.hostname;
+  
+  // Production domains
+  if (hostname.includes("ziyo-ai.uz")) {
+    return "https://zioai-backend.onrender.com/api";
+  }
+  
+  // Render.com frontend
+  if (hostname.includes("zioai-frontend.onrender.com")) {
+    return "https://zioai-backend.onrender.com/api";
+  }
+  
+  // Development
+  return "http://localhost:3000/api";
+})();
 
 let articlesData = [];
 let currentArticleView = 'list';

@@ -1,9 +1,25 @@
 // ============================================
-// 1️⃣ API CONFIGURATION
+// 1️⃣ API CONFIGURATION - FIXED ✅
 // ============================================
-const API_URL = window.location.hostname.includes("onrender.com")
-  ? "https://zioai-backend.onrender.com/api"
-  : "http://localhost:3000/api";
+const API_URL = (() => {
+  const hostname = window.location.hostname;
+  
+  // Production domains
+  if (hostname.includes("ziyo-ai.uz")) {
+    return "https://zioai-backend.onrender.com/api";
+  }
+  
+  // Render.com frontend
+  if (hostname.includes("zioai-frontend.onrender.com")) {
+    return "https://zioai-backend.onrender.com/api";
+  }
+  
+  // Development
+  return "http://localhost:3000/api";
+})();
+
+console.log("🌐 API URL:", API_URL);
+console.log("🌐 Current hostname:", window.location.hostname);
 
 // ============================================
 // 2️⃣ GLOBAL FLAGS ✅
