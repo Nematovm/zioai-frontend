@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - ZiyoAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .verification-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo {
+            background: white;
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo i {
+            font-size: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 50px 40px;
+        }
+
+        .status-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .status-loading {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            animation: pulse 1.5s ease infinite;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .status-message {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            padding: 15px 30px;
+            border-radius: 50px;
+            color: #4b5563;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #3b82f6;
+            margin-top: 30px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #1e40af;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(102, 126, 234, 0.2);
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            background: #f9fafb;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="bi bi-stars"></i>
+            </div>
+            <h1>ZiyoAI</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Loading State -->
+            <div id="loadingState">
+                <div class="status-icon status-loading">
+                    <div class="spinner"></div>
+                </div>
+                <h2 class="status-title">Verifying Your Email...</h2>
+                <p class="status-message">
+                    Please wait while we verify your email address. This should only take a moment.
+                </p>
+            </div>
+
+            <!-- Success State -->
+            <div id="successState" style="display: none;">
+                <div class="status-icon status-success">
+                    ✅
+                </div>
+                <h2 class="status-title">Email Verified!</h2>
+                <p class="status-message">
+                    Your email has been successfully verified. Please log in to access your account.
+                </p>
+                <button class="btn-primary" onclick="goToLogin()">
+                    <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                </button>
+                <div class="info-box">
+                    <p>
+                        <i class="bi bi-info-circle-fill"></i> <strong>What's next?</strong><br>
+                        Log in with your email and password to start using ZiyoAI!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" style="display: none;">
+                <div class="status-icon status-error">
+                    ❌
+                </div>
+                <h2 class="status-title">Verification Failed</h2>
+                <p class="status-message" id="errorMessage">
+                    We couldn't verify your email. The link may have expired or is invalid.
+                </p>
+                <button class="btn-primary" onclick="resendEmail()">
+                    <i class="bi bi-arrow-clockwise"></i> Resend Verification Email
+                </button>
+                <button class="btn-secondary" onclick="goToLogin()">
+                    <i class="bi bi-box-arrow-in-left"></i> Back to Login
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                Need help? <a href="mailto:support@ziyoai.com">Contact Support</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
+            authDomain: "zioai-96e9f.firebaseapp.com",
+            projectId: "zioai-96e9f",
+            storageBucket: "zioai-96e9f.firebasestorage.app",
+            messagingSenderId: "766076125152",
+            appId: "1:766076125152:web:9cd609efb7895386547585",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const oobCode = urlParams.get('oobCode');
+
+        console.log('Mode:', mode);
+        console.log('Code:', oobCode);
+
+        // Verify email
+        async function verifyEmail() {
+            if (!oobCode) {
+                showError('Invalid verification link');
+                return;
+            }
+
+            try {
+                // Apply the action code
+                await applyActionCode(auth, oobCode);
+                console.log('✅ Email verified successfully');
+                
+                // YANGI: Check if user is already signed in
+                const user = auth.currentUser;
+                if (user) {
+                    console.log('✅ User already signed in:', user.email);
+                    // Reload user to get updated emailVerified status
+                    await user.reload();
+                    console.log('✅ Email verified status:', user.emailVerified);
+                }
+                
+                showSuccess();
+            } catch (error) {
+                console.error('❌ Verification error:', error);
+                
+                let errorMsg = 'Verification failed. ';
+                if (error.code === 'auth/expired-action-code') {
+                    errorMsg += 'The link has expired.';
+                } else if (error.code === 'auth/invalid-action-code') {
+                    errorMsg += 'The link is invalid or already used.';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                showError(errorMsg);
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Global functions
+        window.goToDashboard = function() {
+            const user = auth.currentUser;
+            if (user && user.emailVerified) {
+                console.log('✅ Redirecting to dashboard...');
+                window.location.href = './dashboard.html';
+            } else {
+                console.log('⚠️ User not signed in or email not verified');
+                alert('Please log in first to access dashboard');
+                window.location.href = './login.html';
+            }
+        };
+
+        window.goToLogin = function() {
+            // Add success parameter to show message on login page
+            window.location.href = './login.html?verified=true';
+        };
+
+        window.resendEmail = function() {
+            alert('Please log in to resend verification email');
+            window.location.href = './login.html';
+        };
+
+        // Auto-verify on page load
+        if (mode === 'verifyEmail' && oobCode) {
+            verifyEmail();
+        } else {
+            showError('Invalid verification link');
+        }
+    </script>
+</body>
+</html>

@@ -30,6 +30,158 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
     />
+    
+    <!-- Smooth Carousel Styles -->
+    <style>
+      /* Smooth Auto-Scrolling Carousel */
+      .carousel-wrapper {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding: 40px 0;
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black 10%,
+          black 90%,
+          transparent
+        );
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent,
+          black 10%,
+          black 90%,
+          transparent
+        );
+      }
+
+      .testimonials-track {
+        display: flex;
+        gap: 30px;
+        animation: scroll-testimonials 40s linear infinite;
+        width: fit-content;
+      }
+
+      .testimonials-track:hover {
+        animation-play-state: paused;
+      }
+
+      @keyframes scroll-testimonials {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      .testimonial-card {
+        min-width: 380px;
+        max-width: 380px;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        flex-shrink: 0;
+      }
+
+      .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      .rating {
+        color: #fbbf24;
+        font-size: 20px;
+        margin-bottom: 15px;
+        letter-spacing: 2px;
+      }
+
+      .testimonial-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 15px;
+        line-height: 1.4;
+      }
+
+      .testimonial-message {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #4b5563;
+        margin-bottom: 25px;
+        font-style: italic;
+      }
+
+      .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .author-avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .author-info {
+        flex: 1;
+      }
+
+      .author-name {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 14px;
+      }
+
+      .author-date {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 2px;
+      }
+
+      .testimonials-loading {
+        width: 100%;
+        text-align: center;
+        padding: 60px 20px;
+      }
+
+      .spinner {
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .testimonial-card {
+          min-width: 300px;
+          max-width: 300px;
+        }
+        
+        .testimonials-track {
+          animation-duration: 30s;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- Spinner -->
@@ -139,7 +291,7 @@
                 ><i class="bi bi-telegram"></i
               ></a>
             </div>
-            <i class="bi bi-person-circle person-circle"></i>
+            <div class="founder-img"><img src="./IMG/Creators IMG/photo_2026-01-11_19-47-35.jpg" alt=""></div>
             <h4>Nematov Muhammadali</h4>
             <p>Founder & Lead Developer</p>
             <p>
@@ -173,7 +325,7 @@
     </section>
     <!-- End of Team Section -->
     <!-- ============================================ -->
-    <!-- TESTIMONIALS SECTION WITH CAROUSEL -->
+    <!-- TESTIMONIALS SECTION WITH SMOOTH AUTO-SCROLL -->
     <!-- ============================================ -->
     <section class="testimonials-section">
       <div class="testimonials-container">
@@ -186,11 +338,10 @@
           </p>
         </div>
 
-        <!-- Carousel Container -->
-        <div class="carousel-container">
-          <!-- Testimonials Carousel -->
-          <div class="testimonials-carousel" id="testimonialsCarousel">
-            <!-- Testimonials will be loaded here by JavaScript -->
+        <!-- Smooth Scrolling Carousel -->
+        <div class="carousel-wrapper">
+          <div class="testimonials-track" id="testimonialsTrack">
+            <!-- Testimonials will be loaded and duplicated here -->
             <div class="testimonials-loading">
               <div class="spinner"></div>
               <p style="color: #6b7280; font-size: 16px; margin-top: 20px">
@@ -198,34 +349,17 @@
               </p>
             </div>
           </div>
-
-          <!-- Navigation Arrows -->
-          <button
-            class="carousel-arrow carousel-arrow-prev"
-            onclick="moveCarousel(-1)"
-          >
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button
-            class="carousel-arrow carousel-arrow-next"
-            onclick="moveCarousel(1)"
-          >
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
-          <!-- Dots Indicator -->
-          <div class="carousel-dots" id="carouselDots"></div>
         </div>
 
         <!-- Call to Action Button -->
-        <div style="text-align: center; margin-top: 50px">
-          <button
-            class="main-btn secondary-btn"
-            onclick="window.location.href='./Templates/signup.html'"
-          >
-            <i class="bi bi-star-fill"></i> Share Your Experience
-          </button>
-        </div>
+<div style="text-align: center; margin-top: 50px">
+  <button
+    class="main-btn secondary-btn"
+    onclick="window.location.href='./Templates/reviews.html'"
+  >
+    View More Reviews <i class="bi bi-arrow-right"></i>
+  </button>
+</div>
       </div>
     </section>
     <section class="premium-section">
@@ -493,7 +627,7 @@
     </script>
 
     <!-- ============================================ -->
-    <!-- FIREBASE CONFIG & CAROUSEL LOGIC -->
+    <!-- FIREBASE CONFIG & SMOOTH CAROUSEL LOGIC -->
     <!-- ============================================ -->
     <script type="module">
       // Firebase Config
@@ -517,13 +651,7 @@
       const app = initializeApp(firebaseConfig);
       const database = getDatabase(app);
 
-      // Global variables
-      let currentSlide = 0;
-      let totalSlides = 0;
-      let autoPlayInterval = null;
-      let testimonials = [];
-
-      // Load testimonials
+      // Load testimonials with smooth infinite scroll
       async function loadTestimonials() {
         try {
           console.log("📥 Loading testimonials...");
@@ -531,12 +659,12 @@
           const testimonialsRef = ref(database, "public_testimonials");
           const snapshot = await get(testimonialsRef);
 
-          const carousel = document.getElementById("testimonialsCarousel");
-          if (!carousel) return;
+          const track = document.getElementById("testimonialsTrack");
+          if (!track) return;
 
           if (!snapshot.exists()) {
             console.log("ℹ️ No testimonials found in public_testimonials");
-            carousel.innerHTML = `
+            track.innerHTML = `
           <div style="width: 100%; text-align: center; padding: 60px 20px;">
             <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
             <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
@@ -546,7 +674,7 @@
             return;
           }
 
-          testimonials = [];
+          const testimonials = [];
           snapshot.forEach((child) => {
             const data = child.val();
             if (data.rating >= 4) {
@@ -557,7 +685,7 @@
           console.log(`✅ Found ${testimonials.length} testimonials`);
 
           if (testimonials.length === 0) {
-            carousel.innerHTML = `
+            track.innerHTML = `
           <div style="width: 100%; text-align: center; padding: 60px 20px;">
             <div style="font-size: 72px; margin-bottom: 20px;">💬</div>
             <h3 style="color: #4b5563; font-size: 24px; margin-bottom: 10px;">No reviews yet</h3>
@@ -574,10 +702,8 @@
             return new Date(b.submittedAt) - new Date(a.submittedAt);
           });
 
-          // Display all testimonials
-          carousel.innerHTML = testimonials
-            .map(
-              (t) => `
+          // Create testimonial card HTML
+          const createCard = (t) => `
         <div class="testimonial-card">
           ${
             t.featured
@@ -630,20 +756,27 @@
             </div>
           </div>
         </div>
-      `
-            )
-            .join("");
+      `;
 
-          totalSlides = testimonials.length;
-          createDots();
-          startAutoPlay();
+          // Create carousel content - duplicate for infinite scroll
+          const cardsHTML = testimonials.map(createCard).join("");
+          
+          // Duplicate testimonials to create seamless infinite scroll
+          track.innerHTML = cardsHTML + cardsHTML;
 
-          console.log("✅ Carousel initialized with", totalSlides, "slides");
+          // Calculate animation duration based on number of cards
+          const cardWidth = 380 + 30; // card width + gap
+          const totalWidth = testimonials.length * cardWidth;
+          const duration = testimonials.length * 3; // 3 seconds per card
+          
+          track.style.animationDuration = `${duration}s`;
+
+          console.log("✅ Smooth infinite carousel initialized");
         } catch (error) {
           console.error("❌ Error loading testimonials:", error);
-          const carousel = document.getElementById("testimonialsCarousel");
-          if (carousel) {
-            carousel.innerHTML = `
+          const track = document.getElementById("testimonialsTrack");
+          if (track) {
+            track.innerHTML = `
           <div style="width: 100%; text-align: center; padding: 60px 20px;">
             <div style="font-size: 72px; margin-bottom: 20px;">⚠️</div>
             <h3 style="color: #ef4444; font-size: 24px; margin-bottom: 10px;">Failed to load testimonials</h3>
@@ -653,101 +786,6 @@
           }
         }
       }
-
-      // Create dots indicator
-      function createDots() {
-        const dotsContainer = document.getElementById("carouselDots");
-        if (!dotsContainer || totalSlides === 0) return;
-
-        dotsContainer.innerHTML = "";
-
-        for (let i = 0; i < totalSlides; i++) {
-          const dot = document.createElement("div");
-          dot.className = "carousel-dot" + (i === 0 ? " active" : "");
-          dot.onclick = () => goToSlide(i);
-          dotsContainer.appendChild(dot);
-        }
-      }
-
-      // Move carousel
-      window.moveCarousel = function (direction) {
-        const carousel = document.getElementById("testimonialsCarousel");
-        if (!carousel) return;
-
-        const cardWidth = 380 + 30; // card width + gap
-        currentSlide += direction;
-
-        // Loop around
-        if (currentSlide < 0) {
-          currentSlide = totalSlides - 1;
-        } else if (currentSlide >= totalSlides) {
-          currentSlide = 0;
-        }
-
-        carousel.scrollTo({
-          left: currentSlide * cardWidth,
-          behavior: "smooth",
-        });
-
-        updateActiveDot();
-        resetAutoPlay();
-      };
-
-      // Go to specific slide
-      function goToSlide(index) {
-        const carousel = document.getElementById("testimonialsCarousel");
-        if (!carousel) return;
-
-        currentSlide = index;
-        const cardWidth = 380 + 30;
-
-        carousel.scrollTo({
-          left: currentSlide * cardWidth,
-          behavior: "smooth",
-        });
-
-        updateActiveDot();
-        resetAutoPlay();
-      }
-
-      // Update active dot
-      function updateActiveDot() {
-        const dots = document.querySelectorAll(".carousel-dot");
-        dots.forEach((dot, index) => {
-          dot.classList.toggle("active", index === currentSlide);
-        });
-      }
-
-      // Auto play
-      function startAutoPlay() {
-        // Auto-scroll every 5 seconds
-        autoPlayInterval = setInterval(() => {
-          window.moveCarousel(1);
-        }, 5000);
-      }
-
-      function resetAutoPlay() {
-        if (autoPlayInterval) {
-          clearInterval(autoPlayInterval);
-        }
-        startAutoPlay();
-      }
-
-      // Pause on hover
-      document.addEventListener("DOMContentLoaded", () => {
-        const carousel = document.getElementById("testimonialsCarousel");
-        if (carousel) {
-          carousel.addEventListener("mouseenter", () => {
-            if (autoPlayInterval) {
-              clearInterval(autoPlayInterval);
-            }
-          });
-
-          carousel.addEventListener("mouseleave", () => {
-            startAutoPlay();
-          });
-        }
-      });
 
       // Load on page ready
       if (document.readyState === "loading") {

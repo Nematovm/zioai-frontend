@@ -78,6 +78,20 @@
           "
         ></div>
 
+        <!-- Warning Alert -->
+        <div
+          id="warningAlert"
+          style="
+            display: none;
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+          "
+        ></div>
+
         <div>
           <!-- Signup.html -->
           <div class="input-box">
@@ -121,6 +135,46 @@
           >
             Sign Up
           </button>
+
+          <!-- Google Sign-in -->
+          <div style="margin: 20px 0; text-align: center; color: #6b7280; font-size: 14px;">
+            <span style="display: inline-block; width: 100%; position: relative;">
+              <span style="background: white; padding: 0 10px; position: relative; z-index: 1;">or</span>
+              <span style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e5e7eb; z-index: 0;"></span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onclick="handleGoogleSignUp()"
+            style="
+              width: 100%;
+              padding: 12px;
+              background: white;
+              border: 2px solid #e5e7eb;
+              border-radius: 10px;
+              cursor: pointer;
+              font-size: 15px;
+              font-weight: 600;
+              color: #374151;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+              transition: all 0.3s ease;
+            "
+            onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#d1d5db'"
+            onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'"
+          >
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+              <path fill="none" d="M0 0h48v48H0z"></path>
+            </svg>
+            Continue with Google
+          </button>
         </div>
 
         <p class="switch-link">
@@ -136,7 +190,10 @@
         getAuth,
         createUserWithEmailAndPassword,
         updateProfile,
+        signInWithPopup,
+        GoogleAuthProvider,
         onAuthStateChanged,
+        sendEmailVerification,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
       // Firebase Configuration
@@ -156,13 +213,13 @@
 
       // Check if user is already logged in
       onAuthStateChanged(auth, (user) => {
-        if (user) {
-          // User is signed in, redirect to dashboard/home
-          window.location.href = "./dashboard.html"; // O'zingizning asosiy sahifangiz
+        if (user && user.emailVerified) {
+          // Faqat verified userlar dashboard ga o'tadi
+          window.location.href = "./dashboard.html";
         }
       });
 
-      // Make handleSignup globally available
+      // Email/Password Signup WITH VERIFICATION
       window.handleSignup = async function () {
         const username = document.getElementById("username").value.trim();
         const email = document.getElementById("email").value.trim();
@@ -170,14 +227,23 @@
         const signupBtn = document.getElementById("signupBtn");
         const errorAlert = document.getElementById("errorAlert");
         const successAlert = document.getElementById("successAlert");
+        const warningAlert = document.getElementById("warningAlert");
 
         // Hide previous alerts
         errorAlert.style.display = "none";
         successAlert.style.display = "none";
+        warningAlert.style.display = "none";
 
         // Validation
         if (!username || !email || !password) {
           showError("Please fill in all fields!");
+          return;
+        }
+
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showError("Please enter a valid email address!");
           return;
         }
 
@@ -203,24 +269,46 @@
             displayName: username,
           });
 
-          // Success
-          showSuccess("Account created successfully! Redirecting...");
+          // YANGI: Email verification yuborish
+          try {
+            await sendEmailVerification(userCredential.user);
+            
+            // Success message with verification notice
+            showWarning(
+              `✅ Account created! 
+              
+📧 Verification email sent to: ${email}
 
-          // Redirect after 1 second
+⚠️ IMPORTANT:
+• Check your inbox AND spam/junk folder
+• Click the verification link in the email
+• Then return to login page
+
+Redirecting to login in 7 seconds...`
+            );
+          } catch (verificationError) {
+            console.error("Verification send error:", verificationError);
+            showWarning(
+              `Account created but verification email failed to send. You can request a new verification email from the login page.`
+            );
+          }
+
+          // Sign out user until they verify
+          await auth.signOut();
+
+          // Redirect to login after 7 seconds
           setTimeout(() => {
-            window.location.href = "./dashboard.html"; // O'zingizning asosiy sahifangiz
-          }, 1000);
+            window.location.href = "./login.html";
+          }, 7000);
+
         } catch (error) {
           console.error("Signup error:", error);
 
-          // User-friendly error messages
           let errorMessage = "An error occurred!";
 
           if (error.code === "auth/email-already-in-use") {
-            errorMessage =
-              "This email is already registered. Redirecting to login...";
+            errorMessage = "This email is already registered. Redirecting to login...";
             showError(errorMessage);
-            // Auto redirect to login after 2 seconds
             setTimeout(() => {
               window.location.href = "./login.html";
             }, 2000);
@@ -229,6 +317,8 @@
             errorMessage = "Invalid email format!";
           } else if (error.code === "auth/weak-password") {
             errorMessage = "Password is too weak!";
+          } else if (error.code === "auth/network-request-failed") {
+            errorMessage = "Network error. Please check your internet connection!";
           }
 
           showError(errorMessage);
@@ -236,6 +326,51 @@
           // Reset button
           signupBtn.disabled = false;
           signupBtn.textContent = "Sign Up";
+        }
+      };
+
+      // Google Sign-up (no verification needed for Google)
+      window.handleGoogleSignUp = async function () {
+        const errorAlert = document.getElementById("errorAlert");
+        const successAlert = document.getElementById("successAlert");
+        
+        errorAlert.style.display = "none";
+        successAlert.style.display = "none";
+
+        try {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({
+            prompt: 'select_account'
+          });
+          
+          const result = await signInWithPopup(auth, provider);
+          
+          if (result && result.user) {
+            showSuccess("Successfully signed in with Google! Redirecting...");
+            
+            setTimeout(() => {
+              window.location.href = "./dashboard.html";
+            }, 1000);
+          }
+        } catch (error) {
+          console.error("Google sign-in error:", error);
+          
+          if (error.code === "auth/popup-closed-by-user" || 
+              error.code === "auth/cancelled-popup-request") {
+            return;
+          }
+          
+          let errorMessage = "Failed to sign in with Google!";
+          
+          if (error.code === "auth/popup-blocked") {
+            errorMessage = "Popup blocked. Please allow popups for this site.";
+          } else if (error.code === "auth/account-exists-with-different-credential") {
+            errorMessage = "An account already exists with this email. Please use email/password login.";
+          } else if (error.code === "auth/network-request-failed") {
+            errorMessage = "Network error. Please check your internet connection!";
+          }
+          
+          showError(errorMessage);
         }
       };
 
@@ -252,6 +387,12 @@
         successAlert.style.display = "block";
       }
 
+      function showWarning(message) {
+        const warningAlert = document.getElementById("warningAlert");
+        warningAlert.textContent = message;
+        warningAlert.style.display = "block";
+      }
+
       // Enter key support
       document
         .getElementById("password")
@@ -262,7 +403,7 @@
         });
     </script>
 
-    <!-- <script src="/JS/script.js"></script> -->
+    <script src="https://unpkg.com/scrollreveal"></script>
     <script src="../JS/app.js"></script>
   </body>
 </html>

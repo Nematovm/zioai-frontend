@@ -2729,29 +2729,60 @@
         }
       }
 
-      // ============================================
-      // 7️⃣ AUTH STATE CHANGED
-      // ============================================
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          console.log("✅ User logged in:", user.email);
-          console.log("📝 Display Name:", user.displayName);
-          console.log("👤 UID:", user.uid);
+// ============================================
+// 7️⃣ AUTH STATE CHANGED - UPDATED WITH EMAIL VERIFICATION
+// ============================================
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("✅ User logged in:", user.email);
+    console.log("📝 Display Name:", user.displayName);
+    console.log("👤 UID:", user.uid);
+    console.log("📧 Email Verified:", user.emailVerified);
 
-          updateUserName(user);
+    // ✅ EMAIL VERIFICATION CHECK
+    // TEMPORARY: Skip verification for testing
+    // TODO: Uncomment when email verification is working
+    /*
+    if (!user.emailVerified) {
+      console.log("⚠️ Email not verified, redirecting to login...");
+      
+      // Show notification before redirect
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 15px 25px;
+        border-radius: 10px;
+        border: 2px solid #ef4444;
+        z-index: 10000;
+        font-weight: 600;
+      `;
+      notification.innerHTML = '⚠️ Please verify your email first!';
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        window.location.href = "./login.html";
+      }, 2000);
+      return;
+    }
+    */
 
-          const spinner = document.querySelector(".spinner-wrapper");
-          if (spinner) {
-            spinner.style.display = "none";
-          }
+    updateUserName(user);
 
-          // ✅ Test database connection
-          testDatabaseConnection(user);
-        } else {
-          console.log("❌ No user logged in");
-          window.location.href = "./login.html";
-        }
-      });
+    const spinner = document.querySelector(".spinner-wrapper");
+    if (spinner) {
+      spinner.style.display = "none";
+    }
+
+    testDatabaseConnection(user);
+  } else {
+    console.log("❌ No user logged in");
+    window.location.href = "./login.html";
+  }
+});
 
       // ============================================
       // 8️⃣ TEST DATABASE CONNECTION (YANGI!)

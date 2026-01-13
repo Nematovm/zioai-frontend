@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Reviews - ZiyoAI</title>
+    
+    <link rel="website icon" type="png" href="../IMG/Logo/ZiyoAIIcon.png" />
+    
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+  background: linear-gradient(
+    151deg,
+    rgba(93, 156, 245, 1) 0%,
+    rgba(44, 170, 154, 1) 60%,
+    rgba(35, 195, 101, 1) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+    color: transparent;
+        }
+        
+        .logo i {
+            font-size: 32px;
+            color: rgba(44, 170, 154, 1);
+        }
+        
+        .logo h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(44, 170, 154, 1);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        /* Main Content */
+        .reviews-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .page-title h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .page-title p {
+            font-size: 18px;
+            color: #6b7280;
+        }
+        
+        /* Reviews Grid */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .review-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease backwards;
+        }
+        
+        .review-card:nth-child(1) { animation-delay: 0.1s; }
+        .review-card:nth-child(2) { animation-delay: 0.2s; }
+        .review-card:nth-child(3) { animation-delay: 0.3s; }
+        .review-card:nth-child(4) { animation-delay: 0.4s; }
+        .review-card:nth-child(5) { animation-delay: 0.5s; }
+        .review-card:nth-child(6) { animation-delay: 0.6s; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .quote-icon {
+            font-size: 48px;
+            color: #ef4444;
+            line-height: 1;
+            margin-bottom: 15px;
+        }
+        
+        .rating {
+            color: #fbbf24;
+            font-size: 20px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .review-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .review-message {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+        
+        .review-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .author-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            font-size: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .author-info {
+            flex: 1;
+        }
+        
+        .author-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+        
+        .author-date {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+        }
+        
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 50px;
+        }
+        
+        .pagination-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .pagination-btn:not(:disabled):hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .pagination-info {
+            font-size: 16px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+        
+        /* Loading State */
+        .loading-container {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            font-size: 24px;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            font-size: 16px;
+            color: #9ca3af;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 32px;
+            }
+            
+            .pagination-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="../index.html" class="logo">
+                <i class="bi bi-stars"></i>
+                <h2>ZiyoAI</h2>
+            </a>
+            <a href="../index.html" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="reviews-container">
+        <div class="page-title">
+            <h1>More Reviews</h1>
+            <p>Read what our students have to say about their experience</p>
+        </div>
+
+        <!-- Reviews Grid -->
+        <div class="reviews-grid" id="reviewsGrid">
+            <!-- Loading State -->
+            <div class="loading-container" style="grid-column: 1/-1;">
+                <div class="spinner"></div>
+                <p style="color: #6b7280; font-size: 16px;">Loading reviews...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+            <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)">
+                <i class="bi bi-chevron-left"></i>
+                Previous
+            </button>
+            <span class="pagination-info" id="pageInfo"></span>
+            <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                Next
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase & Reviews Logic -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import {
+            getDatabase,
+            ref,
+            get,
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
+            authDomain: "zioai-96e9f.firebaseapp.com",
+            databaseURL: "https://zioai-96e9f-default-rtdb.firebaseio.com",
+            projectId: "zioai-96e9f",
+            storageBucket: "zioai-96e9f.firebasestorage.app",
+            messagingSenderId: "766076125152",
+            appId: "1:766076125152:web:9cd609efb7895386547585",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let allReviews = [];
+        let currentPage = 1;
+        const reviewsPerPage = 6;
+
+        async function loadReviews() {
+            try {
+                const reviewsRef = ref(database, "public_testimonials");
+                const snapshot = await get(reviewsRef);
+
+                const grid = document.getElementById("reviewsGrid");
+                
+                if (!snapshot.exists()) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="bi bi-chat-square-text"></i>
+                            <h3>No reviews yet</h3>
+                            <p>Be the first to share your experience!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                allReviews = [];
+                snapshot.forEach((child) => {
+                    const data = child.val();
+                    allReviews.push({ id: child.key, ...data });
+                });
+
+                // Sort by rating, featured, then date
+                allReviews.sort((a, b) => {
+                    if (b.rating !== a.rating) return b.rating - a.rating;
+                    if (b.featured !== a.featured) return b.featured ? 1 : -1;
+                    return new Date(b.submittedAt) - new Date(a.submittedAt);
+                });
+
+                displayReviews();
+                updatePagination();
+
+            } catch (error) {
+                console.error("Error loading reviews:", error);
+                document.getElementById("reviewsGrid").innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <h3>Failed to load reviews</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayReviews() {
+            const startIndex = (currentPage - 1) * reviewsPerPage;
+            const endIndex = startIndex + reviewsPerPage;
+            const pageReviews = allReviews.slice(startIndex, endIndex);
+
+            const grid = document.getElementById("reviewsGrid");
+            
+            if (pageReviews.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="bi bi-chat-square-text"></i>
+                        <h3>No reviews on this page</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = pageReviews.map(review => `
+                <div class="review-card">
+                    ${review.featured ? `
+                        <div class="featured-badge">
+                            <i class="bi bi-star-fill"></i> FEATURED
+                        </div>
+                    ` : ''}
+                    
+                    <div class="quote-icon">❝❞</div>
+                    
+                    ${review.rating ? `
+                        <div class="rating">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                        </div>
+                    ` : ''}
+                    
+                    ${review.title ? `
+                        <h4 class="review-title">"${review.title}"</h4>
+                    ` : ''}
+                    
+                    <p class="review-message">${review.message}</p>
+                    
+                    <div class="review-author">
+                        <span class="author-avatar">${review.avatar || '👤'}</span>
+                        <div class="author-info">
+                            <div class="author-name">
+                                ${review.displayType === 'anonymous' ? 'Anonymous User' : review.username || 'Anonymous'}
+                            </div>
+                            <div class="author-date">
+                                ${new Date(review.submittedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(allReviews.length / reviewsPerPage);
+            const paginationContainer = document.getElementById("paginationContainer");
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const pageInfo = document.getElementById("pageInfo");
+
+            if (totalPages <= 1) {
+                paginationContainer.style.display = "none";
+                return;
+            }
+
+            paginationContainer.style.display = "flex";
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+        }
+
+        window.changePage = function(direction) {
+            const totalPages = Math.ceil(allReviews.length / reviewsPerPage);
+            currentPage += direction;
+            
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            displayReviews();
+            updatePagination();
+            
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Load reviews on page load
+        loadReviews();
+    </script>
+</body>
+</html>
