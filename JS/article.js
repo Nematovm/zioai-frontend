@@ -404,6 +404,33 @@ function openArticle(articleId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function cleanArticleContent(content) {
+  if (!content) return '';
+  
+  console.log('🧹 Cleaning article content...');
+  
+  // ✅ Remove HTML entities and tooltips
+  let cleaned = content
+    // Remove tooltip markup like 'typically held periodically, to celebrate or commemorate something">'
+    .replace(/[a-z\s,]+">(?=[A-Z])/g, '')
+    // Remove orphaned ">' at the end of words  
+    .replace(/\s*">\s*/g, ' ')
+    // Remove &quot; and similar entities
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#039;/g, "'")
+    // Remove multiple spaces
+    .replace(/\s{2,}/g, ' ')
+    // Fix spacing after punctuation
+    .replace(/([.!?])\s*([A-Z])/g, '$1 $2')
+    .trim();
+  
+  console.log('✅ Content cleaned');
+  return cleaned;
+}
+
 // ============================================
 // RENDER ARTICLE VIEW - HIDE HIGHLIGHT IF LIMIT REACHED ✅
 // Replace the entire renderArticleView() function
@@ -434,7 +461,9 @@ function renderArticleView() {
     });
   }
   
-  const formattedContent = selectedArticle.content
+  const cleanedContent = cleanArticleContent(selectedArticle.content);
+  
+  const formattedContent = cleanedContent
     .split('\n\n')
     .filter(p => p.trim().length > 0)
     .map(p => `<p>${p.trim()}</p>`)

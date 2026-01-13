@@ -275,16 +275,8 @@
             
             // Success message with verification notice
             showWarning(
-              `✅ Account created! 
-              
-📧 Verification email sent to: ${email}
-
-⚠️ IMPORTANT:
-• Check your inbox AND spam/junk folder
-• Click the verification link in the email
-• Then return to login page
-
-Redirecting to login in 7 seconds...`
+              `Tasdiqlash xati ${email}ga yuborildi.
+• Inbox va Spam/Junk papkalarni tekshiring`
             );
           } catch (verificationError) {
             console.error("Verification send error:", verificationError);

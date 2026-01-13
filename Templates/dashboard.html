@@ -36,7 +36,8 @@
     <link rel="stylesheet" href="../Static/responsive.css" />
     <link rel="stylesheet" href="../Static/article.css" />
     <link rel="stylesheet" href="../Static/subscription.css" />
-    <link rel="stylesheet" href="../Static/lock-system.css">
+    <link rel="stylesheet" href="../Static/lock-system.css" />
+    <!-- <link rel="stylesheet" href="../Static/tour.css"> -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link
       rel="stylesheet"
@@ -321,7 +322,6 @@
               <span class="nav-icon material-symbols-outlined">dashboard</span>
               <span class="nav-lebel">Dashboard</span>
               <span class="tool-cost-badge">soon</span>
-
             </a>
           </li>
           <li class="nav-item">
@@ -384,15 +384,13 @@
             </a>
           </li>
 
-<li class="nav-item">
-  <a class="nav-link" id="articleNavLink">
-    <span class="material-symbols-outlined">two_pager</span>
-    <span class="nav-lebel">Articles</span>
-    <span class="tool-cost-badge free" id="articleBadge">PRO</span>
-  </a>
-</li>
-
-
+          <li class="nav-item">
+            <a class="nav-link" id="articleNavLink">
+              <span class="material-symbols-outlined">two_pager</span>
+              <span class="nav-lebel">Articles</span>
+              <span class="tool-cost-badge free" id="articleBadge">PRO</span>
+            </a>
+          </li>
         </ul>
         <ul class="nav-list secondary-nav">
           <li class="nav-item">
@@ -1043,10 +1041,7 @@
             </label>
 
             <!-- ✅ UPLOAD AREA - CLICK, DRAG & DROP, PASTE ENABLED - FIXED -->
-            <div
-              class="wiriting-image-upload-area"
-              id="writingImageUploadArea"
-            >
+            <div class="wiriting-image-upload-area" id="writingImageUploadArea">
               <i
                 class="bi bi-cloud-upload"
                 style="font-size: 48px; color: #9ca3af; margin-bottom: 15px"
@@ -2254,164 +2249,319 @@
               </button>
             </div>
             <!-- FEEDBACK SECTION - YANGI ✅ -->
-<div class="profile-section-inline feedback-section">
-  <div class="section-title-inline">
-    <i class="bi bi-chat-left-text-fill"></i>
-    Send Feedback
-  </div>
-  
-  <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
-    💭 Help us improve ZiyoAI! Share your suggestions, report bugs, or tell us what features you'd like to see.
-  </p>
+            <div class="profile-section-inline feedback-section">
+              <div class="section-title-inline">
+                <i class="bi bi-chat-left-text-fill"></i>
+                Send Feedback
+              </div>
 
-  <!-- Feedback Category -->
-  <div class="input-group-inline" style="margin-bottom: 20px;">
-    <label>📂 Category</label>
-    <select id="feedbackCategory" class="language-dropdown">
-      <option value="bug">🐛 Bug Report / Xatolik</option>
-      <option value="feature">✨ Feature Request / Yangi funksiya</option>
-      <option value="suggestion">💡 Suggestion / Taklif</option>
-      <option value="complaint">😕 Complaint / Shikoyat</option>
-      <option value="other">📝 Other / Boshqa</option>
-    </select>
-  </div>
+              <p
+                style="
+                  color: #6b7280;
+                  margin-bottom: 20px;
+                  font-size: 14px;
+                  line-height: 1.6;
+                "
+              >
+                💭 Help us improve ZiyoAI! Share your suggestions, report bugs,
+                or tell us what features you'd like to see.
+              </p>
 
-  <!-- Feedback Title -->
-  <div class="input-group-inline" style="margin-bottom: 20px;">
-    <label>📌 Title</label>
-    <input
-      type="text"
-      id="feedbackTitle"
-      placeholder="Brief description (e.g., 'Payment not working')"
-      maxlength="100"
-    />
-    <small style="color: #9ca3af; font-size: 12px; margin-top: 5px; display: block;">
-      Max 100 characters
-    </small>
-  </div>
+              <!-- Feedback Category -->
+              <div class="input-group-inline" style="margin-bottom: 20px">
+                <label>📂 Category</label>
+                <select id="feedbackCategory" class="language-dropdown">
+                  <option value="bug">🐛 Bug Report / Xatolik</option>
+                  <option value="feature">
+                    ✨ Feature Request / Yangi funksiya
+                  </option>
+                  <option value="suggestion">💡 Suggestion / Taklif</option>
+                  <option value="complaint">😕 Complaint / Shikoyat</option>
+                  <option value="other">📝 Other / Boshqa</option>
+                </select>
+              </div>
 
-  <!-- Feedback Message -->
-  <div class="input-group-inline" style="margin-bottom: 20px;">
-    <label>✍️ Message</label>
-    <textarea class="feedback-message"
-      id="feedbackMessage"
-      placeholder="Describe the issue or share your thoughts in detail..."
-      style="min-height: 150px; resize: vertical; font-family: inherit; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; width: 100%;"
-      maxlength="1000"
-    ></textarea>
-    <small style="color: #9ca3af; font-size: 12px; margin-top: 5px; display: block;">
-      <span id="feedbackCharCount">0</span>/1000 characters
-    </small>
-  </div>
+              <!-- Feedback Title -->
+              <div class="input-group-inline" style="margin-bottom: 20px">
+                <label>📌 Title</label>
+                <input
+                  type="text"
+                  id="feedbackTitle"
+                  placeholder="Brief description (e.g., 'Payment not working')"
+                  maxlength="100"
+                />
+                <small
+                  style="
+                    color: #9ca3af;
+                    font-size: 12px;
+                    margin-top: 5px;
+                    display: block;
+                  "
+                >
+                  Max 100 characters
+                </small>
+              </div>
 
-  <!-- Priority Level -->
-  <div class="input-group-inline" style="margin-bottom: 20px;">
-    <label>🚦 Priority</label>
-    <div style="display: flex; gap: 10px;">
-      <button class="priority-btn" data-priority="low" onclick="selectPriority('low')">
-        🟢 Low
-      </button>
-      <button class="priority-btn active" data-priority="medium" onclick="selectPriority('medium')">
-        🟡 Medium
-      </button>
-      <button class="priority-btn" data-priority="high" onclick="selectPriority('high')">
-        🔴 High
-      </button>
-    </div>
-  </div>
+              <!-- Feedback Message -->
+              <div class="input-group-inline" style="margin-bottom: 20px">
+                <label>✍️ Message</label>
+                <textarea
+                  class="feedback-message"
+                  id="feedbackMessage"
+                  placeholder="Describe the issue or share your thoughts in detail..."
+                  style="
+                    min-height: 150px;
+                    resize: vertical;
+                    font-family: inherit;
+                    padding: 12px;
+                    border: 2px solid #e5e7eb;
+                    border-radius: 8px;
+                    width: 100%;
+                  "
+                  maxlength="1000"
+                ></textarea>
+                <small
+                  style="
+                    color: #9ca3af;
+                    font-size: 12px;
+                    margin-top: 5px;
+                    display: block;
+                  "
+                >
+                  <span id="feedbackCharCount">0</span>/1000 characters
+                </small>
+              </div>
 
-  <!-- Submit Button -->
-  <button
-    class="btn-inline btn-primary-inline"
-    onclick="submitFeedback()"
-    style="width: 100%; margin-bottom: 15px;"
-  >
-    <i class="bi bi-send-fill"></i> Send Feedback
-  </button>
+              <!-- Priority Level -->
+              <div class="input-group-inline" style="margin-bottom: 20px">
+                <label>🚦 Priority</label>
+                <div style="display: flex; gap: 10px">
+                  <button
+                    class="priority-btn"
+                    data-priority="low"
+                    onclick="selectPriority('low')"
+                  >
+                    🟢 Low
+                  </button>
+                  <button
+                    class="priority-btn active"
+                    data-priority="medium"
+                    onclick="selectPriority('medium')"
+                  >
+                    🟡 Medium
+                  </button>
+                  <button
+                    class="priority-btn"
+                    data-priority="high"
+                    onclick="selectPriority('high')"
+                  >
+                    🔴 High
+                  </button>
+                </div>
+              </div>
 
-  <!-- View History Button -->
-  <button
-    class="btn-inline btn-secondary-inline"
-    onclick="openFeedbackHistory()"
-    style="width: 100%;"
-  >
-    <i class="bi bi-clock-history"></i> View My Feedback History
-  </button>
+              <!-- Submit Button -->
+              <button
+                class="btn-inline btn-primary-inline"
+                onclick="submitFeedback()"
+                style="width: 100%; margin-bottom: 15px"
+              >
+                <i class="bi bi-send-fill"></i> Send Feedback
+              </button>
 
-  <!-- Info Box -->
-  <div class="feedback-note" style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 10px; border-left: 4px solid #3b82f6;">
-    <p style="margin: 0; color: #1e40af; font-size: 13px; line-height: 1.6;">
-      <i class="bi bi-info-circle-fill"></i> <strong>Note:</strong> We review all feedback within 24-48 hours. You'll receive a notification when we respond.
-    </p>
-  </div>
-</div>
+              <!-- View History Button -->
+              <button
+                class="btn-inline btn-secondary-inline"
+                onclick="openFeedbackHistory()"
+                style="width: 100%"
+              >
+                <i class="bi bi-clock-history"></i> View My Feedback History
+              </button>
 
-<!-- ============================================ -->
-<!-- 🌟 TESTIMONIALS SECTION - ADD TO PROFILE -->
-<!-- Add this AFTER the feedback section in dashboard.html -->
-<!-- ============================================ -->
+              <!-- Info Box -->
+              <div
+                class="feedback-note"
+                style="
+                  margin-top: 20px;
+                  padding: 15px;
+                  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                  border-radius: 10px;
+                  border-left: 4px solid #3b82f6;
+                "
+              >
+                <p
+                  style="
+                    margin: 0;
+                    color: #1e40af;
+                    font-size: 13px;
+                    line-height: 1.6;
+                  "
+                >
+                  <i class="bi bi-info-circle-fill"></i>
+                  <strong>Note:</strong> We review all feedback within 24-48
+                  hours. You'll receive a notification when we respond.
+                </p>
+              </div>
+            </div>
 
-<!-- TESTIMONIALS/REVIEWS SECTION -->
-<div class="profile-section-inline testimonials-section">
-  <div class="section-title-inline">
-    <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
-    Share Your Experience
-  </div>
-  
-  <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
-    ⭐ Love ZiyoAI? Share your positive experience with other students! Your review may be featured on our landing page.
-  </p>
+            <!-- ============================================ -->
+            <!-- 🌟 TESTIMONIALS SECTION - ADD TO PROFILE -->
+            <!-- Add this AFTER the feedback section in dashboard.html -->
+            <!-- ============================================ -->
 
-  <!-- Quick Info Cards -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px;">
-    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 15px; border-radius: 12px; text-align: center; height: 40px; display: flex; align-items: center; justify-content: start; gap: 5px;">
-      <div style="font-size: 28px;">⭐</div>
-      <div style="font-weight: 700; color: #92400e; font-size: 14px;">Rate Us</div>
-      <!-- <div style="font-size: 11px; color: #b45309; margin-top: 3px;">1-5 Stars</div> -->
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 15px; border-radius: 12px; text-align: center; height: 40px; display: flex; align-items: center; justify-content: start; gap: 5px;">
-      <div style="font-size: 28px;">✍️</div>
-      <div style="font-weight: 700; color: #1e40af; font-size: 14px;">Write Review</div>
-      <!-- <div style="font-size: 11px; color: #1e3a8a; margin-top: 3px;">Share thoughts</div> -->
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 15px; border-radius: 12px; text-align: center; height: 40px; display: flex; align-items: center; justify-content: start; gap: 5px;">
-      <div style="font-size: 28px;">🚀</div>
-      <div style="font-weight: 700; color: #166534; font-size: 14px;">Get Featured</div>
-      <!-- <div style="font-size: 11px; color: #14532d; margin-top: 3px;">On homepage</div> -->
-    </div>
-  </div>
+            <!-- TESTIMONIALS/REVIEWS SECTION -->
+            <div class="profile-section-inline testimonials-section">
+              <div class="section-title-inline">
+                <i class="bi bi-star-fill" style="color: #fbbf24"></i>
+                Share Your Experience
+              </div>
 
-  <!-- Action Buttons -->
-  <div style="display: flex; gap: 12px; margin-bottom: 15px;">
-    <button
-      class="btn-inline btn-primary-inline"
-      onclick="openTestimonialModal()"
-      style="flex: 1;"
-    >
-      <i class="bi bi-star-fill"></i> Write Review
-    </button>
-    <button
-      class="btn-inline btn-secondary-inline"
-      onclick="viewMyTestimonials()"
-      style="flex: 1;"
-    >
-      <i class="bi bi-eye-fill"></i> View My Review
-    </button>
-  </div>
+              <p
+                style="
+                  color: #6b7280;
+                  margin-bottom: 20px;
+                  font-size: 14px;
+                  line-height: 1.6;
+                "
+              >
+                ⭐ Love ZiyoAI? Share your positive experience with other
+                students! Your review may be featured on our landing page.
+              </p>
 
-  <!-- Info Box -->
-  <div style="padding: 15px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border-radius: 10px; border-left: 4px solid #6b7280;">
-    <p style="margin: 0; color: #374151; font-size: 13px; line-height: 1.6;">
-      <i class="bi bi-info-circle-fill"></i> <strong>Note:</strong> We only feature 5-star reviews with positive feedback. All reviews are manually reviewed before publishing.
-    </p>
-  </div>
-</div>
+              <!-- Quick Info Cards -->
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                  gap: 12px;
+                  margin-bottom: 25px;
+                "
+              >
+                <div
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #fef3c7 0%,
+                      #fde68a 100%
+                    );
+                    padding: 15px;
+                    border-radius: 12px;
+                    text-align: center;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: start;
+                    gap: 5px;
+                  "
+                >
+                  <div style="font-size: 28px">⭐</div>
+                  <div
+                    style="font-weight: 700; color: #92400e; font-size: 14px"
+                  >
+                    Rate Us
+                  </div>
+                  <!-- <div style="font-size: 11px; color: #b45309; margin-top: 3px;">1-5 Stars</div> -->
+                </div>
 
-<!-- ============================================ -->
-<!-- END OF TESTIMONIALS SECTION -->
-<!-- ============================================ -->
+                <div
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #dbeafe 0%,
+                      #bfdbfe 100%
+                    );
+                    padding: 15px;
+                    border-radius: 12px;
+                    text-align: center;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: start;
+                    gap: 5px;
+                  "
+                >
+                  <div style="font-size: 28px">✍️</div>
+                  <div
+                    style="font-weight: 700; color: #1e40af; font-size: 14px"
+                  >
+                    Write Review
+                  </div>
+                  <!-- <div style="font-size: 11px; color: #1e3a8a; margin-top: 3px;">Share thoughts</div> -->
+                </div>
+
+                <div
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #dcfce7 0%,
+                      #bbf7d0 100%
+                    );
+                    padding: 15px;
+                    border-radius: 12px;
+                    text-align: center;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: start;
+                    gap: 5px;
+                  "
+                >
+                  <div style="font-size: 28px">🚀</div>
+                  <div
+                    style="font-weight: 700; color: #166534; font-size: 14px"
+                  >
+                    Get Featured
+                  </div>
+                  <!-- <div style="font-size: 11px; color: #14532d; margin-top: 3px;">On homepage</div> -->
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 12px; margin-bottom: 15px">
+                <button
+                  class="btn-inline btn-primary-inline"
+                  onclick="openTestimonialModal()"
+                  style="flex: 1"
+                >
+                  <i class="bi bi-star-fill"></i> Write Review
+                </button>
+                <button
+                  class="btn-inline btn-secondary-inline"
+                  onclick="viewMyTestimonials()"
+                  style="flex: 1"
+                >
+                  <i class="bi bi-eye-fill"></i> View My Review
+                </button>
+              </div>
+
+              <!-- Info Box -->
+              <div
+                style="
+                  padding: 15px;
+                  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                  border-radius: 10px;
+                  border-left: 4px solid #6b7280;
+                "
+              >
+                <p
+                  style="
+                    margin: 0;
+                    color: #374151;
+                    font-size: 13px;
+                    line-height: 1.6;
+                  "
+                >
+                  <i class="bi bi-info-circle-fill"></i>
+                  <strong>Note:</strong> We only feature 5-star reviews with
+                  positive feedback. All reviews are manually reviewed before
+                  publishing.
+                </p>
+              </div>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- END OF TESTIMONIALS SECTION -->
+            <!-- ============================================ -->
 
             <!-- Danger Zone -->
             <div class="danger-zone-inline">
@@ -2588,6 +2738,51 @@
         </div>
       </div>
     </main>
+<!-- <div class="tour-overlay" id="tourOverlay"></div>
+<div class="tour-spotlight" id="tourSpotlight"></div>
+
+<div class="tour-card" id="tourCard">
+  <div class="tour-header">
+    <span class="tour-step-counter" id="tourStepCounter">1 / 7</span>
+    <button class="tour-skip-btn" onclick="skipTour()">
+      <i class="bi bi-x-lg"></i> Skip Tour
+    </button>
+  </div>
+
+  <div class="tour-body">
+    <div class="tour-icon" id="tourIcon">🎯</div>
+    <h3 class="tour-title" id="tourTitle">Welcome to ZiyoAI!</h3>
+    <p class="tour-description" id="tourDescription">
+      Let's take a quick tour to help you get started with our powerful learning tools.
+    </p>
+
+    <div class="tour-features" id="tourFeatures" style="display: none"></div>
+  </div>
+
+  <div class="tour-footer">
+    <div class="tour-progress" id="tourProgress">
+      <div class="tour-dot active"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+      <div class="tour-dot"></div>
+    </div>
+
+    <div class="tour-buttons">
+      <button class="tour-btn tour-btn-prev" id="tourPrevBtn" onclick="prevTourStep()" style="display: none">
+        <i class="bi bi-chevron-left"></i> Previous
+      </button>
+      <button class="tour-btn tour-btn-next" id="tourNextBtn" onclick="nextTourStep()">
+        Next <i class="bi bi-chevron-right"></i>
+      </button>
+      <button class="tour-btn tour-btn-finish" id="tourFinishBtn" onclick="finishTour()" style="display: none">
+        <i class="bi bi-check-circle"></i> Got It!
+      </button>
+    </div>
+  </div>
+</div> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -2729,20 +2924,20 @@
         }
       }
 
-// ============================================
-// 7️⃣ AUTH STATE CHANGED - UPDATED WITH EMAIL VERIFICATION
-// ============================================
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("✅ User logged in:", user.email);
-    console.log("📝 Display Name:", user.displayName);
-    console.log("👤 UID:", user.uid);
-    console.log("📧 Email Verified:", user.emailVerified);
+      // ============================================
+      // 7️⃣ AUTH STATE CHANGED - UPDATED WITH EMAIL VERIFICATION
+      // ============================================
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("✅ User logged in:", user.email);
+          console.log("📝 Display Name:", user.displayName);
+          console.log("👤 UID:", user.uid);
+          console.log("📧 Email Verified:", user.emailVerified);
 
-    // ✅ EMAIL VERIFICATION CHECK
-    // TEMPORARY: Skip verification for testing
-    // TODO: Uncomment when email verification is working
-    /*
+          // ✅ EMAIL VERIFICATION CHECK
+          // TEMPORARY: Skip verification for testing
+          // TODO: Uncomment when email verification is working
+          /*
     if (!user.emailVerified) {
       console.log("⚠️ Email not verified, redirecting to login...");
       
@@ -2770,19 +2965,19 @@ onAuthStateChanged(auth, (user) => {
     }
     */
 
-    updateUserName(user);
+          updateUserName(user);
 
-    const spinner = document.querySelector(".spinner-wrapper");
-    if (spinner) {
-      spinner.style.display = "none";
-    }
+          const spinner = document.querySelector(".spinner-wrapper");
+          if (spinner) {
+            spinner.style.display = "none";
+          }
 
-    testDatabaseConnection(user);
-  } else {
-    console.log("❌ No user logged in");
-    window.location.href = "./login.html";
-  }
-});
+          testDatabaseConnection(user);
+        } else {
+          console.log("❌ No user logged in");
+          window.location.href = "./login.html";
+        }
+      });
 
       // ============================================
       // 8️⃣ TEST DATABASE CONNECTION (YANGI!)
@@ -2927,33 +3122,33 @@ onAuthStateChanged(auth, (user) => {
         }
       }
     </style>
-<!-- 📬 FEEDBACK SYSTEM - ENG BIRINCHI -->
+    <!-- 📬 FEEDBACK SYSTEM - ENG BIRINCHI -->
     <script>
       // ============================================
       // 📬 FEEDBACK SYSTEM - COMPLETE & FIXED
       // ============================================
 
-      let selectedPriority = 'medium'; // Default priority
+      let selectedPriority = "medium"; // Default priority
 
       // ============================================
       // CHARACTER COUNTER FOR FEEDBACK MESSAGE
       // ============================================
-      document.addEventListener('DOMContentLoaded', () => {
-        const feedbackMessage = document.getElementById('feedbackMessage');
-        const charCount = document.getElementById('feedbackCharCount');
-        
+      document.addEventListener("DOMContentLoaded", () => {
+        const feedbackMessage = document.getElementById("feedbackMessage");
+        const charCount = document.getElementById("feedbackCharCount");
+
         if (feedbackMessage && charCount) {
-          feedbackMessage.addEventListener('input', () => {
+          feedbackMessage.addEventListener("input", () => {
             const length = feedbackMessage.value.length;
             charCount.textContent = length;
-            
+
             // Change color based on length
             if (length > 900) {
-              charCount.style.color = '#ef4444'; // Red when close to limit
+              charCount.style.color = "#ef4444"; // Red when close to limit
             } else if (length > 700) {
-              charCount.style.color = '#f59e0b'; // Orange
+              charCount.style.color = "#f59e0b"; // Orange
             } else {
-              charCount.style.color = '#9ca3af'; // Gray
+              charCount.style.color = "#9ca3af"; // Gray
             }
           });
         }
@@ -2964,19 +3159,21 @@ onAuthStateChanged(auth, (user) => {
       // ============================================
       function selectPriority(priority) {
         selectedPriority = priority;
-        
+
         // Remove active class from all buttons
-        document.querySelectorAll('.priority-btn').forEach(btn => {
-          btn.classList.remove('active');
+        document.querySelectorAll(".priority-btn").forEach((btn) => {
+          btn.classList.remove("active");
         });
-        
+
         // Add active class to selected button
-        const selectedBtn = document.querySelector(`[data-priority="${priority}"]`);
+        const selectedBtn = document.querySelector(
+          `[data-priority="${priority}"]`
+        );
         if (selectedBtn) {
-          selectedBtn.classList.add('active');
+          selectedBtn.classList.add("active");
         }
-        
-        console.log('✅ Priority selected:', priority);
+
+        console.log("✅ Priority selected:", priority);
       }
 
       // ============================================
@@ -2985,81 +3182,92 @@ onAuthStateChanged(auth, (user) => {
       async function submitFeedback() {
         const user = window.firebaseAuth?.currentUser;
         if (!user) {
-          showNotification('❌ Please log in first', 'error');
+          showNotification("❌ Please log in first", "error");
           return;
         }
-        
+
         // Get form values
-        const category = document.getElementById('feedbackCategory').value;
-        const title = document.getElementById('feedbackTitle').value.trim();
-        const message = document.getElementById('feedbackMessage').value.trim();
-        
+        const category = document.getElementById("feedbackCategory").value;
+        const title = document.getElementById("feedbackTitle").value.trim();
+        const message = document.getElementById("feedbackMessage").value.trim();
+
         // Validation
         if (!title) {
-          showNotification('⚠️ Please enter a title', 'error');
+          showNotification("⚠️ Please enter a title", "error");
           return;
         }
-        
+
         if (!message) {
-          showNotification('⚠️ Please enter a message', 'error');
+          showNotification("⚠️ Please enter a message", "error");
           return;
         }
-        
+
         if (message.length < 10) {
-          showNotification('⚠️ Message must be at least 10 characters', 'error');
+          showNotification(
+            "⚠️ Message must be at least 10 characters",
+            "error"
+          );
           return;
         }
-        
+
         const db = window.firebaseDatabase;
         if (!db) {
-          showNotification('❌ Database not available', 'error');
+          showNotification("❌ Database not available", "error");
           return;
         }
-        
+
         try {
-          showNotification('📤 Sending feedback...', 'info');
-          
+          showNotification("📤 Sending feedback...", "info");
+
           // Create feedback object
           const feedbackData = {
             category,
             title,
             message,
             priority: selectedPriority,
-            status: 'pending',
+            status: "pending",
             userId: user.uid,
-            username: user.displayName || user.email.split('@')[0],
+            username: user.displayName || user.email.split("@")[0],
             email: user.email,
             timestamp: new Date().toISOString(),
             adminResponse: null,
-            respondedAt: null
+            respondedAt: null,
           };
-          
+
           // Save to Firebase
           const feedbackRef = window.firebaseRef(db, `feedback/${user.uid}`);
           const newFeedbackRef = window.firebasePush(feedbackRef);
           await window.firebaseSet(newFeedbackRef, feedbackData);
-          
-          console.log('✅ Feedback submitted:', newFeedbackRef.key);
-          
+
+          console.log("✅ Feedback submitted:", newFeedbackRef.key);
+
           // Clear form
-          document.getElementById('feedbackTitle').value = '';
-          document.getElementById('feedbackMessage').value = '';
-          document.getElementById('feedbackCharCount').textContent = '0';
-          selectPriority('medium'); // Reset to medium
-          
+          document.getElementById("feedbackTitle").value = "";
+          document.getElementById("feedbackMessage").value = "";
+          document.getElementById("feedbackCharCount").textContent = "0";
+          selectPriority("medium"); // Reset to medium
+
           // Show success
-          showNotification('✅ Feedback sent successfully! We will review it within 24-48 hours.', 'success');
-          
+          showNotification(
+            "✅ Feedback sent successfully! We will review it within 24-48 hours.",
+            "success"
+          );
+
           // Optional: Scroll to top
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } catch (error) {
-          console.error('❌ Error submitting feedback:', error);
-          
-          if (error.code === 'PERMISSION_DENIED') {
-            showNotification('❌ Permission denied! Please check Firebase rules.', 'error');
+          console.error("❌ Error submitting feedback:", error);
+
+          if (error.code === "PERMISSION_DENIED") {
+            showNotification(
+              "❌ Permission denied! Please check Firebase rules.",
+              "error"
+            );
           } else {
-            showNotification('❌ Failed to send feedback: ' + error.message, 'error');
+            showNotification(
+              "❌ Failed to send feedback: " + error.message,
+              "error"
+            );
           }
         }
       }
@@ -3070,37 +3278,39 @@ onAuthStateChanged(auth, (user) => {
       async function openFeedbackHistory() {
         const user = window.firebaseAuth?.currentUser;
         if (!user) {
-          showNotification('❌ Please log in first', 'error');
+          showNotification("❌ Please log in first", "error");
           return;
         }
-        
+
         const db = window.firebaseDatabase;
         if (!db) {
-          showNotification('❌ Database not available', 'error');
+          showNotification("❌ Database not available", "error");
           return;
         }
-        
+
         try {
           // Fetch user's feedbacks
           const feedbackRef = window.firebaseRef(db, `feedback/${user.uid}`);
           const snapshot = await window.firebaseGet(feedbackRef);
-          
+
           const feedbacks = [];
           if (snapshot.exists()) {
-            snapshot.forEach(child => {
+            snapshot.forEach((child) => {
               feedbacks.push({
                 id: child.key,
-                ...child.val()
+                ...child.val(),
               });
             });
           }
-          
+
           // Sort by timestamp (newest first)
-          feedbacks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          
+          feedbacks.sort(
+            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+          );
+
           // Create modal
-          const modal = document.createElement('div');
-          modal.className = 'modal-overlay-inline feedback-history-modal';
+          const modal = document.createElement("div");
+          modal.className = "modal-overlay-inline feedback-history-modal";
           modal.innerHTML = `
             <div class="modal-inline" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
               <div class="modal-header-inline">
@@ -3108,33 +3318,58 @@ onAuthStateChanged(auth, (user) => {
                 <button class="modal-close-inline" onclick="closeFeedbackHistory()">×</button>
               </div>
               <div class="modal-body-inline">
-                ${feedbacks.length === 0 ? `
+                ${
+                  feedbacks.length === 0
+                    ? `
                   <div style="text-align: center; padding: 60px 20px;">
                     <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
                     <h4 style="color: #4b5563; margin-bottom: 10px;">No feedback yet</h4>
                     <p style="color: #9ca3af;">Your submitted feedback will appear here</p>
                   </div>
-                ` : feedbacks.map(fb => `
+                `
+                    : feedbacks
+                        .map(
+                          (fb) => `
                   <div class="feedback-item" style="
                     background: white;
                     border-radius: 12px;
                     padding: 25px;
                     margin-bottom: 20px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                    border: 2px solid ${fb.status === 'resolved' ? '#10b981' : fb.status === 'reviewed' ? '#3b82f6' : '#e5e7eb'};
+                    border: 2px solid ${
+                      fb.status === "resolved"
+                        ? "#10b981"
+                        : fb.status === "reviewed"
+                        ? "#3b82f6"
+                        : "#e5e7eb"
+                    };
                   ">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                       <div style="flex: 1;">
                         <div class="feedback-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                          <h4 style="margin: 0; color: #1f2937;">${fb.title}</h4>
+                          <h4 style="margin: 0; color: #1f2937;">${
+                            fb.title
+                          }</h4>
                           <span style="
                             padding: 4px 12px;
-                            background: ${fb.category === 'bug' ? '#fee2e2' : 
-                                        fb.category === 'feature' ? '#dbeafe' : 
-                                        fb.category === 'suggestion' ? '#fef3c7' : '#f3f4f6'};
-                            color: ${fb.category === 'bug' ? '#991b1b' : 
-                                     fb.category === 'feature' ? '#1e40af' : 
-                                     fb.category === 'suggestion' ? '#92400e' : '#4b5563'};
+                            background: ${
+                              fb.category === "bug"
+                                ? "#fee2e2"
+                                : fb.category === "feature"
+                                ? "#dbeafe"
+                                : fb.category === "suggestion"
+                                ? "#fef3c7"
+                                : "#f3f4f6"
+                            };
+                            color: ${
+                              fb.category === "bug"
+                                ? "#991b1b"
+                                : fb.category === "feature"
+                                ? "#1e40af"
+                                : fb.category === "suggestion"
+                                ? "#92400e"
+                                : "#4b5563"
+                            };
                             border-radius: 6px;
                             font-size: 11px;
                             font-weight: 700;
@@ -3142,38 +3377,71 @@ onAuthStateChanged(auth, (user) => {
                           ">${fb.category}</span>
                         </div>
                         <p style="margin: 0; color: #6b7280; font-size: 13px;">
-                          <i class="bi bi-calendar3"></i> ${new Date(fb.timestamp).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
+                          <i class="bi bi-calendar3"></i> ${new Date(
+                            fb.timestamp
+                          ).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </p>
                       </div>
                       <div style="display: flex; gap: 10px; align-items: center;">
                         <span style="
                           padding: 6px 14px;
-                          background: ${fb.priority === 'high' ? '#fee2e2' : 
-                                      fb.priority === 'medium' ? '#fef3c7' : '#dcfce7'};
-                          color: ${fb.priority === 'high' ? '#991b1b' : 
-                                   fb.priority === 'medium' ? '#92400e' : '#166534'};
+                          background: ${
+                            fb.priority === "high"
+                              ? "#fee2e2"
+                              : fb.priority === "medium"
+                              ? "#fef3c7"
+                              : "#dcfce7"
+                          };
+                          color: ${
+                            fb.priority === "high"
+                              ? "#991b1b"
+                              : fb.priority === "medium"
+                              ? "#92400e"
+                              : "#166534"
+                          };
                           border-radius: 20px;
                           font-size: 12px;
                           font-weight: 700;
-                        ">${fb.priority === 'high' ? '🔴 High' : fb.priority === 'medium' ? '🟡 Medium' : '🟢 Low'}</span>
+                        ">${
+                          fb.priority === "high"
+                            ? "🔴 High"
+                            : fb.priority === "medium"
+                            ? "🟡 Medium"
+                            : "🟢 Low"
+                        }</span>
                         
                         <span style="
                           padding: 6px 14px;
-                          background: ${fb.status === 'resolved' ? '#dcfce7' : 
-                                      fb.status === 'reviewed' ? '#dbeafe' : '#fef3c7'};
-                          color: ${fb.status === 'resolved' ? '#166534' : 
-                                   fb.status === 'reviewed' ? '#1e40af' : '#92400e'};
+                          background: ${
+                            fb.status === "resolved"
+                              ? "#dcfce7"
+                              : fb.status === "reviewed"
+                              ? "#dbeafe"
+                              : "#fef3c7"
+                          };
+                          color: ${
+                            fb.status === "resolved"
+                              ? "#166534"
+                              : fb.status === "reviewed"
+                              ? "#1e40af"
+                              : "#92400e"
+                          };
                           border-radius: 20px;
                           font-size: 12px;
                           font-weight: 700;
-                        ">${fb.status === 'resolved' ? '✅ Resolved' : 
-                            fb.status === 'reviewed' ? '👀 Reviewed' : '⏳ Pending'}</span>
+                        ">${
+                          fb.status === "resolved"
+                            ? "✅ Resolved"
+                            : fb.status === "reviewed"
+                            ? "👀 Reviewed"
+                            : "⏳ Pending"
+                        }</span>
                       </div>
                     </div>
 
@@ -3186,7 +3454,9 @@ onAuthStateChanged(auth, (user) => {
                       color: #374151;
                     ">${fb.message}</div>
                     
-                    ${fb.adminResponse ? `
+                    ${
+                      fb.adminResponse
+                        ? `
                       <div style="
                         background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
                         padding: 15px;
@@ -3197,18 +3467,25 @@ onAuthStateChanged(auth, (user) => {
                           <i class="bi bi-shield-check"></i> Admin Response:
                         </div>
                         <div style="color: #14532d;">${fb.adminResponse}</div>
-                        ${fb.respondedAt ? `
+                        ${
+                          fb.respondedAt
+                            ? `
                           <div style="margin-top: 8px; font-size: 12px; color: #166534;">
-                            <i class="bi bi-clock"></i> ${new Date(fb.respondedAt).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
+                            <i class="bi bi-clock"></i> ${new Date(
+                              fb.respondedAt
+                            ).toLocaleString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                             })}
                           </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                       </div>
-                    ` : `
+                    `
+                        : `
                       <div style="
                         padding: 12px;
                         background: #fef3c7;
@@ -3222,22 +3499,25 @@ onAuthStateChanged(auth, (user) => {
                         <i class="bi bi-hourglass-split"></i>
                         <span>Waiting for admin response...</span>
                       </div>
-                    `}
+                    `
+                    }
                   </div>
-                `).join('')}
+                `
+                        )
+                        .join("")
+                }
               </div>
             </div>
           `;
-          
+
           document.body.appendChild(modal);
-          setTimeout(() => modal.classList.add('active'), 10);
-          document.body.style.overflow = 'hidden';
-          
-          console.log('✅ Feedback history opened:', feedbacks.length, 'items');
-          
+          setTimeout(() => modal.classList.add("active"), 10);
+          document.body.style.overflow = "hidden";
+
+          console.log("✅ Feedback history opened:", feedbacks.length, "items");
         } catch (error) {
-          console.error('❌ Error loading feedback history:', error);
-          showNotification('❌ Failed to load feedback history', 'error');
+          console.error("❌ Error loading feedback history:", error);
+          showNotification("❌ Failed to load feedback history", "error");
         }
       }
 
@@ -3245,12 +3525,12 @@ onAuthStateChanged(auth, (user) => {
       // CLOSE FEEDBACK HISTORY
       // ============================================
       function closeFeedbackHistory() {
-        const modal = document.querySelector('.feedback-history-modal');
+        const modal = document.querySelector(".feedback-history-modal");
         if (modal) {
-          modal.classList.remove('active');
+          modal.classList.remove("active");
           setTimeout(() => modal.remove(), 300);
         }
-        document.body.style.overflow = '';
+        document.body.style.overflow = "";
       }
 
       // ============================================
@@ -3261,7 +3541,7 @@ onAuthStateChanged(auth, (user) => {
       window.openFeedbackHistory = openFeedbackHistory;
       window.closeFeedbackHistory = closeFeedbackHistory;
 
-      console.log('✅ Feedback system loaded!');
+      console.log("✅ Feedback system loaded!");
     </script>
 
     <!-- ✅ TO'G'RI TARTIB - FEEDBACK SYSTEMDAN KEYIN -->
@@ -3274,7 +3554,8 @@ onAuthStateChanged(auth, (user) => {
     <script src="../JS/article.js"></script>
     <script src="../JS/profile.js"></script>
     <!-- Testimonials System -->
-<script src="../JS/testimonials.js"></script>
-<script src="../JS/admin-testimonials.js"></script>
+    <script src="../JS/testimonials.js"></script>
+    <script src="../JS/admin-testimonials.js"></script>
+    <!-- <script src="../JS/tour.js"></script> -->
   </body>
 </html>

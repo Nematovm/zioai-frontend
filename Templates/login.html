@@ -78,7 +78,8 @@
           "
         ></div>
 
-        <div>
+        <!-- Login Form -->
+        <div id="loginForm">
           <!-- Login.html -->
           <div class="input-box">
             <input
@@ -174,9 +175,79 @@
           </button>
         </div>
 
+        <!-- Forgot Password Form -->
+        <div id="forgotPasswordForm" style="display: none;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h5 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+              Reset Password
+            </h5>
+            <p style="font-size: 14px; color: #6B7280;">
+              Enter your email address and we'll send you a password reset link.
+            </p>
+          </div>
+
+          <div class="input-box">
+            <input
+              type="email"
+              id="resetEmail"
+              name="resetEmail"
+              placeholder=" "
+              required
+            />
+            <label>Email</label>
+          </div>
+
+          <button
+            class="btn-primary"
+            type="button"
+            id="resetBtn"
+            onclick="handlePasswordReset()"
+          >
+            Send Reset Link
+          </button>
+
+          <button
+            type="button"
+            onclick="showLoginForm()"
+            style="
+              width: 100%;
+              margin-top: 12px;
+              padding: 12px;
+              background: white;
+              border: 1px solid #D1D5DB;
+              border-radius: 8px;
+              color: #374151;
+              font-size: 15px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            "
+            onmouseover="this.style.background='#F9FAFB'"
+            onmouseout="this.style.background='white'"
+          >
+            Back to Login
+          </button>
+        </div>
+
         <p class="switch-link">
           Don't have an account? <a href="./signup.html">Sign Up</a>
         </p>
+        
+          <!-- Forgot Password Link -->
+          <div style="text-align: center;">
+            <a 
+              href="#" 
+              onclick="showForgotPassword(); return false;"
+              style="
+                color: #4F46E5;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+              "
+            >
+              Forgot Password?
+            </a>
+          </div>
       </div>
     </div>
 
@@ -190,6 +261,7 @@
         GoogleAuthProvider,
         onAuthStateChanged,
         sendEmailVerification,
+        sendPasswordResetEmail,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
       // Firebase Configuration
@@ -234,6 +306,96 @@
 
       // Temporary email/password storage for resend
       let tempLoginData = null;
+
+      // ============================================
+      // SHOW/HIDE FORMS
+      // ============================================
+      window.showForgotPassword = function() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('forgotPasswordForm').style.display = 'block';
+        document.getElementById('errorAlert').style.display = 'none';
+        document.getElementById('successAlert').style.display = 'none';
+      };
+
+      window.showLoginForm = function() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('forgotPasswordForm').style.display = 'none';
+        document.getElementById('errorAlert').style.display = 'none';
+        document.getElementById('successAlert').style.display = 'none';
+      };
+
+      // ============================================
+      // PASSWORD RESET HANDLER
+      // ============================================
+      window.handlePasswordReset = async function() {
+        const email = document.getElementById('resetEmail').value.trim();
+        const resetBtn = document.getElementById('resetBtn');
+        const errorAlert = document.getElementById('errorAlert');
+        const successAlert = document.getElementById('successAlert');
+
+        errorAlert.style.display = 'none';
+        successAlert.style.display = 'none';
+
+        if (!email) {
+          showError('Please enter your email address!');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showError('Please enter a valid email address!');
+          return;
+        }
+
+        resetBtn.disabled = true;
+        resetBtn.textContent = 'Sending...';
+
+        try {
+          // IMPORTANT: Firebase will use the URL configured in your Firebase Console
+          // Make sure to add this URL in: Firebase Console > Authentication > Templates > Password reset
+          // The URL should point to: https://your-domain.com/Templates/reset-password.html
+          
+          const actionCodeSettings = {
+            url: window.location.origin + '/Templates/reset-password.html',
+            handleCodeInApp: true
+          };
+          
+          await sendPasswordResetEmail(auth, email, actionCodeSettings);
+          
+          showSuccess('✅ Password reset link sent! Please check your email (and spam folder).');
+          
+          // Clear the input
+          document.getElementById('resetEmail').value = '';
+          
+          // Go back to login after 3 seconds
+          setTimeout(() => {
+            showLoginForm();
+          }, 3000);
+
+        } catch (error) {
+          console.error('Password reset error:', error);
+
+          let errorMessage = 'Failed to send reset email!';
+
+          if (error.code === 'auth/user-not-found') {
+            errorMessage = 'No account found with this email address!';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Invalid email format!';
+          } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = 'Too many requests. Please try again later.';
+          } else if (error.code === 'auth/network-request-failed') {
+            errorMessage = 'Network error. Please check your internet connection!';
+          } else if (error.code === 'auth/unauthorized-continue-uri') {
+            errorMessage = 'Please configure the password reset URL in Firebase Console.';
+            console.error('IMPORTANT: Add this URL to authorized domains in Firebase Console:', window.location.origin);
+          }
+
+          showError(errorMessage);
+        } finally {
+          resetBtn.disabled = false;
+          resetBtn.textContent = 'Send Reset Link';
+        }
+      };
 
       // Email/Password Login
       window.handleLogin = async function () {
@@ -432,6 +594,18 @@ If you didn't receive it, click "Resend Verification Email" button below.`);
       document.getElementById("password").addEventListener("keypress", function (e) {
         if (e.key === "Enter") {
           handleLogin();
+        }
+      });
+
+      // Enter key support for reset email
+      document.addEventListener('DOMContentLoaded', () => {
+        const resetEmailInput = document.getElementById('resetEmail');
+        if (resetEmailInput) {
+          resetEmailInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              handlePasswordReset();
+            }
+          });
         }
       });
     </script>
