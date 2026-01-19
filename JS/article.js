@@ -43,6 +43,8 @@ const ARTICLES_STORAGE = {
   HIGHLIGHT_RESET_DATE: 'articles_highlight_reset_date'
 };
 
+const HIGHLIGHT_RESET_DAYS = 2;
+
 console.log('🌐 Using API URL:', ARTICLE_API_URL);
 
 // Save to localStorage
@@ -281,57 +283,83 @@ function renderArticlesList() {
 }
 
 // ============================================
-// GET HIGHLIGHT COUNT FOR ARTICLE - YANGI ✅
+// ✅ COMPLETELY FIXED: GET HIGHLIGHT COUNT - PER ARTICLE, 2-DAY BLOCK
 // ============================================
 function getHighlightCount(articleId) {
   const key = ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId;
+  const resetDateKey = ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE + articleId;
   
-  // ✅ Check if it's a new day (reset daily)
-  const lastResetDate = loadFromLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE);
-  const today = new Date().toDateString();
+  // ✅ Get current count
+  const saved = loadFromLocalStorage(key);
+  const count = saved || 0;
   
-  if (lastResetDate !== today) {
-    console.log('📅 New day detected, resetting ALL highlight counts');
-    // Clear all highlight counts for ALL articles
-    Object.keys(localStorage).forEach(storageKey => {
-      if (storageKey.startsWith(ARTICLES_STORAGE.HIGHLIGHT_COUNT)) {
-        localStorage.removeItem(storageKey);
-        console.log('🗑️ Cleared:', storageKey);
-      }
-    });
-    saveToLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE, today);
-    console.log('✅ Daily reset complete, returning 0');
+  // ✅ CRITICAL: Get FIRST highlight date for THIS article
+  const firstHighlightDate = loadFromLocalStorage(resetDateKey);
+  
+  // ✅ If NO highlights yet, just return 0 (don't set date yet!)
+  if (!firstHighlightDate) {
+    console.log(`📊 No highlights yet for article ${articleId}`);
     return 0;
   }
   
-  // ✅ Return saved count (PERSISTENT until tomorrow)
-  const saved = loadFromLocalStorage(key);
-  console.log(`📊 Highlight count for ${articleId}: ${saved || 0}/${MAX_HIGHLIGHT_WORDS}`);
+  // ✅ Date exists, check if 2 days passed
+  const now = new Date();
+  const firstDate = new Date(firstHighlightDate);
+  const hoursPassed = Math.floor((now - firstDate) / (1000 * 60 * 60));
+  const daysPassed = Math.floor(hoursPassed / 24);
   
-  return saved || 0;
+  console.log(`📅 First highlight was: ${firstDate.toLocaleString()}`);
+  console.log(`⏰ Hours passed: ${hoursPassed}h (${daysPassed} days)`);
+  console.log(`🔒 Reset after: ${HIGHLIGHT_RESET_DAYS} days (${HIGHLIGHT_RESET_DAYS * 24}h)`);
+  
+  // ✅ Check FULL 48 hours (2 days * 24 hours)
+  const resetHours = HIGHLIGHT_RESET_DAYS * 24; // 48 hours
+  
+  if (hoursPassed >= resetHours) {
+    console.log(`🔓 ${HIGHLIGHT_RESET_DAYS} DAYS PASSED! Resetting count now...`);
+    
+    // Reset count to 0
+    localStorage.removeItem(key);
+    
+    // ✅ CRITICAL: Remove reset date (will be set on next highlight)
+    localStorage.removeItem(resetDateKey);
+    
+    console.log(`✅ Reset complete. Next highlight will start new 2-day period.`);
+    return 0;
+  } else {
+    // ✅ Still within 2-day block period
+    const hoursLeft = resetHours - hoursPassed;
+    const daysLeft = Math.ceil(hoursLeft / 24);
+    
+    console.log(`⏳ Still locked. Hours left: ${hoursLeft}h (≈${daysLeft} days)`);
+  }
+  
+  console.log(`📊 Current highlight count: ${count}/${MAX_HIGHLIGHT_WORDS}`);
+  
+  return count;
 }
 
 // ============================================
-// SAVE HIGHLIGHT COUNT FOR ARTICLE - YANGI ✅
+// SAVE HIGHLIGHT COUNT FOR ARTICLE - FIXED ✅
 // ============================================
 function saveHighlightCount(articleId, count) {
   const key = ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId;
   saveToLocalStorage(key, count);
   
-  // ✅ ALSO save reset date to ensure consistency
-  const today = new Date().toDateString();
-  saveToLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE, today);
-  
   console.log(`💾 Highlight count SAVED for ${articleId}: ${count}/${MAX_HIGHLIGHT_WORDS}`);
-  console.log(`📅 Reset date: ${today}`);
 }
 
 // ============================================
-// OPEN ARTICLE - UPDATED ✅
+// ✅ COMPLETELY FIXED: OPEN ARTICLE
 // ============================================
 function openArticle(articleId) {
   console.log('🔍 Opening article with ID:', articleId);
   
+  // ✅ STEP 1: AGGRESSIVE CLEANUP FIRST
+  console.log('🧹 Step 1: Aggressive cleanup...');
+  cleanupOldHighlights();
+  
+  // ✅ STEP 2: Find article
   selectedArticle = articlesData.find(a => a.id === articleId);
   
   if (!selectedArticle) {
@@ -344,24 +372,26 @@ function openArticle(articleId) {
   console.log('📊 Article level:', selectedArticle.level);
   currentArticleView = 'article';
   
-  // ✅ RESTORE HIGHLIGHT COUNT (PERSISTENT PER ARTICLE!)
-  highlightedWordsCount = getHighlightCount(articleId);
+  // ✅ STEP 3: Restore highlight count FROM STORAGE ONLY (don't trigger reset!)
+  const savedCount = loadFromLocalStorage(ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId);
+  highlightedWordsCount = savedCount || 0;
   
-  // ✅ VALIDATION: Ensure count doesn't exceed max
-  if (highlightedWordsCount > MAX_HIGHLIGHT_WORDS) {
-    console.warn(`⚠️ Invalid count ${highlightedWordsCount}, resetting to ${MAX_HIGHLIGHT_WORDS}`);
-    highlightedWordsCount = MAX_HIGHLIGHT_WORDS;
-    saveHighlightCount(articleId, MAX_HIGHLIGHT_WORDS);
+  console.log(`✅ Highlight count restored from storage: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
+  
+  // ✅ STEP 4: Check if 2-day reset is needed (this won't set new date!)
+  const actualCount = getHighlightCount(articleId);
+  if (actualCount < highlightedWordsCount) {
+    // Reset happened
+    highlightedWordsCount = actualCount;
+    console.log(`🔄 2-day reset detected! Count reset to: ${highlightedWordsCount}`);
   }
   
-  console.log(`✅ Highlight count restored: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
-  
-  // ✅ SAVE STATE
+  // ✅ STEP 5: Save state
   saveToLocalStorage(ARTICLES_STORAGE.CURRENT_ARTICLE, articleId);
   saveToLocalStorage(ARTICLES_STORAGE.ARTICLE_VIEW, 'article');
   saveToLocalStorage('articles_current_level', selectedArticle.level);
   
-  // ✅ RESTORE USER-ADDED VOCABULARY
+  // ✅ STEP 6: Restore vocabulary
   const customVocab = loadFromLocalStorage(ARTICLES_STORAGE.CUSTOM_VOCABULARY);
   if (customVocab && customVocab[articleId]) {
     console.log('🔄 Restoring custom vocabulary:', customVocab[articleId].length, 'words');
@@ -390,7 +420,7 @@ function openArticle(articleId) {
     });
   }
   
-  // ✅ RESTORE USER SUMMARY (if exists)
+  // ✅ STEP 7: Restore summary
   const savedSummary = loadFromLocalStorage(ARTICLES_STORAGE.USER_SUMMARY);
   if (savedSummary) {
     userSummary = savedSummary;
@@ -400,41 +430,128 @@ function openArticle(articleId) {
   
   highlightedText = '';
   
+  // ✅ STEP 8: Render (this will call enableVocabularyTooltips)
   renderArticleView();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  console.log('✅ Article opened successfully');
+  console.log(`📊 Final highlight count: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
 }
 
+// ============================================
+// ✅ FIX 2: CLEANUP OLD HIGHLIGHTS - AGGRESSIVE VERSION
+// ============================================
+function cleanupOldHighlights() {
+  console.log('🧹 AGGRESSIVE cleanup starting...');
+  
+  // ✅ Remove ALL tooltips (even hidden ones)
+  const allTooltips = document.querySelectorAll('.vocab-hover-tooltip, .translation-loading-popup, .translation-popup-overlay');
+  console.log(`🗑️ Found ${allTooltips.length} tooltips/popups to remove`);
+  allTooltips.forEach(t => t.remove());
+  
+  // ✅ Get article container
+  const oldContainer = document.getElementById('articleTextContent');
+  
+  if (oldContainer) {
+    console.log('🔄 Cleaning article container HTML...');
+    
+    // ✅ NEW: Clean up duplicate markup in HTML
+    let html = oldContainer.innerHTML;
+    
+    // Remove duplicate pattern: friendship">friendship or time">time
+    // This regex finds: word">word and replaces with just: word
+    html = html.replace(/(\w+)"\s*>\s*\1/g, '$1');
+    
+    // Also clean up any nested duplicate marks
+    html = html.replace(/<mark([^>]*)>\s*<mark([^>]*)>/g, '<mark$1>');
+    html = html.replace(/<\/mark>\s*<\/mark>/g, '</mark>');
+    
+    oldContainer.innerHTML = html;
+    
+    console.log('🔄 Removing ALL event listeners from article container...');
+    
+    // ✅ CRITICAL: Clone entire container to remove ALL listeners
+    const cleanContainer = oldContainer.cloneNode(true);
+    oldContainer.parentNode.replaceChild(cleanContainer, oldContainer);
+    
+    console.log('✅ Article container completely cleaned (all listeners removed)');
+  }
+  
+  // ✅ Remove any lingering highlight selections
+  if (window.getSelection) {
+    window.getSelection().removeAllRanges();
+  }
+  
+  // ✅ Hide selection tooltip
+  const selectionTooltip = document.getElementById('selectedTextTooltip');
+  if (selectionTooltip) {
+    selectionTooltip.style.display = 'none';
+  }
+  
+  console.log('✅ AGGRESSIVE cleanup complete - guaranteed NO duplicates');
+}
+
+// ============================================
+// CLEAN ARTICLE CONTENT - SUPER CLEAN ✅✅✅
+// ============================================
 function cleanArticleContent(content) {
   if (!content) return '';
   
   console.log('🧹 Cleaning article content...');
+  console.log('📝 Original length:', content.length);
+  console.log('📝 First 200 chars:', content.substring(0, 200));
   
-  // ✅ Remove HTML entities and tooltips
   let cleaned = content
-    // Remove tooltip markup like 'typically held periodically, to celebrate or commemorate something">'
-    .replace(/[a-z\s,]+">(?=[A-Z])/g, '')
-    // Remove orphaned ">' at the end of words  
-    .replace(/\s*">\s*/g, ' ')
-    // Remove &quot; and similar entities
+    // ✅ CRITICAL: Remove ALL tooltip/HTML markup
+    
+    // Remove entire data-definition attributes
+    .replace(/\s*data-definition="[^"]*"/gi, '')
+    
+    // Remove standalone quotes and angle brackets
+    .replace(/["']\s*>/g, ' ')
+    .replace(/>\s*["']/g, ' ')
+    .replace(/"\s*data-/g, ' data-')
+    
+    // Remove HTML-like tags
+    .replace(/<[^>]+>/g, '')
+    
+    // Decode HTML entities
     .replace(/&quot;/g, '"')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&#039;/g, "'")
-    // Remove multiple spaces
+    .replace(/&apos;/g, "'")
+    
+    // Remove extra spaces
     .replace(/\s{2,}/g, ' ')
-    // Fix spacing after punctuation
+    .replace(/\n{3,}/g, '\n\n')
+    
+    // Fix punctuation spacing
+    .replace(/\s+\./g, '.')
+    .replace(/\s+,/g, ',')
+    .replace(/\s+:/g, ':')
+    .replace(/\s+;/g, ';')
     .replace(/([.!?])\s*([A-Z])/g, '$1 $2')
+    
+    // Remove empty brackets
+    .replace(/\(\s*\)/g, '')
+    .replace(/\[\s*\]/g, '')
+    .replace(/\{\s*\}/g, '')
+    
     .trim();
   
-  console.log('✅ Content cleaned');
+  console.log('✅ Cleaned length:', cleaned.length);
+  console.log('✅ First 200 chars:', cleaned.substring(0, 200));
+  
   return cleaned;
 }
 
 // ============================================
-// RENDER ARTICLE VIEW - HIDE HIGHLIGHT IF LIMIT REACHED ✅
-// Replace the entire renderArticleView() function
+// ✅ COMPLETE FIXED: renderArticleView()
 // ============================================
+// Bu function'ni articles.js da eski renderArticleView() o'rniga qo'ying
+
 function renderArticleView() {
   const container = document.getElementById('articlesListContainer');
   
@@ -442,6 +559,10 @@ function renderArticleView() {
     console.error('❌ Container or article not found!');
     return;
   }
+  
+  // ✅ CLEANUP FIRST (critical for preventing duplicates)
+  console.log('🧹 Pre-render cleanup...');
+  document.querySelectorAll('.vocab-hover-tooltip, .translation-loading-popup, .translation-popup-overlay').forEach(t => t.remove());
   
   // ✅ Calculate remaining highlights
   const remaining = MAX_HIGHLIGHT_WORDS - highlightedWordsCount;
@@ -461,14 +582,22 @@ function renderArticleView() {
     });
   }
   
-  const cleanedContent = cleanArticleContent(selectedArticle.content);
-  
+  let rawContent = selectedArticle.content;
+
+  // First clean: remove all HTML artifacts
+  rawContent = rawContent
+    .replace(/\s*data-definition="[^"]*"/gi, '')
+    .replace(/["']\s*>/g, ' ')
+    .replace(/<[^>]+>/g, '');
+
+  const cleanedContent = cleanArticleContent(rawContent);
+
   const formattedContent = cleanedContent
     .split('\n\n')
     .filter(p => p.trim().length > 0)
     .map(p => `<p>${p.trim()}</p>`)
     .join('');
-  
+    
   const highlightedContent = highlightVocabularyInText(
     formattedContent, 
     selectedArticle.vocabulary || []
@@ -593,13 +722,17 @@ function renderArticleView() {
     }
   }, 100);
   
-  enableVocabularyTooltips();
-  console.log('✅ Article view rendered');
+  // ✅ CRITICAL: Enable tooltips AFTER render (with delay to ensure DOM is ready)
+  setTimeout(() => {
+    enableVocabularyTooltips();
+  }, 200);
+  
+  console.log('✅ Article view rendered (cleanup done, tooltips will initialize after 200ms)');
   console.log(`🔒 Highlight feature ${isLimitReached ? 'HIDDEN' : 'ACTIVE'}`);
 }
 
 // ============================================
-// HIGHLIGHT VOCABULARY IN TEXT
+// HIGHLIGHT VOCABULARY IN TEXT - NO TOOLTIP MARKUP ✅
 // ============================================
 function highlightVocabularyInText(content, vocabulary) {
   if (!vocabulary || vocabulary.length === 0) return content;
@@ -607,26 +740,38 @@ function highlightVocabularyInText(content, vocabulary) {
   let highlighted = content;
   
   vocabulary.forEach(vocab => {
-    const regex = new RegExp(`\\b(${escapeRegex(vocab.word)})\\b`, 'gi');
+    const word = vocab.word.trim();
+    
+    // ✅ CRITICAL: Check if already highlighted to prevent duplicates
+    const alreadyHighlighted = new RegExp(`<mark[^>]*data-word="${escapeRegex(word.toLowerCase())}"`, 'i');
+    if (alreadyHighlighted.test(highlighted)) {
+      console.log('⚠️ Word already highlighted, skipping:', word);
+      return;
+    }
+    
+    // Only match whole words (avoid partial matches)
+    const regex = new RegExp(`\\b(${escapeRegex(word)})\\b`, 'gi');
+    
+    // Simple mark tag - NO data-definition attribute
     highlighted = highlighted.replace(
       regex, 
-      `<mark class="vocab-highlight" data-word="${vocab.word.toLowerCase()}" data-definition="${escapeHtml(vocab.definition)}">$1</mark>`
+      `<mark class="vocab-highlight" data-word="${word.toLowerCase()}">$1</mark>`
     );
   });
   
   return highlighted;
 }
 
-// ============================================
-// RENDER VOCABULARY CARDS - ✅ WITH DYNAMIC TRANSLATION
-// ============================================
+
 function renderVocabularyCards(vocabulary) {
   if (!vocabulary || vocabulary.length === 0) {
     return '<p>No vocabulary words available.</p>';
   }
   
   return vocabulary.map((vocab, index) => `
-    <div class="vocabulary-card" id="vocab-card-${index}" data-word="${vocab.word.toLowerCase()}">
+    <div class="vocabulary-card" 
+         id="vocab-card-${index}" 
+         data-word="${vocab.word.toLowerCase()}">  
       <div class="vocab-word">${vocab.word}</div>
       <div class="vocab-definition">
         📖 ${vocab.definition || 'No definition available'}
@@ -645,21 +790,68 @@ function renderVocabularyCards(vocabulary) {
 }
 
 // ============================================
-// ENABLE VOCABULARY TOOLTIPS - ✅ FIXED POSITIONING
+// ✅ FIX 1: ENABLE VOCABULARY TOOLTIPS - ULTRA CLEAN
 // ============================================
 function enableVocabularyTooltips() {
-  const highlights = document.querySelectorAll('.vocab-highlight');
+  console.log('🔧 Initializing vocabulary tooltips (ULTRA CLEAN)...');
   
-  highlights.forEach(element => {
-    const newElement = element.cloneNode(true);
-    element.parentNode.replaceChild(newElement, element);
+  // ✅ STEP 1: Remove ALL old tooltips from DOM
+  document.querySelectorAll('.vocab-hover-tooltip').forEach(t => {
+    console.log('🗑️ Removing old tooltip:', t);
+    t.remove();
+  });
+  
+  // ✅ STEP 2: Get container and COMPLETELY REBUILD IT
+  const articleTextContent = document.getElementById('articleTextContent');
+  
+  if (!articleTextContent) {
+    console.warn('⚠️ Article text container not found!');
+    return;
+  }
+  
+  // ✅ CRITICAL: Clone the entire container to remove ALL event listeners
+  const cleanContainer = articleTextContent.cloneNode(true);
+  articleTextContent.parentNode.replaceChild(cleanContainer, articleTextContent);
+  
+  console.log('🧹 Container completely cleaned (all old listeners removed)');
+  
+  // ✅ STEP 3: Now get highlights from the CLEAN container
+  const highlights = cleanContainer.querySelectorAll('.vocab-highlight');
+  
+  console.log(`📊 Found ${highlights.length} highlighted words in CLEAN container`);
+  
+  if (highlights.length === 0) {
+    console.warn('⚠️ No highlights found after cleanup!');
+    return;
+  }
+  
+  // ✅ STEP 4: Add FRESH listeners (now guaranteed NO duplicates)
+  highlights.forEach((element, index) => {
+    const word = element.getAttribute('data-word');
     
-    newElement.addEventListener('mouseenter', function(e) {
+    if (!word) {
+      console.warn('⚠️ Highlight missing data-word attribute:', element);
+      return;
+    }
+    
+    // ✅ Add mouseenter
+    element.addEventListener('mouseenter', function(e) {
+      // Remove any tooltips first
       document.querySelectorAll('.vocab-hover-tooltip').forEach(t => t.remove());
       
-      const word = this.getAttribute('data-word');
-      const definition = this.getAttribute('data-definition');
+      // Find definition
+      const vocabItem = selectedArticle.vocabulary?.find(v => 
+        v.word.toLowerCase() === word.toLowerCase()
+      );
       
+      if (!vocabItem) {
+        console.warn('⚠️ Vocabulary not found for:', word);
+        return;
+      }
+      
+      const definition = vocabItem.definition;
+      
+      // Create tooltip
       const tooltip = document.createElement('div');
       tooltip.className = 'vocab-hover-tooltip';
       tooltip.innerHTML = `
@@ -669,7 +861,7 @@ function enableVocabularyTooltips() {
       
       document.body.appendChild(tooltip);
       
-      // ✅ FIXED POSITIONING
+      // Position tooltip
       const rect = this.getBoundingClientRect();
       const tooltipHeight = tooltip.offsetHeight;
       
@@ -689,16 +881,21 @@ function enableVocabularyTooltips() {
         tooltip.style.left = `${window.innerWidth - tooltipRect.width - 10}px`;
       }
       
+      // Store reference
       this._tooltip = tooltip;
       
+      // Highlight vocabulary card
       const vocabCard = document.querySelector(`#vocabularyGridContainer [data-word="${word}"]`);
       if (vocabCard) {
         vocabCard.classList.add('highlight-flash');
         setTimeout(() => vocabCard.classList.remove('highlight-flash'), 2000);
       }
+      
+      console.log('✅ Tooltip shown for:', word);
     });
     
-    newElement.addEventListener('mouseleave', function() {
+    // ✅ Add mouseleave
+    element.addEventListener('mouseleave', function() {
       setTimeout(() => {
         if (this._tooltip) {
           this._tooltip.remove();
@@ -707,6 +904,24 @@ function enableVocabularyTooltips() {
       }, 100);
     });
   });
+  
+  console.log('✅ Vocabulary tooltips initialized (CLEAN - NO duplicates possible)');
+}
+
+// ============================================
+// ADDITIONAL FIX: Clear tooltips when leaving article
+// ============================================
+function cleanupArticleView() {
+  // Remove any lingering tooltips
+  document.querySelectorAll('.vocab-hover-tooltip').forEach(t => t.remove());
+  
+  // Remove any loading popups
+  document.querySelectorAll('.translation-loading-popup').forEach(p => p.remove());
+  
+  // Remove any translation popups
+  document.querySelectorAll('.translation-popup-overlay').forEach(p => p.remove());
+  
+  console.log('🧹 Article view cleaned up');
 }
 
 // ============================================
@@ -1107,8 +1322,7 @@ function showWordTranslation(vocab) {
   console.log('✅ Translation popup shown:', selectedArticleLanguage, '→', translation, '(valid:', hasTranslation, ')');
 }
 // ============================================
-// HIGHLIGHT SELECTED TEXT - WITH DOUBLE CHECK ✅
-// Replace the beginning of highlightSelectedText() function
+// ✅ FIXED: HIGHLIGHT SELECTED TEXT - WITH PROPER BLOCK
 // ============================================
 async function highlightSelectedText() {
   if (!highlightedText) {
@@ -1119,29 +1333,57 @@ async function highlightSelectedText() {
   console.log('🎯 Highlighting text:', highlightedText);
   console.log(`📊 Current count BEFORE: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
   
-  // ✅ DOUBLE CHECK HIGHLIGHT LIMIT (in case of race condition)
+  // ✅ DOUBLE CHECK HIGHLIGHT LIMIT
   if (highlightedWordsCount >= MAX_HIGHLIGHT_WORDS) {
-    console.error(`❌ BLOCKED: Limit already reached (${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS})`);
+    console.error(`❌ BLOCKED: Limit reached (${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS})`);
     
-    // Show message
+    // Hide tooltip
     const tooltip = document.getElementById('selectedTextTooltip');
     if (tooltip) {
       tooltip.style.display = 'none';
     }
     
-    // Show alert
-    alert(`⚠️ Daily highlight limit reached!\n\n` +
-          `You've used all ${MAX_HIGHLIGHT_WORDS} highlights for today.\n\n` +
-          `Limit resets tomorrow. 📅`);
+    // ✅ Calculate exact time remaining
+    const resetDateKey = ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE + selectedArticle.id;
+    const firstHighlightDate = loadFromLocalStorage(resetDateKey);
     
-    // ✅ Reload article view to hide highlight feature
+    let resetMessage = `Resets in ${HIGHLIGHT_RESET_DAYS} days.`;
+    
+    if (firstHighlightDate) {
+      const firstDate = new Date(firstHighlightDate);
+      const now = new Date();
+      
+      const resetDate = new Date(firstDate);
+      resetDate.setHours(resetDate.getHours() + (HIGHLIGHT_RESET_DAYS * 24)); // Add 48 hours
+      
+      const hoursLeft = Math.ceil((resetDate - now) / (1000 * 60 * 60));
+      const daysLeft = Math.ceil(hoursLeft / 24);
+      
+      console.log(`📅 First highlight: ${firstDate.toLocaleString()}`);
+      console.log(`📅 Reset date: ${resetDate.toLocaleString()}`);
+      console.log(`⏰ Hours left: ${hoursLeft}h (${daysLeft} days)`);
+      
+      if (hoursLeft > 24) {
+        resetMessage = `Resets in ${daysLeft} day${daysLeft > 1 ? 's' : ''} (≈${hoursLeft}h).`;
+      } else if (hoursLeft > 1) {
+        resetMessage = `Resets in ${hoursLeft} hours.`;
+      } else {
+        resetMessage = 'Resets in less than 1 hour! Refresh soon.';
+      }
+    }
+    
+    // Show detailed alert
+    alert(`🔒 HIGHLIGHT LIMIT REACHED!\n\n` +
+          `You've used all ${MAX_HIGHLIGHT_WORDS} highlights for this article.\n\n` +
+          `📅 ${resetMessage}\n\n` +
+          `💡 You can still read other articles!`);
+    
     renderArticleView();
-    
     return;
   }
   
-  // 🪙 1 COIN CHECK
-  console.log(`💰 Checking 1 coin for user-highlighted word...`);
+  // 🪙 COIN CHECK
+  console.log(`💰 Checking 1 coin...`);
   
   if (typeof checkAndSpendCoins === 'function') {
     const canProceed = await checkAndSpendCoins('article-highlight', 1);
@@ -1152,29 +1394,22 @@ async function highlightSelectedText() {
       return;
     }
     
-    console.log(`✅ 1 coin deducted, proceeding...`);
+    console.log(`✅ 1 coin deducted`);
   }
   
-  // ✅ INCREMENT COUNTER (SAVE TO LOCALSTORAGE IMMEDIATELY!)
+  // ✅ INCREMENT & SAVE
   highlightedWordsCount++;
   saveHighlightCount(selectedArticle.id, highlightedWordsCount);
   
-  console.log(`📊 Highlighted words AFTER: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS} (saved to localStorage)`);
+  console.log(`📊 Count AFTER: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
   
-  // ✅ VERIFY SAVE
-  const verifyCount = getHighlightCount(selectedArticle.id);
-  if (verifyCount !== highlightedWordsCount) {
-    console.error(`⚠️ SAVE VERIFICATION FAILED! Expected ${highlightedWordsCount}, got ${verifyCount}`);
-    highlightedWordsCount = verifyCount; // Use verified value
-  } else {
-    console.log(`✅ Save verified: ${verifyCount}/${MAX_HIGHLIGHT_WORDS}`);
-  }
-  
-  // ✅ UPDATE UI (show remaining highlights)
+  // ✅ UPDATE UI
   updateHighlightCountDisplay();
   
-  // Hide selection tooltip immediately
-  document.getElementById('selectedTextTooltip').style.display = 'none';
+  const selTooltip = document.getElementById('selectedTextTooltip');
+  if (selTooltip) {
+    selTooltip.style.display = 'none';
+  }
   
   const vocabWords = selectedArticle.vocabulary || [];
   const foundVocab = vocabWords.find(v => 
@@ -1185,13 +1420,13 @@ async function highlightSelectedText() {
   let vocabToShow;
   
   if (foundVocab) {
-    console.log('✅ Found in vocabulary:', foundVocab.word);
+    console.log('✅ Found:', foundVocab.word);
     vocabToShow = foundVocab;
     showWordTranslation(vocabToShow);
     addHighlightedWordToVocab(vocabToShow);
     highlightTextInPlace(highlightedText);
   } else {
-    console.log('➕ Fetching translation for new word:', highlightedText);
+    console.log('➕ Fetching:', highlightedText);
     
     showTranslationLoading(highlightedText);
     
@@ -1208,48 +1443,39 @@ async function highlightSelectedText() {
         })
       });
       
-      if (!response.ok) {
-        throw new Error('Translation failed');
-      }
+      if (!response.ok) throw new Error('Translation failed');
       
       const data = await response.json();
-      console.log('🔍 Backend response:', data);
-      
       const loadingPopup = document.querySelector('.translation-loading-popup');
       if (loadingPopup) loadingPopup.remove();
       
       if (data.success && data.result) {
         vocabToShow = parseVocabularyResponse(data.result, highlightedText);
-        console.log('✅ Parsed vocabulary:', vocabToShow);
       } else {
-        throw new Error('No translation received');
+        throw new Error('No translation');
       }
       
     } catch (error) {
-      console.error('❌ Translation error:', error);
+      console.error('❌ Error:', error);
       
-      // ⚠️ REFUND 1 COIN ON ERROR
       if (typeof window.coinManager !== 'undefined') {
-        window.coinManager.addCoins(1, 'Refund: Vocabulary error');
+        window.coinManager.addCoins(1, 'Refund: Error');
         updateCoinDisplay();
       }
       
-      // ⚠️ DECREMENT COUNTER ON ERROR (AND SAVE!)
       highlightedWordsCount--;
       saveHighlightCount(selectedArticle.id, highlightedWordsCount);
       updateHighlightCountDisplay();
-      
-      console.log(`📊 Refunded: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS}`);
       
       const loadingPopup = document.querySelector('.translation-loading-popup');
       if (loadingPopup) loadingPopup.remove();
       
       vocabToShow = {
         word: highlightedText,
-        definition: 'Selected word from the article',
-        translation_uz: `${highlightedText} (tarjima topilmadi)`,
-        translation_ru: `${highlightedText} (перевод не найден)`,
-        example: `"${highlightedText}" - from the article`
+        definition: 'Selected word',
+        translation_uz: `${highlightedText} (topilmadi)`,
+        translation_ru: `${highlightedText} (не найден)`,
+        example: `"${highlightedText}"`
       };
     }
     
@@ -1258,44 +1484,122 @@ async function highlightSelectedText() {
     highlightTextInPlace(highlightedText);
   }
   
-  // Clear selection
   highlightedText = '';
   window.getSelection().removeAllRanges();
   
-  console.log('✅ Highlight complete! Final count:', highlightedWordsCount);
+  console.log('✅ Complete! Count:', highlightedWordsCount);
 }
 
 // ============================================
-// UPDATE HIGHLIGHT COUNT DISPLAY - YANGI ✅
+// UPDATE HIGHLIGHT COUNT DISPLAY - FIXED ✅
 // ============================================
 function updateHighlightCountDisplay() {
   const remaining = MAX_HIGHLIGHT_WORDS - highlightedWordsCount;
   
-  // Update section header badge
-  const highlightBadge = document.querySelector('.article-vocabulary-section [style*="background: linear-gradient(135deg, #fbbf24"]');
+  console.log(`🎨 Updating UI: ${highlightedWordsCount}/${MAX_HIGHLIGHT_WORDS} used, ${remaining} remaining`);
   
-  if (highlightBadge) {
-    highlightBadge.innerHTML = `
-      <i class="bi bi-lightbulb-fill"></i>
-      <span>Highlight: 1 🪙/word (${remaining} left today)</span>
-    `;
+  // ✅ FIX 1: Update section header badge
+  const vocabularySection = document.querySelector('.article-vocabulary-section');
+  
+  if (vocabularySection) {
+    // Find the badge div more reliably
+    const badges = vocabularySection.querySelectorAll('div[style*="background: linear-gradient"]');
     
-    // Change color when low
-    if (remaining <= 2) {
-      highlightBadge.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-      highlightBadge.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
-    } else if (remaining <= 4) {
-      highlightBadge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    let highlightBadge = null;
+    
+    // Find the correct badge (second one, contains "Highlight:")
+    badges.forEach(badge => {
+      if (badge.textContent.includes('Highlight:') || badge.textContent.includes('left')) {
+        highlightBadge = badge;
+      }
+    });
+    
+    if (highlightBadge) {
+      console.log('✅ Found highlight badge, updating...');
+      
+      if (remaining <= 0) {
+        // LOCKED
+        highlightBadge.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+        highlightBadge.style.boxShadow = '0 2px 8px rgba(107, 114, 128, 0.3)';
+        highlightBadge.innerHTML = `
+          <i class="bi bi-lock-fill"></i>
+          <span>Highlight limit reached (${MAX_HIGHLIGHT_WORDS}/${MAX_HIGHLIGHT_WORDS})</span>
+        `;
+      } else {
+        // ACTIVE with color based on remaining
+        let badgeColor = remaining <= 2 ? '#ef4444' : remaining <= 4 ? '#f59e0b' : '#fbbf24';
+        let badgeColor2 = remaining <= 2 ? '#dc2626' : remaining <= 4 ? '#d97706' : '#f59e0b';
+        let badgeShadow = remaining <= 2 ? 'rgba(239, 68, 68, 0.3)' : remaining <= 4 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(251, 191, 36, 0.3)';
+        
+        highlightBadge.style.background = `linear-gradient(135deg, ${badgeColor} 0%, ${badgeColor2} 100%)`;
+        highlightBadge.style.boxShadow = `0 2px 8px ${badgeShadow}`;
+        highlightBadge.innerHTML = `
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>Highlight: 1 🪙/word (${remaining} left today)</span>
+        `;
+      }
+      
+      console.log(`✅ Badge updated: ${remaining} left`);
+    } else {
+      console.warn('⚠️ Highlight badge not found!');
     }
   }
   
-  // Update tooltip button text
+  // ✅ FIX 2: Update tooltip button text
   const tooltipBtn = document.querySelector('#selectedTextTooltip .highlight-btn span:last-child');
   if (tooltipBtn) {
     tooltipBtn.textContent = `${remaining} left`;
+    console.log('✅ Tooltip button updated');
   }
   
-  console.log(`🎨 UI updated: ${remaining}/${MAX_HIGHLIGHT_WORDS} highlights remaining`);
+  // ✅ FIX 3: If limit reached, HIDE highlight feature
+  if (remaining <= 0) {
+    console.log('🔒 LIMIT REACHED - Hiding highlight tooltip');
+    
+    const tooltip = document.getElementById('selectedTextTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+      tooltip.remove(); // Completely remove it
+    }
+    
+    // Remove mouseup event from article text
+    const articleText = document.getElementById('articleTextContent');
+    if (articleText) {
+      articleText.removeAttribute('onmouseup');
+    }
+  }
+  
+  console.log(`✅ UI update complete: ${remaining}/${MAX_HIGHLIGHT_WORDS} highlights remaining`);
+}
+
+// ============================================
+// ✅ DEBUG FUNCTION: Check highlight status
+// ============================================
+function debugHighlightStatus(articleId) {
+  const key = ARTICLES_STORAGE.HIGHLIGHT_COUNT + articleId;
+  const resetDateKey = ARTICLES_STORAGE.HIGHLIGHT_RESET_DATE + articleId;
+  
+  const count = loadFromLocalStorage(key) || 0;
+  const firstDate = loadFromLocalStorage(resetDateKey);
+  
+  console.log('=== HIGHLIGHT DEBUG ===');
+  console.log('Article ID:', articleId);
+  console.log('Count:', count, '/', MAX_HIGHLIGHT_WORDS);
+  console.log('First highlight date:', firstDate ? new Date(firstDate).toLocaleString() : 'Not set');
+  
+  if (firstDate) {
+    const now = new Date();
+    const first = new Date(firstDate);
+    const hoursPassed = Math.floor((now - first) / (1000 * 60 * 60));
+    const resetHours = HIGHLIGHT_RESET_DAYS * 24;
+    const hoursLeft = resetHours - hoursPassed;
+    
+    console.log('Hours passed:', hoursPassed);
+    console.log('Hours until reset:', hoursLeft);
+    console.log('Days until reset:', Math.ceil(hoursLeft / 24));
+    console.log('Is locked:', count >= MAX_HIGHLIGHT_LIMITS);
+  }
+  console.log('=====================');
 }
 
 function showTranslationLoading(word) {
@@ -1345,38 +1649,60 @@ function showTranslationLoading(word) {
 }
 
 // ============================================
-// HIGHLIGHT TEXT IN PLACE
+// ✅ FIX 3: HIGHLIGHT TEXT IN PLACE - SINGLE PASS
 // ============================================
 function highlightTextInPlace(text) {
   const articleText = document.getElementById('articleTextContent');
-  const walker = document.createTreeWalker(articleText, NodeFilter.SHOW_TEXT, null);
-  
-  const textNodes = [];
-  while (walker.nextNode()) {
-    textNodes.push(walker.currentNode);
+  if (!articleText) {
+    console.warn('⚠️ Article text container not found');
+    return;
   }
   
-  textNodes.forEach(node => {
+  console.log('🎨 Highlighting text in place:', text);
+  
+  // ✅ CRITICAL: Get the text content and rebuild ONCE
+  const walker = document.createTreeWalker(articleText, NodeFilter.SHOW_TEXT, null);
+  
+  const textNodesToUpdate = [];
+  
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
     const parent = node.parentNode;
-    if (parent.classList && parent.classList.contains('vocab-highlight')) {
-      return;
+    
+    // ✅ Skip if already highlighted
+    if (parent.classList && (parent.classList.contains('vocab-highlight') || parent.classList.contains('user-highlight'))) {
+      continue;
     }
     
-    // ✅ WORD BOUNDARY qo'shildi (\b...\b)
+    // ✅ Check if this text node contains our word
+    const regex = new RegExp(`\\b(${escapeRegex(text)})\\b`, 'gi');
+    if (regex.test(node.textContent)) {
+      textNodesToUpdate.push({ node, parent });
+    }
+  }
+  
+  console.log(`📊 Found ${textNodesToUpdate.length} text nodes to highlight`);
+  
+  // ✅ Update all nodes in one pass
+  textNodesToUpdate.forEach(({ node, parent }) => {
     const regex = new RegExp(`\\b(${escapeRegex(text)})\\b`, 'gi');
     const nodeText = node.textContent;
     
-    if (regex.test(nodeText)) {
-      const span = document.createElement('span');
-      span.innerHTML = nodeText.replace(
-        regex,
-        '<mark class="user-highlight" title="You highlighted this">$1</mark>'
-      );
-      parent.replaceChild(span, node);
-    }
+    const span = document.createElement('span');
+    span.innerHTML = nodeText.replace(
+      regex,
+      '<mark class="user-highlight" title="You highlighted this">$1</mark>'
+    );
+    
+    parent.replaceChild(span, node);
   });
   
-  enableVocabularyTooltips();
+  // ✅ CRITICAL: Re-enable tooltips ONCE after all highlights are done
+  setTimeout(() => {
+    enableVocabularyTooltips();
+  }, 100);
+  
+  console.log('✅ Text highlighted in place (SINGLE PASS - no duplicates)');
 }
 
 // ============================================
@@ -1816,13 +2142,13 @@ function resetSummary() {
 }
 
 // ============================================
-// BACK TO ARTICLES LIST - UPDATED ✅
+// ✅ FIX 6: BACK TO ARTICLES LIST - WITH CLEANUP
 // ============================================
 function backToArticlesList() {
   currentArticleView = 'list';
   
-  // ✅ DON'T CLEAR HIGHLIGHT COUNT! (only clear article state)
-  // highlightedWordsCount = 0; // ❌ REMOVE THIS LINE
+  // ✅ CLEANUP BEFORE LEAVING
+  cleanupOldHighlights();
   
   selectedArticle = null;
   userSummary = '';
@@ -1837,7 +2163,7 @@ function backToArticlesList() {
   renderArticlesList();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   
-  console.log('🔙 Returned to articles list (highlight counts preserved)');
+  console.log('🔙 Returned to articles list (cleanup complete)');
 }
 
 // ============================================
@@ -2059,8 +2385,15 @@ async function checkBackendStatus() {
   }
 }
 
+// ============================================
+// SHOW ARTICLES TOOL
+// ============================================
 function showArticlesTool() {
   console.log('📚 Articles tool activated');
+  
+  // ✅ CRITICAL: Cleanup FIRST before showing
+  cleanupOldHighlights();
+  
   initArticles();
 }
 
@@ -2090,5 +2423,7 @@ window.handleTextSelection = handleTextSelection;
 window.highlightSelectedText = highlightSelectedText;
 window.deleteVocabularyCard = deleteVocabularyCard; // ✅ YANGI
 window.checkBackendStatus = checkBackendStatus;
+window.cleanupArticleView = cleanupArticleView;
+window.debugHighlightStatus = debugHighlightStatus;
 
 console.log('✅ Articles module loaded - Complete Fixed Version');

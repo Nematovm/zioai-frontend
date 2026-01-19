@@ -472,20 +472,24 @@
   }
 }
 
+/* Vocabulary highlight - professional blue tone */
 .vocab-highlight {
-  background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
-  padding: 2px 6px;
+  background: linear-gradient(120deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #0d47a1;
+  padding: 2px 4px;
   border-radius: 4px;
   cursor: help;
-  transition: all 0.2s ease;
-  font-weight: 600;
-  border-bottom: 2px solid #fbbf24;
+  border-bottom: 2px solid #2196f3;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .vocab-highlight:hover {
-  background: linear-gradient(120deg, #fde68a 0%, #fbbf24 100%);
-  transform: scale(1.05);
+  background: linear-gradient(120deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border-bottom-color: #0d47a1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
 
@@ -990,23 +994,24 @@ RESPONSIVE DESIGN
   box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* User Highlighted Text */
+/* User-added highlight - gold tone */
 .user-highlight {
-  background: linear-gradient(120deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #065f46;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
+  background: linear-gradient(120deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #e65100;
+  padding: 2px 4px;
+  border-radius: 4px;
   cursor: help;
-  border: 2px solid #10b981;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  border-bottom: 2px solid #ff9800;
   transition: all 0.3s ease;
+  font-weight: 600;
 }
 
 .user-highlight:hover {
-  background: linear-gradient(120deg, #a7f3d0 0%, #6ee7b7 100%);
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(120deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-bottom-color: #e65100;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
 }
 
 /* User highlight with icon indicator */

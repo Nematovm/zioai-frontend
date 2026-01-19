@@ -74,27 +74,15 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
 }
 
-.main-logo {
-  width: 52px;
-  height: 52px;
-  margin-left: -6px;
-  border-radius: 10px;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--primary-color);
+.nav-left img {
+  width: 70px;
+  height: 70px;
 }
 
-.main_logo_img img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+
+
 
 .bi-stars {
   color: white;
@@ -106,9 +94,10 @@ a {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin-top: 5px;
-  font-size: 25px;
+  margin-top: 7px;
+  font-size: 40px;
   font-weight: 700;
+  margin-left: -10px;
 }
 
 .nav-right {
@@ -278,18 +267,25 @@ main {
   transition: all 0.3s ease-in-out;
 }
 
-.card-1 .main-logo,
-.main_logo_img {
-  width: 50px;
-  height: 50px;
-  color: white;
-  font-size: 25px;
+
+.main-cards .card-1 .main-logo {
+ background: var(--primary-color) !important;
+ width: 70px;
+ height: 70px !important;
+ margin-bottom: -20px;
+ border-radius: 10px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ color: white;
+ font-size: 20px;
 }
 
 .card-1 h4 {
   font-size: 22px;
   font-weight: 600;
   font-family: var(--third-font);
+  margin-top: 10px;
 }
 
 .card-1 p {
@@ -380,6 +376,13 @@ main {
 
 .team-card :nth-child(5) {
   color: #555555;
+}
+
+.team-title span {
+  background: var(--primary-color);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .contacts {

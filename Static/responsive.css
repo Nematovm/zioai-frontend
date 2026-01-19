@@ -16,7 +16,7 @@
   }
 
   .main-logo {
-    margin-top: -6px !important;
+    margin-top: -15px !important;
   }
 
   .tool-cost-badge {
@@ -192,7 +192,7 @@
     display: flex;
     height: 30px;
     width: 30px;
-    margin-top: -6px !important;
+    margin-top: -16px !important;
   }
 
   .sidebar-header .menu-toggler span {

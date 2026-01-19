@@ -170,30 +170,82 @@ async function logTransaction(type, amount, reason, balance) {
 }
 
 // ============================================
-// 6️⃣ UPDATE COIN DISPLAY (REAL-TIME)
+// 6️⃣ UPDATE COIN DISPLAY (REAL-TIME) - FIXED ✅
 // ============================================
 async function updateCoinDisplay() {
   const coins = await getUserCoins();
   
-  // Update all coin displays
-  const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
-  coinElements.forEach(el => {
-    if (el) {
-      el.textContent = coins;
-      
-      // Animation
-      el.style.transform = 'scale(1.2)';
-      setTimeout(() => {
-        el.style.transform = 'scale(1)';
-      }, 200);
-    }
+  console.log('🔄 Updating ALL coin displays:', coins);
+  
+  // ✅ BARCHA COIN DISPLAYLARNI YANGILASH (tepada va pastda)
+  const coinSelectors = [
+    '#userCoins',           // ✅ Tepadagi coin (sidebar)
+    '.coin-amount',         // Umumiy coin amount
+    '#profileCoinBalance',  // Profile pageda coin
+    '[data-coin-display]'   // Har qanday data-coin-display attributi
+  ];
+  
+  coinSelectors.forEach(selector => {
+    const elements = document.querySelectorAll(selector);
+    console.log(`📍 Found ${elements.length} elements for: ${selector}`);
+    
+    elements.forEach(el => {
+      if (el) {
+        el.textContent = coins;
+        
+        // ✅ ANIMATION
+        el.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        el.style.transform = 'scale(1.15)';
+        setTimeout(() => {
+          el.style.transform = 'scale(1)';
+        }, 300);
+        
+        console.log(`✅ Updated: ${selector} = ${coins}`);
+      }
+    });
   });
   
-  console.log('🔄 Coin display updated:', coins);
+  console.log('✅ All coin displays updated');
+  
+  // ✅ UPDATE SUBSCRIPTION INFO HAM
+  await updateSubscriptionDisplay();
 }
 
 // ============================================
-// 7️⃣ REAL-TIME COIN LISTENER
+// UPDATE SUBSCRIPTION DISPLAY
+// ============================================
+async function updateSubscriptionDisplay() {
+  const subscription = await checkUserSubscription();
+  const subType = subscription.type || 'free';
+  
+  // ✅ SUBSCRIPTION BADGE UPDATE
+  const subBadges = document.querySelectorAll('[data-subscription-badge]');
+  subBadges.forEach(badge => {
+    if (subType === 'pro') {
+      badge.textContent = 'PRO';
+      badge.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+    } else if (subType === 'standard') {
+      badge.textContent = 'STANDARD';
+      badge.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+    } else {
+      badge.textContent = 'FREE';
+      badge.style.background = '#6b7280';
+    }
+  });
+  
+  // ✅ DAILY COINS INFO UPDATE
+  const dailyCoinsInfo = document.querySelectorAll('[data-daily-coins]');
+  const dailyAmount = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subType] || 5;
+  
+  dailyCoinsInfo.forEach(el => {
+    el.textContent = `${dailyAmount} coins/day`;
+  });
+  
+  console.log('✅ Subscription display updated:', subType);
+}
+
+// ============================================
+// 7️⃣ REAL-TIME COIN LISTENER - FIXED ✅
 // ============================================
 function listenToCoins() {
   const user = window.firebaseAuth?.currentUser;
@@ -208,10 +260,22 @@ function listenToCoins() {
     const coins = snapshot.val() || 0;
     console.log('🔔 Coins changed in real-time:', coins);
     
-    // Update all displays
-    const coinElements = document.querySelectorAll('#userCoins, .coin-amount, #profileCoinBalance');
-    coinElements.forEach(el => {
-      if (el) el.textContent = coins;
+    // ✅ UPDATE ALL DISPLAYS IMMEDIATELY
+    const selectors = ['#userCoins', '.coin-amount', '#profileCoinBalance', '[data-coin-display]'];
+    
+    selectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        if (el) {
+          el.textContent = coins;
+          
+          // Animation
+          el.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            el.style.transform = 'scale(1)';
+          }, 200);
+        }
+      });
     });
   });
   
@@ -249,16 +313,15 @@ async function useTool(toolName) {
   if (!check.canUse) {
     console.error(`❌ Cannot use ${toolName}: ${check.reason}`);
     
-    // ✅ SHOW MODAL IMMEDIATELY
     const currentCoins = await getUserCoins();
     if (typeof showInsufficientCoinsModal === 'function') {
       showInsufficientCoinsModal(check.cost, currentCoins);
     }
     
-    // ✅ CRITICAL: Return false to stop execution
-    return false;
+    return false; // ✅ CRITICAL: Stop execution
   }
   
+  // ✅ PRO USERS HAM COIN SARFLAYDI (agar tool pullik bo'lsa)
   if (check.cost > 0) {
     const success = await spendCoins(check.cost, `Used ${toolName} tool`);
     
@@ -267,7 +330,7 @@ async function useTool(toolName) {
       return false;
     }
     
-    return true;
+    console.log(`✅ Spent ${check.cost} coins for ${toolName}`);
   }
   
   return true;
@@ -279,12 +342,12 @@ async function useTool(toolName) {
 async function checkUserSubscription() {
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
-    return { type: 'free', status: 'active' };
+    return { type: 'free', status: 'active', dailyCoins: 5 };
   }
   
   const db = window.firebaseDatabase;
   if (!db) {
-    return { type: 'free', status: 'active' };
+    return { type: 'free', status: 'active', dailyCoins: 5 };
   }
   
   try {
@@ -292,25 +355,90 @@ async function checkUserSubscription() {
     const snapshot = await window.firebaseGet(subRef);
     
     if (!snapshot.exists()) {
-      return { type: 'free', status: 'active' };
+      return { type: 'free', status: 'active', dailyCoins: 5 };
     }
     
     const subData = snapshot.val();
     
-    // Check expiry
+    // ✅ CHECK EXPIRY
     if (subData.expiry && subData.expiry !== null) {
       const expiryDate = new Date(subData.expiry);
       const now = new Date();
       
       if (expiryDate < now) {
-        return { type: 'free', status: 'expired', expiredAt: subData.expiry };
+        console.log('⚠️ Subscription expired:', subData.expiry);
+        return { 
+          type: 'free', 
+          status: 'expired', 
+          expiredAt: subData.expiry,
+          dailyCoins: 5 
+        };
       }
     }
     
-    return subData;
+    // ✅ ADD DAILY COINS INFO
+    const dailyCoins = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subData.type] || 5;
+    
+    return {
+      ...subData,
+      dailyCoins: dailyCoins
+    };
   } catch (error) {
     console.error('❌ Subscription check error:', error);
-    return { type: 'free', status: 'active' };
+    return { type: 'free', status: 'active', dailyCoins: 5 };
+  }
+}
+
+// ============================================
+// 🆕 GIVE DAILY COINS NOW - YANGI SUBSCRIPTION UCHUN ✅
+// ============================================
+async function giveDailyCoinsNow(userId, amount, subType) {
+  const db = window.firebaseDatabase;
+  if (!db) {
+    console.error('❌ Database not initialized');
+    return;
+  }
+  
+  try {
+    console.log(`🎁 Giving ${amount} coins immediately (new ${subType} subscription)`);
+    
+    // Get current coins
+    const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
+    const snapshot = await window.firebaseGet(coinsRef);
+    const currentCoins = snapshot.val() || 0;
+    const newCoins = currentCoins + amount;
+    
+    // Add coins
+    const updates = {};
+    updates[`users/${userId}/coins`] = newCoins;
+    updates[`users/${userId}/lastDailyCoin`] = new Date().toISOString();
+    
+    const rootRef = window.firebaseRef(db, '/');
+    await window.firebaseUpdate(rootRef, updates);
+    
+    console.log(`✅ Daily coins given: ${currentCoins} → ${newCoins}`);
+    
+    // Log transaction
+    try {
+      const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
+      const newTransactionRef = window.firebasePush(transactionRef);
+      
+      await window.firebaseSet(newTransactionRef, {
+        type: 'daily_bonus',
+        amount: amount,
+        reason: `New ${subType} subscription - first daily coins`,
+        balance: newCoins,
+        timestamp: new Date().toISOString()
+      });
+    } catch (txError) {
+      console.warn('⚠️ Transaction log failed:', txError);
+    }
+    
+    // Show notification
+    showDailyCoinsNotification(amount, subType);
+    
+  } catch (error) {
+    console.error('❌ Error giving daily coins:', error);
   }
 }
 
@@ -456,15 +584,18 @@ async function checkAndGiveDailyCoins() {
     const timeDiff = now - lastDaily;
     
     console.log('⏰ Daily coin check:', {
-      lastDaily: new Date(lastDaily).toLocaleString(),
-      timeDiff: Math.round(timeDiff / 1000 / 60),
-      cooldown: COIN_CONFIG.DAILY_BONUS_COOLDOWN / 1000 / 60
+      lastDaily: lastDaily ? new Date(lastDaily).toLocaleString() : 'never',
+      timeDiff: Math.round(timeDiff / 1000 / 60 / 60), // hours
+      cooldown: COIN_CONFIG.DAILY_BONUS_COOLDOWN / 1000 / 60 / 60 // hours
     });
     
     // Check if 24 hours passed
     if (timeDiff < COIN_CONFIG.DAILY_BONUS_COOLDOWN) {
-      const remainingMinutes = Math.ceil((COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff) / 1000 / 60);
-      console.log(`⏳ Next daily coins in ${remainingMinutes} minutes`);
+      const remainingHours = Math.ceil((COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff) / 1000 / 60 / 60);
+      console.log(`⏳ Next daily coins in ${remainingHours} hours`);
+      
+      // ✅ YANGI: NOTIFICATION KO'RSATISH
+      showDailyBonusReadyNotification(remainingHours);
       return;
     }
     
@@ -493,6 +624,63 @@ async function checkAndGiveDailyCoins() {
   } catch (error) {
     console.error('❌ Daily coins error:', error);
   }
+}
+
+// ============================================
+// 🆕 SHOW DAILY BONUS READY NOTIFICATION ✅
+// ============================================
+function showDailyBonusReadyNotification(hoursRemaining) {
+  // Don't spam - show only once per session
+  if (window.dailyBonusNotificationShown) return;
+  window.dailyBonusNotificationShown = true;
+  
+  // Don't show if modal is already open
+  if (document.querySelector('.daily-bonus-ready-notification')) {
+    return;
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = 'daily-bonus-ready-notification';
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    z-index: 10000;
+    font-weight: 600;
+    animation: slideInRight 0.5s ease;
+    max-width: 350px;
+    cursor: pointer;
+  `;
+  
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">⏰</div>
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">
+          Daily Bonus Coming Soon!
+        </div>
+        <div style="font-size: 14px; opacity: 0.95;">
+          Available in ${hoursRemaining} hour${hoursRemaining > 1 ? 's' : ''}
+        </div>
+      </div>
+      <button onclick="this.closest('.daily-bonus-ready-notification').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">×</button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification && notification.parentNode) {
+      notification.style.animation = 'slideOutRight 0.5s ease';
+      setTimeout(() => notification.remove(), 500);
+    }
+  }, 5000);
 }
 
 // ============================================
@@ -844,12 +1032,38 @@ async function initCoinSystem() {
   return true;
 }
 
-// Auto-initialize when auth state changes
+
+// ============================================
+// INITIALIZE COIN SYSTEM ON AUTH - FIXED ✅
+// ============================================
 if (window.firebaseAuth) {
-  window.firebaseAuth.onAuthStateChanged((user) => {
+  window.firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
       console.log('👤 User authenticated, initializing coin system...');
-      setTimeout(() => initCoinSystem(), 1000);
+      
+      // Wait for DOM
+      await new Promise(resolve => {
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve);
+        }
+      });
+      
+      // Wait for coin system
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Initialize
+      if (typeof initCoinSystem === 'function') {
+        await initCoinSystem();
+        console.log('✅ Coin system initialized');
+        
+        // Force update display
+        if (typeof updateCoinDisplay === 'function') {
+          await updateCoinDisplay();
+          console.log('✅ Initial coin display updated');
+        }
+      }
     }
   });
 }
@@ -879,5 +1093,8 @@ window.initCoinSystem = initCoinSystem;
 // ✅ NEW EXPORTS
 window.checkAndGiveDailyCoins = checkAndGiveDailyCoins;
 window.startDailyCoinChecker = startDailyCoinChecker;
+window.giveDailyCoinsNow = giveDailyCoinsNow;
+// ✅ YANGI EXPORT
+window.updateSubscriptionDisplay = updateSubscriptionDisplay;
 
 console.log('✅ Firebase Coin System with Auto Daily Coins loaded!');

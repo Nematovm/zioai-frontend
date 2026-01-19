@@ -1589,42 +1589,52 @@ async function approvePayment(paymentKey, userId, productType) {
     console.log('📦 Product:', product);
     
     // 3. Process based on product type
-    if (productType === 'PRO' || productType === 'PRO_SUB') {
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30);
-      
-      // ✅ USE BATCH UPDATE (ATOMIC)
-      const updates = {};
-      updates[`users/${userId}/subscription/type`] = 'pro';
-      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
-      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
-      updates[`users/${userId}/subscription/status`] = 'active';
-      updates[`users/${userId}/lastDailyCoin`] = null;
-      
-      const rootRef = window.firebaseRef(db, '/');
-      await window.firebaseUpdate(rootRef, updates);
-      
-      console.log('✅ PRO subscription activated');
-      showNotification('✅ PRO obuna faollashtirildi! 50 coin/kun', 'success');
-      
-    } else if (productType === 'STANDARD_SUB') {
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30);
-      
-      const updates = {};
-      updates[`users/${userId}/subscription/type`] = 'standard';
-      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
-      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
-      updates[`users/${userId}/subscription/status`] = 'active';
-      updates[`users/${userId}/lastDailyCoin`] = null;
-      
-      const rootRef = window.firebaseRef(db, '/');
-      await window.firebaseUpdate(rootRef, updates);
-      
-      console.log('✅ Standard subscription activated');
-      showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
-      
-    } else if (product.coins) {
+// 3. Process based on product type
+// 3. Process based on product type
+if (productType === 'PRO' || productType === 'PRO_SUB') {
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + 30);
+  
+  const updates = {};
+  updates[`users/${userId}/subscription/type`] = 'pro';
+  updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+  updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+  updates[`users/${userId}/subscription/status`] = 'active';
+  updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
+  
+  const rootRef = window.firebaseRef(db, '/');
+  await window.firebaseUpdate(rootRef, updates);
+  
+  console.log('✅ PRO subscription activated');
+  showNotification('✅ PRO obuna faollashtirildi! 50 coin/kun', 'success');
+  
+  // ✅ DARHOL BIRINCHI KUNLIK COINLARNI BERISH
+  if (typeof window.giveDailyCoinsNow === 'function') {
+    await window.giveDailyCoinsNow(userId, 50, 'pro');
+  }
+  
+} else if (productType === 'STANDARD_SUB') {
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + 30);
+  
+  const updates = {};
+  updates[`users/${userId}/subscription/type`] = 'standard';
+  updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+  updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+  updates[`users/${userId}/subscription/status`] = 'active';
+  updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
+  
+  const rootRef = window.firebaseRef(db, '/');
+  await window.firebaseUpdate(rootRef, updates);
+  
+  console.log('✅ Standard subscription activated');
+  showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
+  
+  // ✅ YANGI: DARHOL DAILY COINS BERISH
+  if (typeof window.giveDailyCoinsNow === 'function') {
+    await window.giveDailyCoinsNow(userId, 20, 'standard');
+  }
+} else if (product.coins) {
       // ✅ COINS PURCHASE - FIXED VERSION
       const coinsToAdd = product.coins + (product.bonus || 0);
       
