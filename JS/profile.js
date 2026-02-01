@@ -721,18 +721,36 @@ async function exportData() {
 }
 
 // ============================================
-// 1️⃣2️⃣ CLAIM DAILY BONUS FROM UI
+// 1️⃣2️⃣ CLAIM DAILY BONUS FROM UI - FIXED ✅
 // ============================================
 async function claimDailyBonusFromUI() {
   try {
-    if (typeof window.claimDailyBonus === 'function') {
-      await window.claimDailyBonus();
-    } else {
-      console.warn('⚠️ Coin system not loaded yet');
-      showNotification('Coin system not loaded. Please wait...', 'warning');
+    // ✅ CHECK IF COIN SYSTEM IS LOADED
+    if (typeof window.claimDailyBonus !== 'function') {
+      console.warn('⚠️ Coin system not loaded, waiting...');
+      
+      // ✅ WAIT UP TO 5 SECONDS
+      for (let i = 0; i < 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (typeof window.claimDailyBonus === 'function') {
+          console.log('✅ Coin system loaded!');
+          await window.claimDailyBonus();
+          return;
+        }
+      }
+      
+      // If still not loaded after 5 seconds
+      showNotification('⚠️ Please wait a moment and try again', 'warning');
+      return;
     }
+    
+    // ✅ IF ALREADY LOADED
+    await window.claimDailyBonus();
+    
   } catch (error) {
     console.error('❌ Error claiming daily bonus:', error);
+    showNotification('❌ Failed to claim daily bonus', 'error');
   }
 }
 

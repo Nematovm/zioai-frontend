@@ -264,14 +264,14 @@
         <div class="logout-modal-icon">
           <i class="bi bi-box-arrow-right"></i>
         </div>
-        <h3>Log Out?</h3>
-        <p>Are you sure you want to log out of your account?</p>
+        <h3>Chiqish?</h3>
+        <p>Hisobingizdan chiqishni xohlaysizmi?</p>
         <div class="logout-modal-buttons">
           <button class="logout-modal-btn cancel" id="cancelLogout">
-            Cancel
+            Bekor Qilish
           </button>
           <button class="logout-modal-btn confirm" id="confirmLogout">
-            Log Out
+            Chiqish
           </button>
         </div>
       </div>
@@ -416,9 +416,9 @@
     <section class="header-section">
       <div class="header_section_left">
         <h2 id="headerTitle">
-          Welcome back, <span id="userName">Student</span>!
+          Xush kelibsiz, <span id="userName">O'quvchi</span>!
         </h2>
-        <p id="headerSubtitle">Select a tool below to get started</p>
+        <p id="headerSubtitle">Boshlash uchun quyidagi vositalardan birini tanlang</p>
       </div>
 
       <div class="header_section_right">
@@ -471,14 +471,14 @@
         <div class="timer-modal-overlay" id="timerSettingsModal">
           <div class="timer-modal">
             <div class="timer-modal-header">
-              <h3>⚙️ Timer Settings</h3>
+              <h3>⚙️ Taymer sozlamalari</h3>
               <button class="timer-modal-close" onclick="closeTimerSettings()">
                 ×
               </button>
             </div>
             <div class="timer-modal-body">
               <div class="setting-group">
-                <label>🍅 Pomodoro Duration</label>
+                <label>🍅 Pomodoro davomiyligi</label>
                 <div class="time-selector">
                   <button class="time-option" onclick="setPomodoroTime(15)">
                     15 min
@@ -498,7 +498,7 @@
                 </div>
               </div>
               <div class="setting-group">
-                <label>☕️ Break Duration</label>
+                <label>☕️ Tanaffus davomiyligi</label>
                 <div class="time-selector">
                   <button class="time-option active" onclick="setBreakTime(5)">
                     5 min
@@ -515,7 +515,7 @@
                 </div>
               </div>
               <div class="setting-group">
-                <label>🔔 Sound Notification</label>
+                <label>🔔 Ovozli bildirishnoma</label>
                 <label class="switch">
                   <input type="checkbox" id="soundToggle" checked />
                   <span class="slider"></span>
@@ -527,7 +527,7 @@
                 class="timer-modal-btn save"
                 onclick="saveTimerSettings()"
               >
-                <i class="bi bi-check-circle"></i> Save Settings
+                <i class="bi bi-check-circle"></i> Sozlamalarni saqlash
               </button>
             </div>
           </div>
@@ -537,20 +537,20 @@
         <div class="timer-notification-overlay" id="timerNotification">
           <div class="timer-notification">
             <div class="timer-notification-icon" id="notificationIcon">🍅</div>
-            <h3 id="notificationTitle">Pomodoro Complete!</h3>
-            <p id="notificationMessage">Great work! Time for a break?</p>
+            <h3 id="notificationTitle">Pomodoro yakunlandi!</h3>
+            <p id="notificationMessage">A’lo ish! Tanaffus vaqti keldimi?</p>
             <div class="timer-notification-buttons">
               <button class="notification-btn yes" onclick="startBreakTimer()">
-                <i class="bi bi-check-circle"></i> Yes, Start Break
+                <i class="bi bi-check-circle"></i> Ha, tanaffusni boshlash
               </button>
               <button class="notification-btn no" onclick="restartPomodoro()">
-                <i class="bi bi-arrow-repeat"></i> No, Continue Working
+                <i class="bi bi-arrow-repeat"></i> Yo‘q, ishlashni davom ettirish
               </button>
             </div>
           </div>
         </div>
         <div class="user-info">
-          <p id="subscriptionStatus">Free Obuna</p>
+          <p id="subscriptionStatus">Bepul Reja</p>
           <span
             class="subscribtionText"
             id="subscriptionBadge"
@@ -583,7 +583,7 @@
             <div class="hero-bg-circle"></div>
             <i class="bi bi-clock-history hero-icon"></i>
             <div class="hero-value" id="heroStudyTime">0h 0m</div>
-            <div class="hero-label">Total Study Time</div>
+            <div class="hero-label">Jami o'qish vaqti</div>
             <div class="hero-badge">
               <i class="bi bi-graph-up-arrow"></i>
               <span>+15% this week</span>
@@ -595,7 +595,7 @@
             <div class="hero-bg-circle hero-bg-left"></div>
             <i class="bi bi-bullseye hero-icon"></i>
             <div class="hero-value" id="heroWeeklyGoal">0%</div>
-            <div class="hero-label">Weekly Goal</div>
+            <div class="hero-label">Haftalik maqsad</div>
             <div class="hero-progress-bar">
               <div class="hero-progress-fill" id="heroProgressFill"></div>
             </div>
@@ -606,7 +606,7 @@
             <div class="hero-bg-circle"></div>
             <i class="bi bi-trophy-fill hero-icon"></i>
             <div class="hero-value" id="heroPoints">0</div>
-            <div class="hero-label">Total Points</div>
+            <div class="hero-label">Jami ballar</div>
             <div class="hero-badge">
               <i class="bi bi-lightning-charge-fill"></i>
               <span id="heroLevel">Level 1</span>
@@ -618,8 +618,8 @@
             <div class="hero-bg-circle hero-bg-right"></div>
             <i class="bi bi-fire hero-icon"></i>
             <div class="hero-value" id="heroStreak">0</div>
-            <div class="hero-label">Day Streak 🔥</div>
-            <div class="hero-badge-small">Keep it burning!</div>
+            <div class="hero-label">Kunlik ketma-ketlik 🔥</div>
+            <div class="hero-badge-small">Harakatdan to'htamang!</div>
           </div>
         </div>
 
@@ -631,16 +631,16 @@
               <div>
                 <h3 class="card-title">
                   <i class="bi bi-activity"></i>
-                  Weekly Performance
+                  Haftalik natijalar
                 </h3>
                 <p class="card-subtitle">
-                  Your study hours and task completion
+                  Sizning o‘qish soatlaringiz va vazifalarni bajarish
                 </p>
               </div>
               <select class="dashboard-select" id="weekSelector">
-                <option>This Week</option>
-                <option>Last Week</option>
-                <option>This Month</option>
+                <option>Joriy hafta</option>
+                <option>Oldingi hafta</option>
+                <option>Bu oy</option>
               </select>
             </div>
 
@@ -652,17 +652,17 @@
             <div class="chart-stats">
               <div class="chart-stat-item">
                 <div class="chart-stat-value" id="totalWeekHours">0h</div>
-                <div class="chart-stat-label">Total This Week</div>
+                <div class="chart-stat-label">Joriy hafta umumiy vaqti</div>
               </div>
               <div class="chart-stat-item">
                 <div class="chart-stat-value stat-green" id="goalProgress">
                   +0%
                 </div>
-                <div class="chart-stat-label">Goal Progress</div>
+                <div class="chart-stat-label">Maqsadga erishish</div>
               </div>
               <div class="chart-stat-item">
                 <div class="chart-stat-value stat-purple" id="bestDay">0h</div>
-                <div class="chart-stat-label">Best Day</div>
+                <div class="chart-stat-label">Eng yaxshi kun</div>
               </div>
             </div>
           </div>
@@ -755,7 +755,7 @@
       <!-- HOMEWORK FIXER TOOL - DRAG & DROP + PASTE ENABLED -->
       <div class="tool-content active" id="homework-content">
         <div class="tool-interface">
-          <h4 style="margin-bottom: 15px; color: #1f2937">Your Homework</h4>
+          <h4 style="margin-bottom: 15px; color: #1f2937">Sizning uy vazifangiz</h4>
 
           <!-- TIL TANLASH -->
           <div class="language-selector" style="margin-bottom: 20px">
@@ -793,7 +793,7 @@
                 transition: all 0.3s;
               "
             >
-              <i class="bi bi-pencil-square"></i> Type Text
+              <i class="bi bi-pencil-square"></i> Matn kiritish
             </button>
             <button
               class="tab-btn bg-bc"
@@ -811,7 +811,7 @@
                 transition: all 0.3s;
               "
             >
-              <i class="bi bi-image"></i> Upload Image
+              <i class="bi bi-image"></i> Rasm yuklash
             </button>
           </div>
 
@@ -843,7 +843,7 @@
                 style="font-size: 48px; color: #9ca3af; margin-bottom: 15px"
               ></i>
               <p style="color: #6b7280; font-size: 16px; margin: 10px 0">
-                Click to upload or drag and drop
+                Yuklash uchun bosing yoki faylni tortib tashlang
               </p>
               <p style="color: #9ca3af; font-size: 14px">
                 PNG, JPG, JPEG (MAX. 5MB)
@@ -889,18 +889,18 @@
                   cursor: pointer;
                 "
               >
-                <i class="bi bi-trash"></i> Remove Image
+                <i class="bi bi-trash"></i> Rasmni o‘chirish
               </button>
             </div>
           </div>
 
           <button onclick="fixHomework()" style="margin-top: 20px">
-            <i class="bi bi-magic"></i> Fix My Homework
+            <i class="bi bi-magic"></i> Uy vazifamni to‘g‘rilash
           </button>
 
           <div class="result-box" id="homeworkResult" style="display: none">
             <h5 style="color: #1f2937; margin-bottom: 10px">
-              Corrected Homework:
+              To‘g‘rilangan uy vazifasi:
             </h5>
             <div id="homeworkOutput"></div>
           </div>
@@ -916,11 +916,10 @@
       <div class="tool-content" id="grammar-content">
         <div class="tool-interface">
           <h4 style="margin-bottom: 15px; color: #1f2937">
-            <i class="bi bi-pen-fill"></i> IELTS Writing Checker
+            <i class="bi bi-pen-fill"></i> IELTS Writing tekshiruvchi
           </h4>
           <p style="color: #6b7280; margin-bottom: 20px">
-            Write your IELTS Task 1 or Task 2 essay and get detailed feedback
-            with band scores!
+           IELTS Task 1 yoki Task 2 inshoningizni yozing va band ballari bilan batafsil fikr-mulohaza oling”
           </p>
 
           <!-- Task Type Selection -->
@@ -933,7 +932,7 @@
                 font-weight: 600;
               "
             >
-              📝 Select Task Type:
+              📝 Taskni turini tanlang:
             </label>
             <div style="display: flex; gap: 15px">
               <button
@@ -1019,8 +1018,7 @@
               "
             />
             <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280">
-              <i class="bi bi-info-circle"></i> AI needs the topic to check if
-              your answer is relevant to the question.
+              <i class="bi bi-info-circle"></i>AI sizning javobingiz savolga mosligini tekshirish uchun mavzuni bilishi kerak.
             </p>
           </div>
 
@@ -1037,8 +1035,7 @@
                 font-weight: 600;
               "
             >
-              📊 Upload Chart/Graph/Diagram (Optional but recommended for Task
-              1):
+              📊 Diagramma/Grafik/Chizmangizni yuklang (ixtiyoriy, lekin Task 1 uchun tavsiya etiladi):
             </label>
 
             <!-- ✅ UPLOAD AREA - CLICK, DRAG & DROP, PASTE ENABLED - FIXED -->
@@ -1048,7 +1045,7 @@
                 style="font-size: 48px; color: #9ca3af; margin-bottom: 15px"
               ></i>
               <p style="color: #6b7280; font-size: 16px; margin: 10px 0">
-                Click to upload or drag and drop
+                Yuklash uchun bosing yoki faylni tortib tashlang
               </p>
               <p style="color: #9ca3af; font-size: 14px">
                 PNG, JPG, JPEG (MAX. 5MB)
@@ -1096,7 +1093,7 @@
                   cursor: pointer;
                 "
               >
-                <i class="bi bi-trash"></i> Remove Image
+                <i class="bi bi-trash"></i> Rasmni o‘chirish
               </button>
             </div>
           </div>
@@ -1129,7 +1126,7 @@
               "
             >
               <i class="bi bi-pencil-square" style="color: #667eea"></i>
-              <span id="wordCounter">0</span> words
+              <span id="wordCounter">0</span> so‘z
               <span id="wordStatus" style="margin-left: 8px"></span>
             </div>
           </div>
@@ -1144,7 +1141,7 @@
               font-weight: 700;
             "
           >
-            <i class="bi bi-check2-circle"></i> Analyze Writing
+            <i class="bi bi-check2-circle"></i> Writingni tahlil qilish
           </button>
 
           <!-- Tips Box -->
@@ -1158,7 +1155,7 @@
             "
           >
             <h6 style="margin: 0 0 10px 0; color: #667eea; font-weight: 700">
-              <i class="bi bi-lightbulb-fill"></i> Pro Tips:
+              <i class="bi bi-lightbulb-fill"></i> Mutaxassis maslahatlari:
             </h6>
             <ul
               style="
@@ -1170,23 +1167,20 @@
               "
             >
               <li>
-                <strong>Task 1:</strong> Upload the chart/graph for better
-                analysis
+                <strong>Task 1:</strong> Yaxshiroq tahlil uchun diagramma/grafikni yuklang
               </li>
               <li>
-                <strong>Task 2:</strong> Essays should be
-                <strong>250+ words</strong>
+                <strong>Task 2:</strong> Insholar quyidagicha bo‘lishi kerak:
+                <strong>250+ so'z</strong>
               </li>
               <li>
-                Use <strong>complex sentences</strong> and varied vocabulary
+                <strong>Murakkab gaplar</strong> va turli so‘z boyligini ishlating
               </li>
               <li>
-                Include <strong>linking words</strong> (however, moreover,
-                therefore)
+                <strong>Bog‘lovchi so‘zlar</strong> qo‘shing (masalan: however, moreover, therefore)
               </li>
               <li>
-                Check your <strong>grammar and spelling</strong> before
-                submitting
+                Yuborishdan oldin <strong>grammatika va imlo</strong>ni tekshiring
               </li>
             </ul>
           </div>
@@ -1203,7 +1197,7 @@
             >
               <h5 style="color: #1f2937; margin: 0">
                 <i class="bi bi-trophy-fill" style="color: #fbbf24"></i> Writing
-                Analysis Results:
+                Tahlil natijalari:
               </h5>
             </div>
             <div id="grammarOutput"></div>
@@ -1214,7 +1208,7 @@
       <!-- VOCABULARY BUILDER TOOL -->
       <div class="tool-content" id="vocabulary-content">
         <div class="tool-interface">
-          <h4 style="margin-bottom: 15px; color: #1f2937">Enter a Word</h4>
+          <h4 style="margin-bottom: 15px; color: #1f2937">So‘z kiritish</h4>
 
           <!-- ✅ TIL TANLASH -->
           <div class="language-selector" style="margin-bottom: 20px">
@@ -1239,11 +1233,11 @@
             "
           />
           <button onclick="buildVocab()">
-            <i class="bi bi-search"></i> Learn Word
+            <i class="bi bi-search"></i> So‘zni o‘rganish
           </button>
           <div class="result-box" id="vocabResult" style="display: none">
             <h5 style="color: #1f2937; margin-bottom: 10px">
-              Word Information:
+              So‘z ma'lumotlari:
             </h5>
             <div id="vocabOutput"></div>
           </div>
@@ -2114,7 +2108,7 @@
             <div class="profile-name-inline" id="profileName">Loading...</div>
             <div class="profile-email-inline" id="profileEmail">Loading...</div>
             <div class="profile-date-inline" id="profileDate">
-              <i class="bi bi-calendar3"></i> Member since: Loading...
+              <i class="bi bi-calendar3"></i> A’zo bo‘lgan sana: Loading...
             </div>
           </div>
 
@@ -2125,7 +2119,7 @@
               <div class="billing-header">
                 <h3>
                   <i class="bi bi-wallet2"></i>
-                  Billing & Coins
+                  To‘lov va Tangalar
                 </h3>
                 <div class="coin-balance">
                   <span class="coin-balance-icon">🪙</span>
@@ -2136,16 +2130,16 @@
               <!-- Current Subscription -->
               <div class="subscription-info" id="subscriptionInfo">
                 <span class="subscription-badge" id="subscriptionBadgeProfile"
-                  >FREE</span
+                  >Tekin</span
                 >
                 <div class="subscription-details">
                   <div class="subscription-detail">
                     <i class="bi bi-clock-history"></i>
-                    <span id="subscriptionExpiry">No expiry</span>
+                    <span id="subscriptionExpiry">Muddati yo'q</span>
                   </div>
                   <div class="subscription-detail">
                     <i class="bi bi-coin"></i>
-                    <span id="dailyCoinLimit">5 coins/day</span>
+                    <span id="dailyCoinLimit">Kuniga 5 tanga</span>
                   </div>
                 </div>
               </div>
@@ -2157,14 +2151,14 @@
                   onclick="openCoinShop()"
                   style="flex: 1"
                 >
-                  <i class="bi bi-cart-plus"></i> Buy Coins
+                  <i class="bi bi-cart-plus"></i> Tanga sotib olish
                 </button>
                 <button
                   class="btn-inline btn-secondary-inline"
                   onclick="claimDailyBonusFromUI()"
                   style="flex: 1"
                 >
-                  <i class="bi bi-gift"></i> Daily Bonus
+                  <i class="bi bi-gift"></i> Kunlik bonus
                 </button>
               </div>
 
@@ -2172,14 +2166,14 @@
               <div class="transaction-history">
                 <h4>
                   <i class="bi bi-clock-history"></i>
-                  Recent Transactions
+                  Oxirgi tranzaksiyalar
                 </h4>
                 <div class="transaction-list" id="transactionList">
                   <!-- Transactions will be loaded by JS -->
                   <div
                     style="text-align: center; padding: 20px; color: #9ca3af"
                   >
-                    No transactions yet
+                    Tranzaksiyalar yo'q
                   </div>
                 </div>
               </div>
@@ -2188,7 +2182,7 @@
             <div class="profile-section-inline">
               <div class="section-title-inline">
                 <i class="bi bi-person-circle"></i>
-                Account Information
+                Hisob ma'lumotlari
               </div>
 
               <div class="input-group-inline">
@@ -2215,7 +2209,7 @@
                 class="btn-inline btn-primary-inline"
                 onclick="updateUsername()"
               >
-                <i class="bi bi-check-circle"></i> Save Changes
+                <i class="bi bi-check-circle"></i> Saqlash
               </button>
             </div>
 
@@ -2223,13 +2217,13 @@
             <div class="profile-section-inline">
               <div class="section-title-inline">
                 <i class="bi bi-gear-fill"></i>
-                Settings
+                Sozlamalar
               </div>
 
               <div class="theme-toggle-inline">
                 <div class="theme-toggle-label-inline">
                   <i class="bi bi-moon-stars-fill"></i>
-                  <span>Dark Mode</span>
+                  <span>Dark rejim</span>
                 </div>
                 <label class="switch-inline">
                   <input
@@ -2246,14 +2240,14 @@
                 onclick="openPasswordModal()"
                 style="width: 100%; margin-top: 15px"
               >
-                <i class="bi bi-lock-fill"></i> Change Password
+                <i class="bi bi-lock-fill"></i> Parolni o‘zgartirish
               </button>
             </div>
             <!-- FEEDBACK SECTION - YANGI ✅ -->
             <div class="profile-section-inline feedback-section">
               <div class="section-title-inline">
                 <i class="bi bi-chat-left-text-fill"></i>
-                Send Feedback
+                Fikr bildirish
               </div>
 
               <p
@@ -2264,31 +2258,30 @@
                   line-height: 1.6;
                 "
               >
-                💭 Help us improve ZiyoAI! Share your suggestions, report bugs,
-                or tell us what features you'd like to see.
+                💭 ZiyoAI’ni yaxshilashimizga yordam bering! Takliflaringizni ulashing, xatoliklarni bildiring yoki qaysi funksiyalarni ko‘rishni xohlashingizni ayting.
               </p>
 
               <!-- Feedback Category -->
               <div class="input-group-inline" style="margin-bottom: 20px">
-                <label>📂 Category</label>
+                <label>📂 Kategoriya</label>
                 <select id="feedbackCategory" class="language-dropdown">
-                  <option value="bug">🐛 Bug Report / Xatolik</option>
+                  <option value="bug">🐛 Xatolik</option>
                   <option value="feature">
-                    ✨ Feature Request / Yangi funksiya
+                    ✨ Yangi funksiya
                   </option>
-                  <option value="suggestion">💡 Suggestion / Taklif</option>
-                  <option value="complaint">😕 Complaint / Shikoyat</option>
-                  <option value="other">📝 Other / Boshqa</option>
+                  <option value="suggestion">💡Taklif</option>
+                  <option value="complaint">😕 Shikoyat</option>
+                  <option value="other">📝 Boshqa</option>
                 </select>
               </div>
 
               <!-- Feedback Title -->
               <div class="input-group-inline" style="margin-bottom: 20px">
-                <label>📌 Title</label>
+                <label>📌 Sarlavha</label>
                 <input
                   type="text"
                   id="feedbackTitle"
-                  placeholder="Brief description (e.g., 'Payment not working')"
+                  placeholder="Qisqacha tavsif (masalan, 'To‘lov ishlamayapti')"
                   maxlength="100"
                 />
                 <small
@@ -2305,11 +2298,11 @@
 
               <!-- Feedback Message -->
               <div class="input-group-inline" style="margin-bottom: 20px">
-                <label>✍️ Message</label>
+                <label>✍️ Xabar</label>
                 <textarea
                   class="feedback-message"
                   id="feedbackMessage"
-                  placeholder="Describe the issue or share your thoughts in detail..."
+                  placeholder="Muammoni yoki fikrlaringizni batafsil bayon qiling..."
                   style="
                     min-height: 150px;
                     resize: vertical;
@@ -2329,34 +2322,34 @@
                     display: block;
                   "
                 >
-                  <span id="feedbackCharCount">0</span>/1000 characters
+                  <span id="feedbackCharCount">0</span>/1000 belgi
                 </small>
               </div>
 
               <!-- Priority Level -->
               <div class="input-group-inline" style="margin-bottom: 20px">
-                <label>🚦 Priority</label>
+                <label>🚦 Ustuvorlik</label>
                 <div style="display: flex; gap: 10px">
                   <button
                     class="priority-btn"
                     data-priority="low"
                     onclick="selectPriority('low')"
                   >
-                    🟢 Low
+                    🟢 Past
                   </button>
                   <button
                     class="priority-btn active"
                     data-priority="medium"
                     onclick="selectPriority('medium')"
                   >
-                    🟡 Medium
+                    🟡 O'rtacha
                   </button>
                   <button
                     class="priority-btn"
                     data-priority="high"
                     onclick="selectPriority('high')"
                   >
-                    🔴 High
+                    🔴 Yuqori
                   </button>
                 </div>
               </div>
@@ -2367,7 +2360,7 @@
                 onclick="submitFeedback()"
                 style="width: 100%; margin-bottom: 15px"
               >
-                <i class="bi bi-send-fill"></i> Send Feedback
+                <i class="bi bi-send-fill"></i> Feedback Yuborish
               </button>
 
               <!-- View History Button -->
@@ -2376,7 +2369,7 @@
                 onclick="openFeedbackHistory()"
                 style="width: 100%"
               >
-                <i class="bi bi-clock-history"></i> View My Feedback History
+                <i class="bi bi-clock-history"></i> Mening fikr-mulohazalar tariximni ko‘rish
               </button>
 
               <!-- Info Box -->
@@ -2399,8 +2392,7 @@
                   "
                 >
                   <i class="bi bi-info-circle-fill"></i>
-                  <strong>Note:</strong> We review all feedback within 24-48
-                  hours. You'll receive a notification when we respond.
+                  <strong>Eslatma:</strong> Biz barcha fikr-mulohazalarni 24–48 soat ichida ko‘rib chiqamiz. Javob berganimizda sizga bildirishnoma keladi.
                 </p>
               </div>
             </div>
@@ -2414,7 +2406,7 @@
             <div class="profile-section-inline testimonials-section">
               <div class="section-title-inline">
                 <i class="bi bi-star-fill" style="color: #fbbf24"></i>
-                Share Your Experience
+                Tajribangizni ulashing
               </div>
 
               <p
@@ -2425,8 +2417,7 @@
                   line-height: 1.6;
                 "
               >
-                ⭐ Love ZiyoAI? Share your positive experience with other
-                students! Your review may be featured on our landing page.
+                ⭐ ZiyoAI’ni yoqtirasizmi? Ijobiy tajribangizni boshqa talabalar bilan ulashing! Sizning sharhingiz bizning landing sahifamizda namoyish etilishi mumkin.
               </p>
 
               <!-- Quick Info Cards -->
@@ -2459,7 +2450,7 @@
                   <div
                     style="font-weight: 700; color: #92400e; font-size: 14px"
                   >
-                    Rate Us
+                    Bizni Baholang
                   </div>
                   <!-- <div style="font-size: 11px; color: #b45309; margin-top: 3px;">1-5 Stars</div> -->
                 </div>
@@ -2485,7 +2476,7 @@
                   <div
                     style="font-weight: 700; color: #1e40af; font-size: 14px"
                   >
-                    Write Review
+                    Sharh Yozish
                   </div>
                   <!-- <div style="font-size: 11px; color: #1e3a8a; margin-top: 3px;">Share thoughts</div> -->
                 </div>
@@ -2524,18 +2515,18 @@
                   onclick="openTestimonialModal()"
                   style="flex: 1"
                 >
-                  <i class="bi bi-star-fill"></i> Write Review
+                  <i class="bi bi-star-fill"></i> Sharh Yozish
                 </button>
                 <button
                   class="btn-inline btn-secondary-inline"
                   onclick="viewMyTestimonials()"
                   style="flex: 1"
                 >
-                  <i class="bi bi-eye-fill"></i> View My Review
+                  <i class="bi bi-eye-fill"></i> Mening sharhimni ko'rish
                 </button>
               </div>
 
-              <!-- Info Box -->
+              <!-- Info Box
               <div
                 style="
                   padding: 15px;
@@ -2557,7 +2548,7 @@
                   positive feedback. All reviews are manually reviewed before
                   publishing.
                 </p>
-              </div>
+              </div> -->
             </div>
 
             <!-- ============================================ -->
@@ -2568,20 +2559,20 @@
             <div class="danger-zone-inline">
               <div class="danger-zone-title-inline">
                 <i class="bi bi-exclamation-triangle-fill"></i>
-                Danger Zone
+                Xavfli zona
               </div>
               <div class="danger-zone-actions-inline">
                 <button
                   class="btn-inline btn-secondary-inline"
                   onclick="exportData()"
                 >
-                  <i class="bi bi-download"></i> Export Data
+                  <i class="bi bi-download"></i> Ma’lumotlarni yuklab olish
                 </button>
                 <button
                   class="btn-inline btn-danger-inline"
                   onclick="openDeleteModal()"
                 >
-                  <i class="bi bi-trash-fill"></i> Delete Account
+                  <i class="bi bi-trash-fill"></i> Hisobni o'chirish
                 </button>
               </div>
             </div>
@@ -2593,14 +2584,14 @@
       <div class="modal-overlay-inline" id="avatarModal">
         <div class="modal-inline">
           <div class="modal-header-inline">
-            <h3>Choose Avatar</h3>
+            <h3>Avatar Tanlash</h3>
             <button class="modal-close-inline" onclick="closeAvatarModal()">
               ×
             </button>
           </div>
           <div class="modal-body-inline">
             <p style="color: #6b7280; margin-bottom: 10px">
-              Select an emoji as your profile picture:
+              Profil rasmi sifatida emojini tanlang:
             </p>
             <div class="emoji-grid-inline" id="emojiGrid">
               <!-- Emojis will be generated by JS -->
@@ -2611,13 +2602,13 @@
               class="btn-inline btn-secondary-inline"
               onclick="closeAvatarModal()"
             >
-              Cancel
+              Bekor qilish
             </button>
             <button
               class="btn-inline btn-primary-inline"
               onclick="saveAvatar()"
             >
-              <i class="bi bi-check-circle"></i> Save
+              <i class="bi bi-check-circle"></i> Saqlash
             </button>
           </div>
         </div>
@@ -2627,14 +2618,14 @@
       <div class="modal-overlay-inline" id="passwordModal">
         <div class="modal-inline">
           <div class="modal-header-inline">
-            <h3>Change Password</h3>
+            <h3>Parolni o'zgartirish</h3>
             <button class="modal-close-inline" onclick="closePasswordModal()">
               ×
             </button>
           </div>
           <div class="modal-body-inline">
             <div class="input-group-inline">
-              <label>Current Password</label>
+              <label>Joriy parol</label>
               <input
                 type="password"
                 id="currentPassword"
@@ -2642,7 +2633,7 @@
               />
             </div>
             <div class="input-group-inline">
-              <label>New Password</label>
+              <label>Yangi parol</label>
               <input
                 type="password"
                 id="newPassword"
@@ -2650,7 +2641,7 @@
               />
             </div>
             <div class="input-group-inline">
-              <label>Confirm New Password</label>
+              <label>Yangi parolni tasdiqlang</label>
               <input
                 type="password"
                 id="confirmPassword"
@@ -2663,13 +2654,13 @@
               class="btn-inline btn-secondary-inline"
               onclick="closePasswordModal()"
             >
-              Cancel
+              Bekor qilish
             </button>
             <button
               class="btn-inline btn-primary-inline"
               onclick="changePassword()"
             >
-              <i class="bi bi-check-circle"></i> Update Password
+              <i class="bi bi-check-circle"></i> Parolni yangilash
             </button>
           </div>
         </div>
@@ -2679,18 +2670,17 @@
       <div class="modal-overlay-inline" id="deleteModal">
         <div class="modal-inline">
           <div class="modal-header-inline">
-            <h3 style="color: #dc2626">Delete Account</h3>
+            <h3 style="color: #dc2626">Hisobni o'chirish</h3>
             <button class="modal-close-inline" onclick="closeDeleteModal()">
               ×
             </button>
           </div>
           <div class="modal-body-inline">
             <p style="color: #6b7280; margin-bottom: 15px">
-              <strong>Warning:</strong> This action cannot be undone. All your
-              data will be permanently deleted.
+              <strong>Ogohlantirish:</strong> Bu amalni bekor qilib bo‘lmaydi. Barcha ma’lumotlaringiz doimiy ravishda o‘chiriladi.
             </p>
             <div class="input-group-inline">
-              <label>Type "DELETE" to confirm</label>
+              <label>Tasdiqlash uchun “DELETE” deb yozing</label>
               <input type="text" id="deleteConfirm" placeholder="Type DELETE" />
             </div>
           </div>
@@ -2699,13 +2689,13 @@
               class="btn-inline btn-secondary-inline"
               onclick="closeDeleteModal()"
             >
-              Cancel
+              Bekor qilish
             </button>
             <button
               class="btn-inline btn-danger-inline"
               onclick="deleteAccount()"
             >
-              <i class="bi bi-trash-fill"></i> Delete Forever
+              <i class="bi bi-trash-fill"></i> Doimiy o'chirish
             </button>
           </div>
         </div>

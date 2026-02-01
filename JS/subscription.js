@@ -1558,7 +1558,7 @@ function closeAdminPanel() {
 // ============================================
 
 // ============================================
-// APPROVE PAYMENT - COMPLETELY FIXED ✅
+// APPROVE PAYMENT - FIXED FOR DAILY COINS ✅
 // ============================================
 async function approvePayment(paymentKey, userId, productType) {
   const db = getDatabase();
@@ -1589,75 +1589,72 @@ async function approvePayment(paymentKey, userId, productType) {
     console.log('📦 Product:', product);
     
     // 3. Process based on product type
-// 3. Process based on product type
-// 3. Process based on product type
-if (productType === 'PRO' || productType === 'PRO_SUB') {
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + 30);
-  
-  const updates = {};
-  updates[`users/${userId}/subscription/type`] = 'pro';
-  updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
-  updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
-  updates[`users/${userId}/subscription/status`] = 'active';
-  updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
-  
-  const rootRef = window.firebaseRef(db, '/');
-  await window.firebaseUpdate(rootRef, updates);
-  
-  console.log('✅ PRO subscription activated');
-  showNotification('✅ PRO obuna faollashtirildi! 50 coin/kun', 'success');
-  
-  // ✅ DARHOL BIRINCHI KUNLIK COINLARNI BERISH
-  if (typeof window.giveDailyCoinsNow === 'function') {
-    await window.giveDailyCoinsNow(userId, 50, 'pro');
-  }
-  
-} else if (productType === 'STANDARD_SUB') {
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + 30);
-  
-  const updates = {};
-  updates[`users/${userId}/subscription/type`] = 'standard';
-  updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
-  updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
-  updates[`users/${userId}/subscription/status`] = 'active';
-  updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
-  
-  const rootRef = window.firebaseRef(db, '/');
-  await window.firebaseUpdate(rootRef, updates);
-  
-  console.log('✅ Standard subscription activated');
-  showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
-  
-  // ✅ YANGI: DARHOL DAILY COINS BERISH
-  if (typeof window.giveDailyCoinsNow === 'function') {
-    await window.giveDailyCoinsNow(userId, 20, 'standard');
-  }
-} else if (product.coins) {
-      // ✅ COINS PURCHASE - FIXED VERSION
+    if (productType === 'PRO' || productType === 'PRO_SUB') {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30);
+      
+      const updates = {};
+      updates[`users/${userId}/subscription/type`] = 'pro';
+      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+      updates[`users/${userId}/subscription/status`] = 'active';
+      updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
+      
+      const rootRef = window.firebaseRef(db, '/');
+      await window.firebaseUpdate(rootRef, updates);
+      
+      console.log('✅ PRO subscription activated (50 coins/day)');
+      showNotification('✅ PRO obuna faollashtirildi! 50 coin/kun', 'success');
+      
+      // ✅ GIVE FIRST DAILY COINS IMMEDIATELY
+      if (typeof window.giveDailyCoinsNow === 'function') {
+        await window.giveDailyCoinsNow(userId, 50, 'pro');
+        console.log('✅ First 50 daily coins given immediately');
+      }
+      
+    } else if (productType === 'STANDARD_SUB') {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30);
+      
+      const updates = {};
+      updates[`users/${userId}/subscription/type`] = 'standard';
+      updates[`users/${userId}/subscription/expiry`] = expiryDate.toISOString();
+      updates[`users/${userId}/subscription/activatedAt`] = new Date().toISOString();
+      updates[`users/${userId}/subscription/status`] = 'active';
+      updates[`users/${userId}/lastDailyCoin`] = null; // ✅ Reset timer
+      
+      const rootRef = window.firebaseRef(db, '/');
+      await window.firebaseUpdate(rootRef, updates);
+      
+      console.log('✅ Standard subscription activated (20 coins/day)');
+      showNotification('✅ Standard obuna faollashtirildi! 20 coin/kun', 'success');
+      
+      // ✅ GIVE FIRST DAILY COINS IMMEDIATELY
+      if (typeof window.giveDailyCoinsNow === 'function') {
+        await window.giveDailyCoinsNow(userId, 20, 'standard');
+        console.log('✅ First 20 daily coins given immediately');
+      }
+      
+    } else if (product.coins) {
+      // ✅ ONE-TIME COIN PURCHASE (unchanged)
       const coinsToAdd = product.coins + (product.bonus || 0);
       
       console.log(`💰 Adding ${coinsToAdd} coins to user ${userId}`);
       
-      // Get current coins
       const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
       const snapshot = await window.firebaseGet(coinsRef);
       const currentCoins = snapshot.val() || 0;
       const newCoins = currentCoins + coinsToAdd;
       
-      console.log(`Current: ${currentCoins}, Adding: ${coinsToAdd}, New: ${newCoins}`);
-      
-      // ✅ UPDATE COINS USING ROOT UPDATE (ATOMIC)
       const updates = {};
       updates[`users/${userId}/coins`] = newCoins;
       
       const rootRef = window.firebaseRef(db, '/');
       await window.firebaseUpdate(rootRef, updates);
       
-      console.log(`✅ Coins updated successfully: ${currentCoins} → ${newCoins}`);
+      console.log(`✅ Coins updated: ${currentCoins} → ${newCoins}`);
       
-      // ✅ LOG TRANSACTION - WITH PROPER ERROR HANDLING
+      // Log transaction
       try {
         const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
         const newTransactionRef = window.firebasePush(transactionRef);
@@ -1672,11 +1669,8 @@ if (productType === 'PRO' || productType === 'PRO_SUB') {
           adminId: window.firebaseAuth?.currentUser?.uid,
           reason: `Purchased ${product.nameUz || product.name}`
         });
-        
-        console.log('✅ Transaction logged successfully');
-      } catch (transactionError) {
-        console.error('⚠️ Transaction log failed (non-critical):', transactionError);
-        // Don't throw error - coins were added successfully
+      } catch (txError) {
+        console.warn('⚠️ Transaction log failed (non-critical):', txError);
       }
       
       showNotification(`✅ ${coinsToAdd} coin qo'shildi!`, 'success');
@@ -1693,12 +1687,10 @@ if (productType === 'PRO' || productType === 'PRO_SUB') {
   } catch (error) {
     console.error('❌ Approve error:', error);
     
-    // ✅ USER-FRIENDLY ERROR MESSAGES
     let errorMessage = 'Xatolik yuz berdi';
     
     if (error.code === 'PERMISSION_DENIED') {
       errorMessage = '❌ Ruxsat yo\'q! Firebase Rules ni tekshiring.';
-      console.error('🔴 PERMISSION_DENIED - Check Firebase Rules for coin_transactions');
     } else if (error.message.includes('not found')) {
       errorMessage = '❌ Mahsulot topilmadi!';
     } else {

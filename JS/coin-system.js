@@ -1,6 +1,6 @@
 // ============================================
 // 🪙 COIN SYSTEM - FIREBASE DATABASE VERSION
-// WITH AUTO DAILY COINS ✅
+// WITH AUTO DAILY COINS ✅ COMPLETELY FIXED
 // ============================================
 
 const COIN_CONFIG = {
@@ -177,12 +177,11 @@ async function updateCoinDisplay() {
   
   console.log('🔄 Updating ALL coin displays:', coins);
   
-  // ✅ BARCHA COIN DISPLAYLARNI YANGILASH (tepada va pastda)
   const coinSelectors = [
-    '#userCoins',           // ✅ Tepadagi coin (sidebar)
-    '.coin-amount',         // Umumiy coin amount
-    '#profileCoinBalance',  // Profile pageda coin
-    '[data-coin-display]'   // Har qanday data-coin-display attributi
+    '#userCoins',
+    '.coin-amount',
+    '#profileCoinBalance',
+    '[data-coin-display]'
   ];
   
   coinSelectors.forEach(selector => {
@@ -193,7 +192,6 @@ async function updateCoinDisplay() {
       if (el) {
         el.textContent = coins;
         
-        // ✅ ANIMATION
         el.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
         el.style.transform = 'scale(1.15)';
         setTimeout(() => {
@@ -207,7 +205,6 @@ async function updateCoinDisplay() {
   
   console.log('✅ All coin displays updated');
   
-  // ✅ UPDATE SUBSCRIPTION INFO HAM
   await updateSubscriptionDisplay();
 }
 
@@ -218,7 +215,6 @@ async function updateSubscriptionDisplay() {
   const subscription = await checkUserSubscription();
   const subType = subscription.type || 'free';
   
-  // ✅ SUBSCRIPTION BADGE UPDATE
   const subBadges = document.querySelectorAll('[data-subscription-badge]');
   subBadges.forEach(badge => {
     if (subType === 'pro') {
@@ -233,7 +229,6 @@ async function updateSubscriptionDisplay() {
     }
   });
   
-  // ✅ DAILY COINS INFO UPDATE
   const dailyCoinsInfo = document.querySelectorAll('[data-daily-coins]');
   const dailyAmount = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subType] || 5;
   
@@ -260,7 +255,6 @@ function listenToCoins() {
     const coins = snapshot.val() || 0;
     console.log('🔔 Coins changed in real-time:', coins);
     
-    // ✅ UPDATE ALL DISPLAYS IMMEDIATELY
     const selectors = ['#userCoins', '.coin-amount', '#profileCoinBalance', '[data-coin-display]'];
     
     selectors.forEach(selector => {
@@ -269,7 +263,6 @@ function listenToCoins() {
         if (el) {
           el.textContent = coins;
           
-          // Animation
           el.style.transform = 'scale(1.2)';
           setTimeout(() => {
             el.style.transform = 'scale(1)';
@@ -283,18 +276,10 @@ function listenToCoins() {
 }
 
 // ============================================
-// 8️⃣ CHECK IF USER CAN USE TOOL
+// 8️⃣ CHECK IF USER CAN USE TOOL - FIXED ✅
 // ============================================
 async function canUseTool(toolName) {
   const cost = COIN_CONFIG.TOOL_COSTS[toolName] || 0;
-  
-  // Check subscription
-  const subscription = await checkUserSubscription();
-  
-  if (subscription.type === 'pro') {
-    return { canUse: true, cost: 0, reason: 'Pro subscription' };
-  }
-  
   const coins = await getUserCoins();
   
   if (coins >= cost) {
@@ -305,7 +290,7 @@ async function canUseTool(toolName) {
 }
 
 // ============================================
-// 9️⃣ USE TOOL - FIXED TO STOP EXECUTION ✅
+// 9️⃣ USE TOOL - FIXED ✅
 // ============================================
 async function useTool(toolName) {
   const check = await canUseTool(toolName);
@@ -318,10 +303,9 @@ async function useTool(toolName) {
       showInsufficientCoinsModal(check.cost, currentCoins);
     }
     
-    return false; // ✅ CRITICAL: Stop execution
+    return false;
   }
   
-  // ✅ PRO USERS HAM COIN SARFLAYDI (agar tool pullik bo'lsa)
   if (check.cost > 0) {
     const success = await spendCoins(check.cost, `Used ${toolName} tool`);
     
@@ -360,7 +344,6 @@ async function checkUserSubscription() {
     
     const subData = snapshot.val();
     
-    // ✅ CHECK EXPIRY
     if (subData.expiry && subData.expiry !== null) {
       const expiryDate = new Date(subData.expiry);
       const now = new Date();
@@ -376,7 +359,6 @@ async function checkUserSubscription() {
       }
     }
     
-    // ✅ ADD DAILY COINS INFO
     const dailyCoins = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subData.type] || 5;
     
     return {
@@ -390,176 +372,170 @@ async function checkUserSubscription() {
 }
 
 // ============================================
-// 🆕 GIVE DAILY COINS NOW - YANGI SUBSCRIPTION UCHUN ✅
+// 🆕 GIVE WELCOME COINS TO NEW USERS - FIXED ✅
 // ============================================
-async function giveDailyCoinsNow(userId, amount, subType) {
+async function giveWelcomeCoinsToNewUser(userId) {
   const db = window.firebaseDatabase;
-  if (!db) {
-    console.error('❌ Database not initialized');
-    return;
+  if (!db || !userId) {
+    console.warn('⚠️ Database or userId not available');
+    return false;
   }
   
   try {
-    console.log(`🎁 Giving ${amount} coins immediately (new ${subType} subscription)`);
+    console.log('🎁 Checking if user needs welcome coins:', userId);
     
-    // Get current coins
+    // ✅ CHECK: Oldin coin olganmi?
+    const welcomeCoinRef = window.firebaseRef(db, `users/${userId}/welcomeCoinReceived`);
+    const welcomeSnapshot = await window.firebaseGet(welcomeCoinRef);
+    
+    if (welcomeSnapshot.exists() && welcomeSnapshot.val() === true) {
+      console.log('⏭️ User already received welcome coins, skipping');
+      return false;
+    }
+    
+    console.log('🎉 NEW USER! Giving 10 welcome coins...');
+    
+    // ✅ GET CURRENT COINS
     const coinsRef = window.firebaseRef(db, `users/${userId}/coins`);
-    const snapshot = await window.firebaseGet(coinsRef);
-    const currentCoins = snapshot.val() || 0;
-    const newCoins = currentCoins + amount;
+    const coinsSnapshot = await window.firebaseGet(coinsRef);
+    const currentCoins = coinsSnapshot.val() || 0;
     
-    // Add coins
+    console.log('💰 Current coins:', currentCoins);
+    
+    // ✅ GIVE 10 WELCOME COINS
+    const newCoins = currentCoins + 10;
+    
     const updates = {};
     updates[`users/${userId}/coins`] = newCoins;
-    updates[`users/${userId}/lastDailyCoin`] = new Date().toISOString();
+    updates[`users/${userId}/welcomeCoinReceived`] = true;
+    updates[`users/${userId}/welcomeCoinGivenAt`] = new Date().toISOString();
     
     const rootRef = window.firebaseRef(db, '/');
     await window.firebaseUpdate(rootRef, updates);
     
-    console.log(`✅ Daily coins given: ${currentCoins} → ${newCoins}`);
+    console.log(`✅ Welcome coins given: ${currentCoins} → ${newCoins}`);
     
-    // Log transaction
+    // ✅ LOG TRANSACTION
     try {
       const transactionRef = window.firebaseRef(db, `users/${userId}/coin_transactions`);
       const newTransactionRef = window.firebasePush(transactionRef);
       
       await window.firebaseSet(newTransactionRef, {
-        type: 'daily_bonus',
-        amount: amount,
-        reason: `New ${subType} subscription - first daily coins`,
+        type: 'welcome_bonus',
+        amount: 10,
+        reason: '🎁 Welcome to ZiyoAI! Here are your first 10 coins',
         balance: newCoins,
         timestamp: new Date().toISOString()
       });
+      
+      console.log('✅ Welcome transaction logged');
     } catch (txError) {
-      console.warn('⚠️ Transaction log failed:', txError);
+      console.warn('⚠️ Transaction log failed (non-critical):', txError);
     }
     
-    // Show notification
-    showDailyCoinsNotification(amount, subType);
+    // ✅ SHOW NOTIFICATION TO USER
+    console.log('🔔 Showing welcome notification...');
+    showWelcomeCoinsNotification();
+    
+    // ✅ UPDATE COIN DISPLAY
+    if (typeof updateCoinDisplay === 'function') {
+      await updateCoinDisplay();
+    }
+    
+    return true;
     
   } catch (error) {
-    console.error('❌ Error giving daily coins:', error);
-  }
-}
-
-// ============================================
-// 1️⃣1️⃣ DAILY BONUS
-// ============================================
-async function canClaimDailyBonus() {
-  const user = window.firebaseAuth?.currentUser;
-  if (!user) return false;
-  
-  const db = window.firebaseDatabase;
-  if (!db) return false;
-  
-  try {
-    const bonusRef = window.firebaseRef(db, `users/${user.uid}/lastDailyBonus`);
-    const snapshot = await window.firebaseGet(bonusRef);
-    
-    if (!snapshot.exists()) return true;
-    
-    const lastBonus = new Date(snapshot.val()).getTime();
-    const now = Date.now();
-    const timeDiff = now - lastBonus;
-    
-    return timeDiff >= COIN_CONFIG.DAILY_BONUS_COOLDOWN;
-  } catch (error) {
-    console.error('❌ Error checking daily bonus:', error);
+    console.error('❌ Welcome coins error:', error);
     return false;
   }
 }
 
-async function claimDailyBonus() {
-  if (!(await canClaimDailyBonus())) {
-    showNotification('⏰ Daily bonus already claimed today!', 'info');
-    return false;
-  }
+// ============================================
+// 🎉 SHOW WELCOME COINS NOTIFICATION
+// ============================================
+function showWelcomeCoinsNotification() {
+  // ✅ Remove existing notification
+  const existing = document.querySelector('.welcome-coins-notification');
+  if (existing) existing.remove();
   
-  const subscription = await checkUserSubscription();
+  const notification = document.createElement('div');
+  notification.className = 'welcome-coins-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 40px 50px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(16, 185, 129, 0.5);
+    z-index: 10001;
+    text-align: center;
+    animation: bounceIn 0.6s ease;
+    max-width: 450px;
+  `;
   
-  let bonusAmount = 5;
-  if (subscription.type === 'standard') bonusAmount = 20;
-  if (subscription.type === 'pro') bonusAmount = 50;
+  notification.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;">🎁</div>
+    <h2 style="margin: 0 0 15px 0; font-size: 32px; font-weight: 800;">
+      Welcome to ZiyoAI!
+    </h2>
+    <div style="font-size: 20px; opacity: 0.95; margin-bottom: 15px;">
+      You've received <strong style="font-size: 28px;">10 coins</strong> as a welcome gift!
+    </div>
+    <p style="font-size: 16px; opacity: 0.9; margin-bottom: 30px;">
+      Use them to try our AI tools 🚀
+    </p>
+    <button onclick="closeWelcomeCoinsNotification()" style="
+      padding: 15px 35px;
+      background: white;
+      color: #10b981;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.3s;
+    " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+      <i class="bi bi-rocket-takeoff-fill"></i> Get Started!
+    </button>
+  `;
   
-  const success = await addCoins(bonusAmount, 'Daily login bonus');
+  document.body.appendChild(notification);
   
-  if (success) {
-    // Save last bonus time
-    const user = window.firebaseAuth?.currentUser;
-    const db = window.firebaseDatabase;
-    
-    const bonusRef = window.firebaseRef(db, `users/${user.uid}/lastDailyBonus`);
-    await window.firebaseSet(bonusRef, new Date().toISOString());
-    
-    showNotification(`🎉 You earned ${bonusAmount} coins! Daily bonus claimed!`, 'success');
-    if (typeof showCoinEarnAnimation === 'function') {
-      showCoinEarnAnimation(bonusAmount);
-    }
-  }
+  // Backdrop
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop-welcome';
+  backdrop.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  `;
+  document.body.insertBefore(backdrop, notification);
   
-  return success;
+  // Auto-close after 8 seconds
+  setTimeout(() => {
+    closeWelcomeCoinsNotification();
+  }, 8000);
+}
+
+function closeWelcomeCoinsNotification() {
+  const notification = document.querySelector('.welcome-coins-notification');
+  const backdrop = document.querySelector('.modal-backdrop-welcome');
+  
+  if (notification) notification.remove();
+  if (backdrop) backdrop.remove();
 }
 
 // ============================================
-// 1️⃣2️⃣ UI FUNCTIONS
-// ============================================
-
-function claimDailyBonusFromUI() {
-  claimDailyBonus();
-  closeDailyBonusNotification();
-}
-
-function closeDailyBonusNotification() {
-  const notification = document.querySelector('.daily-bonus-notification');
-  if (notification) {
-    notification.classList.remove('show');
-    setTimeout(() => notification.remove(), 300);
-  }
-}
-
-function showCoinEarnAnimation(amount) {
-  const coinDisplay = document.querySelector('.coin-display');
-  if (!coinDisplay) return;
-  
-  for (let i = 0; i < Math.min(amount, 10); i++) {
-    setTimeout(() => {
-      const coin = document.createElement('div');
-      coin.className = 'flying-coin';
-      coin.textContent = '🪙';
-      coin.style.cssText = `
-        position: fixed;
-        font-size: 32px;
-        pointer-events: none;
-        z-index: 9999;
-        transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      `;
-      
-      const startX = Math.random() * window.innerWidth;
-      const startY = window.innerHeight;
-      
-      coin.style.left = startX + 'px';
-      coin.style.top = startY + 'px';
-      
-      document.body.appendChild(coin);
-      
-      const rect = coinDisplay.getBoundingClientRect();
-      const endX = rect.left + rect.width / 2;
-      const endY = rect.top + rect.height / 2;
-      
-      setTimeout(() => {
-        coin.style.left = endX + 'px';
-        coin.style.top = endY + 'px';
-        coin.style.opacity = '0';
-        coin.style.transform = 'scale(0.5)';
-      }, 50);
-      
-      setTimeout(() => coin.remove(), 800);
-    }, i * 100);
-  }
-}
-
-// ============================================
-// 🆕 CHECK AND GIVE DAILY COINS - AUTO ✅
+// 🆕 CHECK AND GIVE DAILY COINS - FIXED ✅
 // ============================================
 async function checkAndGiveDailyCoins() {
   const user = window.firebaseAuth?.currentUser;
@@ -575,7 +551,6 @@ async function checkAndGiveDailyCoins() {
   }
   
   try {
-    // Get last daily coin time
     const lastDailyRef = window.firebaseRef(db, `users/${user.uid}/lastDailyCoin`);
     const snapshot = await window.firebaseGet(lastDailyRef);
     
@@ -585,41 +560,34 @@ async function checkAndGiveDailyCoins() {
     
     console.log('⏰ Daily coin check:', {
       lastDaily: lastDaily ? new Date(lastDaily).toLocaleString() : 'never',
-      timeDiff: Math.round(timeDiff / 1000 / 60 / 60), // hours
-      cooldown: COIN_CONFIG.DAILY_BONUS_COOLDOWN / 1000 / 60 / 60 // hours
+      timeDiff: Math.round(timeDiff / 1000 / 60 / 60) + ' hours',
+      cooldown: COIN_CONFIG.DAILY_BONUS_COOLDOWN / 1000 / 60 / 60 + ' hours'
     });
     
-    // Check if 24 hours passed
+    // ✅ AGAR VAQT EMAS BOLSA - COUNTDOWN NOTIFICATION
     if (timeDiff < COIN_CONFIG.DAILY_BONUS_COOLDOWN) {
-      const remainingHours = Math.ceil((COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff) / 1000 / 60 / 60);
-      console.log(`⏳ Next daily coins in ${remainingHours} hours`);
+      const remainingMs = COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff;
+      const remainingHours = Math.floor(remainingMs / 1000 / 60 / 60);
+      const remainingMinutes = Math.ceil((remainingMs % (1000 * 60 * 60)) / 1000 / 60);
       
-      // ✅ YANGI: NOTIFICATION KO'RSATISH
-      showDailyBonusReadyNotification(remainingHours);
+      console.log(`⏳ Next daily coins in ${remainingHours}h ${remainingMinutes}m`);
+      
+      // ✅ SHOW COUNTDOWN NOTIFICATION
+      showDailyBonusReadyNotification(remainingHours, remainingMinutes);
       return;
     }
     
-    // Get subscription
+    // ✅ AGAR VAQT KELSA - CLAIMABLE NOTIFICATION
+    console.log('🎁 Daily coins ready to claim!');
+    
     const subscription = await checkUserSubscription();
     const subType = subscription.type || 'free';
-    
-    // Calculate coins based on subscription
     const coinsToGive = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subType] || 5;
     
-    console.log(`🎁 Giving ${coinsToGive} daily coins (${subType} subscription)`);
+    console.log(`🎁 Daily coins available: ${coinsToGive} coins (${subType})`);
     
-    // Add coins
-    const success = await addCoins(coinsToGive, `Daily bonus (${subType})`);
-    
-    if (success) {
-      // Update last daily coin time
-      await window.firebaseSet(lastDailyRef, new Date().toISOString());
-      
-      console.log(`✅ Daily coins given: ${coinsToGive}`);
-      
-      // Show notification
-      showDailyCoinsNotification(coinsToGive, subType);
-    }
+    // ✅ SHOW CLAIMABLE NOTIFICATION
+    showDailyBonusClaimableNotification(coinsToGive, subType);
     
   } catch (error) {
     console.error('❌ Daily coins error:', error);
@@ -629,14 +597,10 @@ async function checkAndGiveDailyCoins() {
 // ============================================
 // 🆕 SHOW DAILY BONUS READY NOTIFICATION ✅
 // ============================================
-function showDailyBonusReadyNotification(hoursRemaining) {
-  // Don't spam - show only once per session
-  if (window.dailyBonusNotificationShown) return;
-  window.dailyBonusNotificationShown = true;
-  
-  // Don't show if modal is already open
-  if (document.querySelector('.daily-bonus-ready-notification')) {
-    return;
+function showDailyBonusReadyNotification(hoursRemaining, minutesRemaining) {
+  const oldNotification = document.querySelector('.daily-bonus-ready-notification');
+  if (oldNotification) {
+    oldNotification.remove();
   }
   
   const notification = document.createElement('div');
@@ -645,11 +609,11 @@ function showDailyBonusReadyNotification(hoursRemaining) {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    background: linear-gradient(135deg, #6b7280, #4b5563);
     color: white;
     padding: 20px 25px;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    box-shadow: 0 10px 30px rgba(107, 114, 128, 0.4);
     z-index: 10000;
     font-weight: 600;
     animation: slideInRight 0.5s ease;
@@ -662,10 +626,10 @@ function showDailyBonusReadyNotification(hoursRemaining) {
       <div style="font-size: 40px;">⏰</div>
       <div style="flex: 1;">
         <div style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">
-          Daily Bonus Coming Soon!
+          Daily Bonus Coming Soon
         </div>
         <div style="font-size: 14px; opacity: 0.95;">
-          Available in ${hoursRemaining} hour${hoursRemaining > 1 ? 's' : ''}
+          Available in ${hoursRemaining}h ${minutesRemaining}m
         </div>
       </div>
       <button onclick="this.closest('.daily-bonus-ready-notification').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">×</button>
@@ -674,22 +638,145 @@ function showDailyBonusReadyNotification(hoursRemaining) {
   
   document.body.appendChild(notification);
   
-  // Auto remove after 5 seconds
   setTimeout(() => {
     if (notification && notification.parentNode) {
       notification.style.animation = 'slideOutRight 0.5s ease';
       setTimeout(() => notification.remove(), 500);
     }
-  }, 5000);
+  }, 8000);
 }
 
 // ============================================
-// 🆕 SHOW DAILY COINS NOTIFICATION ✅
+// 🆕 SHOW DAILY BONUS CLAIMABLE NOTIFICATION ✅
+// ============================================
+function showDailyBonusClaimableNotification(amount, subType) {
+  const oldNotification = document.querySelector('.daily-bonus-claimable-notification');
+  if (oldNotification) {
+    oldNotification.remove();
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = 'daily-bonus-claimable-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 40px 50px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(16, 185, 129, 0.5);
+    z-index: 10001;
+    text-align: center;
+    animation: bounceIn 0.6s ease;
+    max-width: 450px;
+  `;
+  
+  const subEmoji = subType === 'pro' ? '👑' : subType === 'standard' ? '⭐' : '🆓';
+  
+  notification.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;">🎁</div>
+    <h2 style="margin: 0 0 15px 0; font-size: 32px; font-weight: 800;">
+      Daily Bonus Ready!
+    </h2>
+    <div style="font-size: 20px; opacity: 0.95; margin-bottom: 30px;">
+      ${subEmoji} <strong>${amount} coins</strong> waiting for you!
+    </div>
+    <div style="display: flex; gap: 15px; justify-content: center;">
+      <button onclick="claimDailyCoinsNow()" style="
+        padding: 18px 40px;
+        background: white;
+        color: #10b981;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        <i class="bi bi-gift-fill"></i> Claim Now!
+      </button>
+      <button onclick="this.closest('.daily-bonus-claimable-notification').remove(); document.querySelector('.modal-backdrop-daily')?.remove();" style="
+        padding: 18px 30px;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      ">
+        Later
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop-daily';
+  backdrop.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  `;
+  backdrop.onclick = () => {
+    notification.remove();
+    backdrop.remove();
+  };
+  document.body.insertBefore(backdrop, notification);
+}
+
+// ============================================
+// 🆕 CLAIM DAILY COINS NOW ✅
+// ============================================
+async function claimDailyCoinsNow() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return;
+  
+  const db = window.firebaseDatabase;
+  if (!db) return;
+  
+  try {
+    const notification = document.querySelector('.daily-bonus-claimable-notification');
+    const backdrop = document.querySelector('.modal-backdrop-daily');
+    if (notification) notification.remove();
+    if (backdrop) backdrop.remove();
+    
+    const subscription = await checkUserSubscription();
+    const subType = subscription.type || 'free';
+    const coinsToGive = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subType] || 5;
+    
+    const success = await addCoins(coinsToGive, `Daily bonus (${subType})`);
+    
+    if (success) {
+      const lastDailyRef = window.firebaseRef(db, `users/${user.uid}/lastDailyCoin`);
+      await window.firebaseSet(lastDailyRef, new Date().toISOString());
+      
+      console.log(`✅ Daily coins claimed: ${coinsToGive}`);
+      
+      showDailyCoinsNotification(coinsToGive, subType);
+    }
+    
+  } catch (error) {
+    console.error('❌ Claim error:', error);
+    showNotification('❌ Error claiming daily coins', 'error');
+  }
+}
+
+// ============================================
+// 🆕 SHOW DAILY COINS SUCCESS NOTIFICATION ✅
 // ============================================
 function showDailyCoinsNotification(amount, subType) {
-  // Don't show if modal is already open
-  if (document.querySelector('.daily-coins-notification')) {
-    return;
+  const oldNotification = document.querySelector('.daily-coins-notification');
+  if (oldNotification) {
+    oldNotification.remove();
   }
   
   const notification = document.createElement('div');
@@ -702,7 +789,8 @@ function showDailyCoinsNotification(amount, subType) {
     color: white;
     padding: 20px 25px;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 10px 30
+    px rgba(16, 185, 129, 0.4);
     z-index: 10000;
     font-weight: 600;
     animation: slideInRight 0.5s ease;
@@ -728,7 +816,6 @@ function showDailyCoinsNotification(amount, subType) {
   
   document.body.appendChild(notification);
   
-  // Auto remove after 5 seconds
   setTimeout(() => {
     if (notification && notification.parentNode) {
       notification.style.animation = 'slideOutRight 0.5s ease';
@@ -736,16 +823,17 @@ function showDailyCoinsNotification(amount, subType) {
     }
   }, 5000);
   
-  // Show coin animation
   if (typeof showCoinEarnAnimation === 'function') {
     showCoinEarnAnimation(amount);
   }
 }
 
-// Add CSS animation
-if (!document.querySelector('#daily-coins-animation')) {
+// ============================================
+// CSS ANIMATIONS - COMBINED ✅
+// ============================================
+if (!document.querySelector('#coin-system-animations')) {
   const style = document.createElement('style');
-  style.id = 'daily-coins-animation';
+  style.id = 'coin-system-animations';
   style.textContent = `
     @keyframes slideInRight {
       from {
@@ -768,28 +856,73 @@ if (!document.querySelector('#daily-coins-animation')) {
         opacity: 0;
       }
     }
+    
+    @keyframes bounceIn {
+      0% {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.05);
+      }
+      70% {
+        transform: translate(-50%, -50%) scale(0.9);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
   `;
   document.head.appendChild(style);
 }
 
 // ============================================
-// 🆕 START DAILY COIN CHECKER ✅
+// START DAILY COIN CHECKER ✅
 // ============================================
 function startDailyCoinChecker() {
   console.log('🔄 Starting daily coin checker...');
   
-  // Check immediately
   checkAndGiveDailyCoins();
   
-  // Check every 5 minutes
   setInterval(() => {
     console.log('⏰ Running periodic daily coin check...');
     checkAndGiveDailyCoins();
-  }, 5 * 60 * 1000); // 5 minutes
+  }, 5 * 60 * 1000);
   
   console.log('✅ Daily coin checker started (every 5 minutes)');
 }
 
+// ============================================
+// INSUFFICIENT COINS MODAL
+// ============================================
 function showInsufficientCoinsModal(required, current) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay-inline insufficient-coins-modal';
@@ -832,6 +965,9 @@ function closeInsufficientCoinsModal() {
   }
 }
 
+// ============================================
+// NOTIFICATION HELPER
+// ============================================
 function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.style.cssText = `
@@ -1003,7 +1139,7 @@ function formatPrice(price) {
 }
 
 // ============================================
-// INITIALIZE COIN SYSTEM - UPDATED ✅
+// INITIALIZE COIN SYSTEM - UPDATED WITH WELCOME COINS ✅
 // ============================================
 async function initCoinSystem() {
   const user = window.firebaseAuth?.currentUser;
@@ -1020,28 +1156,145 @@ async function initCoinSystem() {
   
   console.log('✅ Coin system ready for:', user.uid);
   
-  // Start real-time listener
+  // ✅ 1. Start listening to coins FIRST
   listenToCoins();
   
-  // Initial display update
+  // ✅ 2. Update coin display
   await updateCoinDisplay();
   
-  // ✅ START DAILY COIN CHECKER
+  // ✅ 3. Give welcome coins to new users (BEFORE daily check)
+  if (typeof giveWelcomeCoinsToNewUser === 'function') {
+    await giveWelcomeCoinsToNewUser(user.uid);
+  }
+  
+  // ✅ 4. Check and give daily coins (AFTER welcome coins)
+  setTimeout(() => {
+    checkAndGiveDailyCoins();
+  }, 1000); // Wait 1 second to ensure welcome coins are processed
+  
+  // ✅ 5. Start daily coin checker (periodic)
   startDailyCoinChecker();
   
   return true;
 }
 
+// ============================================
+// 🎁 CLAIM DAILY BONUS (FOR UI BUTTONS) ✅
+// ============================================
+async function claimDailyBonus() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    showNotification('❌ Please log in first', 'error');
+    return;
+  }
+  
+  const db = window.firebaseDatabase;
+  if (!db) {
+    showNotification('❌ Database not available', 'error');
+    return;
+  }
+  
+  try {
+    // Check if daily bonus is available
+    const lastDailyRef = window.firebaseRef(db, `users/${user.uid}/lastDailyCoin`);
+    const snapshot = await window.firebaseGet(lastDailyRef);
+    
+    const now = Date.now();
+    const lastDaily = snapshot.exists() ? new Date(snapshot.val()).getTime() : 0;
+    const timeDiff = now - lastDaily;
+    
+    // Check cooldown (24 hours)
+    if (timeDiff < COIN_CONFIG.DAILY_BONUS_COOLDOWN) {
+      const remainingMs = COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff;
+      const remainingHours = Math.floor(remainingMs / 1000 / 60 / 60);
+      const remainingMinutes = Math.ceil((remainingMs % (1000 * 60 * 60)) / 1000 / 60);
+      
+      showNotification(
+        `⏳ Daily bonus available in ${remainingHours}h ${remainingMinutes}m`,
+        'warning'
+      );
+      return;
+    }
+    
+    // Get user subscription to determine coins amount
+    const subscription = await checkUserSubscription();
+    const subType = subscription.type || 'free';
+    const coinsToGive = COIN_CONFIG.SUBSCRIPTION_DAILY_COINS[subType] || 5;
+    
+    // Give coins
+    const success = await addCoins(coinsToGive, `Daily bonus (${subType})`);
+    
+    if (success) {
+      // Update last daily claim time
+      await window.firebaseSet(lastDailyRef, new Date().toISOString());
+      
+      console.log(`✅ Daily bonus claimed: ${coinsToGive} coins`);
+      
+      // Show success notification
+      showNotification(
+        `🎁 Daily bonus claimed! +${coinsToGive} coins`,
+        'success'
+      );
+      
+      // Show coin animation if available
+      if (typeof showCoinEarnAnimation === 'function') {
+        showCoinEarnAnimation(coinsToGive);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error claiming daily bonus:', error);
+    showNotification('❌ Failed to claim daily bonus', 'error');
+  }
+}
 
 // ============================================
-// INITIALIZE COIN SYSTEM ON AUTH - FIXED ✅
+// 🕐 CAN CLAIM DAILY BONUS (CHECK AVAILABILITY) ✅
+// ============================================
+async function canClaimDailyBonus() {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return { canClaim: false, reason: 'Not logged in' };
+  
+  const db = window.firebaseDatabase;
+  if (!db) return { canClaim: false, reason: 'Database not available' };
+  
+  try {
+    const lastDailyRef = window.firebaseRef(db, `users/${user.uid}/lastDailyCoin`);
+    const snapshot = await window.firebaseGet(lastDailyRef);
+    
+    const now = Date.now();
+    const lastDaily = snapshot.exists() ? new Date(snapshot.val()).getTime() : 0;
+    const timeDiff = now - lastDaily;
+    
+    if (timeDiff >= COIN_CONFIG.DAILY_BONUS_COOLDOWN) {
+      return { canClaim: true, reason: 'Ready to claim' };
+    }
+    
+    const remainingMs = COIN_CONFIG.DAILY_BONUS_COOLDOWN - timeDiff;
+    const remainingHours = Math.floor(remainingMs / 1000 / 60 / 60);
+    const remainingMinutes = Math.ceil((remainingMs % (1000 * 60 * 60)) / 1000 / 60);
+    
+    return {
+      canClaim: false,
+      reason: `Available in ${remainingHours}h ${remainingMinutes}m`,
+      remainingMs
+    };
+    
+  } catch (error) {
+    console.error('❌ Error checking daily bonus:', error);
+    return { canClaim: false, reason: 'Error checking' };
+  }
+}
+
+// ============================================
+// INITIALIZE ON AUTH ✅
 // ============================================
 if (window.firebaseAuth) {
   window.firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
       console.log('👤 User authenticated, initializing coin system...');
       
-      // Wait for DOM
+      // ✅ WAIT FOR DOM TO BE READY
       await new Promise(resolve => {
         if (document.readyState === 'complete') {
           resolve();
@@ -1050,26 +1303,35 @@ if (window.firebaseAuth) {
         }
       });
       
-      // Wait for coin system
+      // ✅ WAIT 1 SECOND (ensure Firebase DB is ready)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Initialize
+      // ✅ INITIALIZE COIN SYSTEM
       if (typeof initCoinSystem === 'function') {
-        await initCoinSystem();
-        console.log('✅ Coin system initialized');
+        const success = await initCoinSystem();
         
-        // Force update display
-        if (typeof updateCoinDisplay === 'function') {
-          await updateCoinDisplay();
-          console.log('✅ Initial coin display updated');
+        if (success) {
+          console.log('✅ Coin system initialized successfully');
+          
+          // ✅ UPDATE COIN DISPLAY
+          if (typeof updateCoinDisplay === 'function') {
+            await updateCoinDisplay();
+            console.log('✅ Initial coin display updated');
+          }
+        } else {
+          console.error('❌ Coin system initialization failed');
         }
+      } else {
+        console.error('❌ initCoinSystem function not found!');
       }
+    } else {
+      console.log('❌ No user logged in');
     }
   });
 }
 
 // ============================================
-// GLOBAL EXPORTS - UPDATED ✅
+// GLOBAL EXPORTS ✅
 // ============================================
 window.getUserCoins = getUserCoins;
 window.setUserCoins = setUserCoins;
@@ -1079,8 +1341,8 @@ window.canUseTool = canUseTool;
 window.useTool = useTool;
 window.updateCoinDisplay = updateCoinDisplay;
 window.listenToCoins = listenToCoins;
-window.canClaimDailyBonus = canClaimDailyBonus;
-window.claimDailyBonus = claimDailyBonus;
+window.canClaimDailyBonus = canClaimDailyBonus;  // ✅ QO'SHILDI
+window.claimDailyBonus = claimDailyBonus;  // ✅ QO'SHILDI
 window.claimDailyBonusFromUI = claimDailyBonusFromUI;
 window.checkUserSubscription = checkUserSubscription;
 window.showInsufficientCoinsModal = showInsufficientCoinsModal;
@@ -1089,12 +1351,16 @@ window.openCoinShop = openCoinShop;
 window.closeCoinShop = closeCoinShop;
 window.showNotification = showNotification;
 window.initCoinSystem = initCoinSystem;
-
-// ✅ NEW EXPORTS
 window.checkAndGiveDailyCoins = checkAndGiveDailyCoins;
 window.startDailyCoinChecker = startDailyCoinChecker;
-window.giveDailyCoinsNow = giveDailyCoinsNow;
-// ✅ YANGI EXPORT
+window.showDailyBonusReadyNotification = showDailyBonusReadyNotification;
+window.showDailyBonusClaimableNotification = showDailyBonusClaimableNotification;
+window.claimDailyCoinsNow = claimDailyCoinsNow;
+window.showDailyCoinsNotification = showDailyCoinsNotification;
+window.giveWelcomeCoinsToNewUser = giveWelcomeCoinsToNewUser;
+window.showWelcomeCoinsNotification = showWelcomeCoinsNotification;
+window.closeWelcomeCoinsNotification = closeWelcomeCoinsNotification;
 window.updateSubscriptionDisplay = updateSubscriptionDisplay;
+window.showCoinEarnAnimation = showCoinEarnAnimation;
 
 console.log('✅ Firebase Coin System with Auto Daily Coins loaded!');

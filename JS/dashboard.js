@@ -1200,7 +1200,9 @@ function removeImage() {
 //   }
 // });
 
-// ✅ Eski funksiyani butunlay almashtiring
+// ============================================
+// CHECK AND SPEND COINS - FIXED FOR PRO USERS ✅
+// ============================================
 async function checkAndSpendCoins(toolName, customCost = null) {
   console.log(`🪙 Checking coins for tool: ${toolName}, custom cost: ${customCost}`);
 
@@ -1222,15 +1224,13 @@ async function checkAndSpendCoins(toolName, customCost = null) {
     if (customCost !== null && customCost !== undefined) {
       console.log(`💰 Using custom cost: ${customCost} coins for ${toolName}`);
       
-      // Check if user has enough coins
       const currentCoins = await getUserCoins();
       
       if (currentCoins < customCost) {
         console.error(`❌ Insufficient coins: have ${currentCoins}, need ${customCost}`);
         
-        // Show modal
         if (typeof showInsufficientCoinsModal === 'function') {
-          showInsufficientCoinsModal(customCost);
+          showInsufficientCoinsModal(customCost, currentCoins);
         } else {
           alert(`⚠️ You need ${customCost} coins for this action.\n\nYou have: ${currentCoins} coins`);
         }
@@ -1238,15 +1238,10 @@ async function checkAndSpendCoins(toolName, customCost = null) {
         return false;
       }
       
-      // Deduct coins manually
+      // Deduct coins
       if (typeof spendCoins === 'function') {
         await spendCoins(customCost, `${toolName}`);
         console.log(`✅ ${customCost} coins deducted for ${toolName}`);
-      } else {
-        // Fallback: use coinManager directly
-        if (window.coinManager) {
-          window.coinManager.spendCoins(customCost, `${toolName}`);
-        }
       }
       
       if (typeof updateCoinDisplay === 'function') {
@@ -1256,7 +1251,7 @@ async function checkAndSpendCoins(toolName, customCost = null) {
       return true;
     }
     
-    // ✅ DEFAULT: Use standard tool cost
+    // ✅ DEFAULT: Use standard tool cost (ALWAYS CHECK COINS)
     const success = await useTool(toolName);
 
     if (!success) {

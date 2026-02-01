@@ -232,12 +232,12 @@ function renderArticlesList() {
   container.innerHTML = `
     <div class="articles-header">
       <p class="articles-subtitle">
-        ${articlesData.length} articles • Improve your English reading skills
+        ${articlesData.length} maqolalar • Ingliz tilida o‘qish ko‘nikmalarini rivojlantiring
       </p>
       
       <div class="language-selector-inline">
         <i class="bi bi-globe"></i>
-        <span>Vocabulary Language:</span>
+        <span>Lug'at tilini tanlang:</span>
         <select class="articles-language-select" id="articlesLanguageSelect" onchange="changeArticleLanguage(this.value)">
           <option value="uz" ${selectedArticleLanguage === 'uz' ? 'selected' : ''}>🇺🇿 O'zbek</option>
           <option value="ru" ${selectedArticleLanguage === 'ru' ? 'selected' : ''}>🇷🇺 Русский</option>
@@ -272,7 +272,7 @@ function renderArticlesList() {
           
           <div class="article-card-footer">
             <button class="article-read-btn">
-              Read Article
+              Maqolani o'qish
               <i class="bi bi-arrow-right"></i>
             </button>
           </div>
@@ -606,7 +606,7 @@ function renderArticleView() {
   container.innerHTML = `
     <button class="article-back-btn" onclick="backToArticlesList()">
       <i class="bi bi-arrow-left"></i>
-      Back to Articles
+      Orqaga qaytish
     </button>
     
     <div class="article-view-header">
