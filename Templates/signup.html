@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZiyoAI — Sign Up</title>
     <link rel="website icon" type="png" href="../IMG/Logo/ZiyoAILogo.png" />
-    <!-- Main CSS -->
     <link rel="stylesheet" href="../Static/auth.css" />
     <link rel="stylesheet" href="../CSS/main.css" />
-    <!-- Font-Awesome -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
@@ -16,13 +14,9 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-
-    <!-- Bootstrap -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
     />
     <link
       rel="stylesheet"
@@ -33,136 +27,64 @@
     <!-- Spinner -->
     <div class="spinner-wrapper">
       <div class="spinner-grow" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
+
     <!-- Back to home -->
     <a class="back-home" href="../index.html"><i class="bi bi-chevron-left"></i></a>
 
     <div class="auth-container">
-        <div class="main-section">
+      <div class="main-section">
         <div class="nav-left login-logo">
-          <img src="../IMG/Logo/ZiyoAILogo.png" alt="">
+          <img src="../IMG/Logo/ZiyoAILogo.png" alt="" />
           <a class="navbar-brand"><h3 class="nav-title">iyoAI</h3></a>
         </div>
         <h4>Sayohatingizni boshlang</h4>
         <p>Boshlash uchun hisob yarating</p>
       </div>
+
       <div class="auth-card" id="login-form">
-
         <!-- Error Alert -->
-        <div
-          id="errorAlert"
-          style="
-            display: none;
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-          "
-        ></div>
-
+        <div id="errorAlert" style="display:none; background:#fee; color:#c33; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px;"></div>
         <!-- Success Alert -->
-        <div
-          id="successAlert"
-          style="
-            display: none;
-            background: #efe;
-            color: #3c3;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-          "
-        ></div>
-
+        <div id="successAlert" style="display:none; background:#efe; color:#3c3; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px;"></div>
         <!-- Warning Alert -->
-        <div
-          id="warningAlert"
-          style="
-            display: none;
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-          "
-        ></div>
+        <div id="warningAlert" style="display:none; background:#fff3cd; color:#856404; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px;"></div>
 
         <div>
-          <!-- Signup.html -->
           <div class="input-box">
-            <input
-              type="text"
-              id="username"
-              name="username"
-              placeholder=" "
-              required
-            />
+            <input type="text" id="username" name="username" placeholder=" " required />
             <label>Username</label>
           </div>
 
           <div class="input-box">
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder=" "
-              required
-            />
+            <input type="email" id="email" name="email" placeholder=" " required />
             <label>Email</label>
           </div>
 
           <div class="input-box">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder=" "
-              required
-            />
+            <input type="password" id="password" name="password" placeholder=" " required />
             <label>Parol</label>
           </div>
 
-          <button
-            class="btn-primary"
-            type="button"
-            id="signupBtn"
-            onclick="handleSignup()"
-          >
+          <button class="btn-primary" type="button" id="signupBtn" onclick="handleSignup()">
             Ro'yxatdan o'tish
           </button>
 
-          <!-- Google Sign-in -->
-          <div style="margin: 20px 0; text-align: center; color: #6b7280; font-size: 14px;">
-            <span style="display: inline-block; width: 100%; position: relative;">
-              <span style="background: white; padding: 0 10px; position: relative; z-index: 1;">or</span>
-              <span style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e5e7eb; z-index: 0;"></span>
+          <!-- Divider -->
+          <div style="margin:20px 0; text-align:center; color:#6b7280; font-size:14px;">
+            <span style="display:inline-block; width:100%; position:relative;">
+              <span style="background:white; padding:0 10px; position:relative; z-index:1;">or</span>
+              <span style="position:absolute; top:50%; left:0; right:0; height:1px; background:#e5e7eb; z-index:0;"></span>
             </span>
           </div>
 
+          <!-- Google Sign-in -->
           <button
             type="button"
             onclick="handleGoogleSignUp()"
-            style="
-              width: 100%;
-              padding: 12px;
-              background: white;
-              border: 2px solid #e5e7eb;
-              border-radius: 10px;
-              cursor: pointer;
-              font-size: 15px;
-              font-weight: 600;
-              color: #374151;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 10px;
-              transition: all 0.3s ease;
-            "
+            style="width:100%; padding:12px; background:white; border:2px solid #e5e7eb; border-radius:10px; cursor:pointer; font-size:15px; font-weight:600; color:#374151; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s ease;"
             onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#d1d5db'"
             onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'"
           >
@@ -171,7 +93,6 @@
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-              <path fill="none" d="M0 0h48v48H0z"></path>
             </svg>
             Google orqali davom etish
           </button>
@@ -183,6 +104,9 @@
       </div>
     </div>
 
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
     <!-- Firebase SDK -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -193,10 +117,16 @@
         signInWithPopup,
         GoogleAuthProvider,
         onAuthStateChanged,
-        sendEmailVerification,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      // Firebase Configuration
+      // =============================================
+      // ⚙️ SOZLAMALAR — O'zgartiring!
+      // =============================================
+    const EMAILJS_PUBLIC_KEY  = "EOVuFtynDt_B3cg5v";
+    const EMAILJS_SERVICE_ID  = "service_o80q31v";
+    const EMAILJS_TEMPLATE_ID = "template_8qiy9hu";
+      // =============================================
+
       const firebaseConfig = {
         apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
         authDomain: "zioai-96e9f.firebaseapp.com",
@@ -207,192 +137,166 @@
         measurementId: "G-2EDVXFZFHQ",
       };
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
+      const app  = initializeApp(firebaseConfig);
       const auth = getAuth(app);
 
-      // Check if user is already logged in
+      // EmailJS init
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+
+      // Agar allaqachon logged in bo'lsa
       onAuthStateChanged(auth, (user) => {
-        if (user && user.emailVerified) {
-          // Faqat verified userlar dashboard ga o'tadi
+        if (user && sessionStorage.getItem("ziyo_verified") === "true") {
           window.location.href = "./dashboard.html";
         }
       });
 
-      // Email/Password Signup WITH VERIFICATION
+      // 6 xonali tasodifiy kod yaratish
+      function generateOTP() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+      }
+
+      // EmailJS orqali kod yuborish
+      async function sendOTPEmail(toEmail, toName, otp) {
+        const expireTime = new Date(Date.now() + 10 * 60 * 1000).toLocaleTimeString("uz-UZ", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_name:    toName,
+          to_email:   toEmail,
+          otp_code:   otp,
+          expire_time: expireTime,
+          app_name:   "ZiyoAI",
+        });
+      }
+
+      // Ro'yxatdan o'tish
       window.handleSignup = async function () {
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const signupBtn = document.getElementById("signupBtn");
-        const errorAlert = document.getElementById("errorAlert");
-        const successAlert = document.getElementById("successAlert");
-        const warningAlert = document.getElementById("warningAlert");
+        const username   = document.getElementById("username").value.trim();
+        const email      = document.getElementById("email").value.trim();
+        const password   = document.getElementById("password").value;
+        const signupBtn  = document.getElementById("signupBtn");
 
-        // Hide previous alerts
-        errorAlert.style.display = "none";
-        successAlert.style.display = "none";
-        warningAlert.style.display = "none";
+        hideAlerts();
 
-        // Validation
         if (!username || !email || !password) {
-          showError("Please fill in all fields!");
+          showError("Iltimos, barcha maydonlarni to'ldiring!");
           return;
         }
 
-        // Email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-          showError("Please enter a valid email address!");
+          showError("Iltimos, to'g'ri email kiriting!");
           return;
         }
 
         if (password.length < 6) {
-          showError("Password must be at least 6 characters!");
+          showError("Parol kamida 6 ta belgidan iborat bo'lishi kerak!");
           return;
         }
 
-        // Show loading
         signupBtn.disabled = true;
-        signupBtn.textContent = "Creating Account...";
+        signupBtn.textContent = "Yaratilmoqda...";
 
         try {
-          // Create user with Firebase
-          const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
+          // Firebase'da hisob yaratish
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(userCredential.user, { displayName: username });
 
-          // Update user profile with username
-          await updateProfile(userCredential.user, {
-            displayName: username,
-          });
+          // OTP yaratish
+          const otp        = generateOTP();
+          const otpExpiry  = Date.now() + 10 * 60 * 1000; // 10 daqiqa
 
-          // YANGI: Email verification yuborish
-          try {
-            await sendEmailVerification(userCredential.user);
-            
-            // Success message with verification notice
-            showWarning(
-              `Tasdiqlash xati ${email}ga yuborildi.
-• Inbox va Spam/Junk papkalarni tekshiring`
-            );
-          } catch (verificationError) {
-            console.error("Verification send error:", verificationError);
-            showWarning(
-              `Account created but verification email failed to send. You can request a new verification email from the login page.`
-            );
-          }
+          // Sessionga saqlash
+          sessionStorage.setItem("ziyo_otp",      otp);
+          sessionStorage.setItem("ziyo_otp_exp",  otpExpiry);
+          sessionStorage.setItem("ziyo_email",    email);
+          sessionStorage.setItem("ziyo_username", username);
+          sessionStorage.setItem("ziyo_uid",      userCredential.user.uid);
 
-          // Sign out user until they verify
-          await auth.signOut();
+          // Email yuborish
+          signupBtn.textContent = "Kod yuborilmoqda...";
+          await sendOTPEmail(email, username, otp);
 
-          // Redirect to login after 7 seconds
+          showSuccess(`✅ Tasdiqlash kodi ${email} ga yuborildi!`);
+
+          // verify-email sahifasiga o'tish
           setTimeout(() => {
-            window.location.href = "./login.html";
-          }, 7000);
+            window.location.href = "./verify-email.html";
+          }, 1500);
 
         } catch (error) {
           console.error("Signup error:", error);
 
-          let errorMessage = "An error occurred!";
-
+          let msg = "Xatolik yuz berdi!";
           if (error.code === "auth/email-already-in-use") {
-            errorMessage = "This email is already registered. Redirecting to login...";
-            showError(errorMessage);
-            setTimeout(() => {
-              window.location.href = "./login.html";
-            }, 2000);
+            msg = "Bu email allaqachon ro'yxatdan o'tgan. Login sahifasiga yo'naltirilmoqda...";
+            showError(msg);
+            setTimeout(() => { window.location.href = "./login.html"; }, 2000);
             return;
-          } else if (error.code === "auth/invalid-email") {
-            errorMessage = "Invalid email format!";
-          } else if (error.code === "auth/weak-password") {
-            errorMessage = "Password is too weak!";
-          } else if (error.code === "auth/network-request-failed") {
-            errorMessage = "Network error. Please check your internet connection!";
-          }
+          } else if (error.code === "auth/invalid-email")       msg = "Noto'g'ri email format!";
+          else if (error.code === "auth/weak-password")         msg = "Parol juda zaif!";
+          else if (error.code === "auth/network-request-failed") msg = "Internet aloqasi yo'q!";
 
-          showError(errorMessage);
-
-          // Reset button
+          showError(msg);
           signupBtn.disabled = false;
-          signupBtn.textContent = "Sign Up";
+          signupBtn.textContent = "Ro'yxatdan o'tish";
         }
       };
 
-      // Google Sign-up (no verification needed for Google)
+      // Google Sign-up
       window.handleGoogleSignUp = async function () {
-        const errorAlert = document.getElementById("errorAlert");
-        const successAlert = document.getElementById("successAlert");
-        
-        errorAlert.style.display = "none";
-        successAlert.style.display = "none";
-
+        hideAlerts();
         try {
           const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({
-            prompt: 'select_account'
-          });
-          
+          provider.setCustomParameters({ prompt: "select_account" });
           const result = await signInWithPopup(auth, provider);
-          
+
           if (result && result.user) {
-            showSuccess("Successfully signed in with Google! Redirecting...");
-            
-            setTimeout(() => {
-              window.location.href = "./dashboard.html";
-            }, 1000);
+            // Google orqali kirganda verification shart emas
+            sessionStorage.setItem("ziyo_verified", "true");
+            showSuccess("✅ Google orqali muvaffaqiyatli kirdingiz! Yo'naltirilmoqda...");
+            setTimeout(() => { window.location.href = "./dashboard.html"; }, 1000);
           }
         } catch (error) {
-          console.error("Google sign-in error:", error);
-          
-          if (error.code === "auth/popup-closed-by-user" || 
-              error.code === "auth/cancelled-popup-request") {
-            return;
-          }
-          
-          let errorMessage = "Failed to sign in with Google!";
-          
-          if (error.code === "auth/popup-blocked") {
-            errorMessage = "Popup blocked. Please allow popups for this site.";
-          } else if (error.code === "auth/account-exists-with-different-credential") {
-            errorMessage = "An account already exists with this email. Please use email/password login.";
-          } else if (error.code === "auth/network-request-failed") {
-            errorMessage = "Network error. Please check your internet connection!";
-          }
-          
-          showError(errorMessage);
+          if (
+            error.code === "auth/popup-closed-by-user" ||
+            error.code === "auth/cancelled-popup-request"
+          ) return;
+
+          let msg = "Google orqali kirib bo'lmadi!";
+          if (error.code === "auth/popup-blocked")
+            msg = "Popup bloklangan. Sayt uchun popupga ruxsat bering.";
+          else if (error.code === "auth/account-exists-with-different-credential")
+            msg = "Bu email bilan boshqa usulda hisob mavjud. Email/parol bilan kiring.";
+          else if (error.code === "auth/network-request-failed")
+            msg = "Internet aloqasi yo'q!";
+
+          showError(msg);
         }
       };
 
-      // Helper functions
-      function showError(message) {
-        const errorAlert = document.getElementById("errorAlert");
-        errorAlert.textContent = message;
-        errorAlert.style.display = "block";
+      // Helpers
+      function hideAlerts() {
+        document.getElementById("errorAlert").style.display   = "none";
+        document.getElementById("successAlert").style.display = "none";
+        document.getElementById("warningAlert").style.display = "none";
+      }
+      function showError(msg) {
+        const el = document.getElementById("errorAlert");
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+      function showSuccess(msg) {
+        const el = document.getElementById("successAlert");
+        el.textContent = msg;
+        el.style.display = "block";
       }
 
-      function showSuccess(message) {
-        const successAlert = document.getElementById("successAlert");
-        successAlert.textContent = message;
-        successAlert.style.display = "block";
-      }
-
-      function showWarning(message) {
-        const warningAlert = document.getElementById("warningAlert");
-        warningAlert.textContent = message;
-        warningAlert.style.display = "block";
-      }
-
-      // Enter key support
-      document
-        .getElementById("password")
-        .addEventListener("keypress", function (e) {
-          if (e.key === "Enter") {
-            handleSignup();
-          }
-        });
+      document.getElementById("password").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSignup();
+      });
     </script>
 
     <script src="https://unpkg.com/scrollreveal"></script>

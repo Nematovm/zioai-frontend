@@ -1,361 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verification - ZiyoAI</title>
-    <link rel="website icon" type="png" href="../IMG/Logo/ZiyoAILogo.png" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../CSS/main.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Tasdiqlash — ZiyoAI</title>
+  <link rel="website icon" type="png" href="../IMG/Logo/ZiyoAILogo.png" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../CSS/main.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 50%, #f0fdf4 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-        .verification-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            max-width: 440px;
-            width: 100%;
-            overflow: hidden;
-        }
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.10);
+      max-width: 460px;
+      width: 100%;
+      overflow: hidden;
+      border: none;
+    }
 
-      .nav-left {
-        margin-top: 10px;
-      }
+    /* ---- Header ---- */
+    .card-header {
+      background: linear-gradient(151deg, rgba(93,156,245,1) 0%, rgba(44,170,154,1) 60%, rgba(35,195,101,1) 100%);
+      padding: 32px 32px 28px;
+      text-align: center;
+      position: relative;
+    }
 
-        .content {
-            padding: 32px;
-        }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
 
-        .status-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
+    .logo-row img { width: 32px; height: 32px; object-fit: contain; }
+    .logo-row span { font-size: 22px; font-weight: 700; color: white; letter-spacing: -0.5px; }
 
-        .status-loading {
-            background: #F3F4F6;
-        }
+    .envelope-icon {
+      width: 68px;
+      height: 68px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255,255,255,0.3);
+    }
 
-        .status-success {
-            background: #D1FAE5;
-        }
+    .envelope-icon i { font-size: 30px; color: white; }
 
-        .status-error {
-            background: #FEE2E2;
-        }
+    .card-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 6px;
+    }
 
-        .status-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 8px;
-            text-align: center;
-        }
+    .card-header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
 
-        .status-message {
-            font-size: 14px;
-            color: #6B7280;
-            line-height: 1.5;
-            text-align: center;
-            margin-bottom: 24px;
-        }
+    .card-header .email-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
 
-        .btn-primary {
-            background: linear-gradient(
-    151deg,
-    rgba(93, 156, 245, 1) 0%,
-    rgba(44, 170, 154, 1) 60%,
-    rgba(35, 195, 101, 1) 100%
-  );;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: white;
-            font-size: 15px;
-            font-weight: 500;
-            width: 100%;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
+    /* ---- Body ---- */
+    .card-body { padding: 32px; }
 
-        .btn-primary:hover {
-            background: #4338CA;
-        }
+    /* ---- OTP Inputs ---- */
+    .otp-label {
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
 
-        .btn-secondary {
-            background: white;
-            border: 1px solid #D1D5DB;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: #374151;
-            font-size: 15px;
-            font-weight: 500;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.2s ease;
-        }
+    .otp-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
 
-        .btn-secondary:hover {
-            background: #F9FAFB;
-            border-color: #9CA3AF;
-        }
+    .otp-inputs input {
+      width: 52px;
+      height: 60px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 26px;
+      font-weight: 700;
+      text-align: center;
+      color: #111827;
+      outline: none;
+      transition: all 0.2s ease;
+      background: #f9fafb;
+      caret-color: transparent;
+    }
 
-        .info-box {
-            background: #F0F9FF;
-            padding: 16px;
-            border-radius: 8px;
-            border-left: 3px solid #10B981;
-            margin-top: 24px;
-        }
+    .otp-inputs input:focus {
+      border-color: #10b981;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+      transform: translateY(-2px);
+    }
 
-        .info-box p {
-            margin: 0;
-            color: #10B981;
-            font-size: 13px;
-            line-height: 1.5;
-        }
+    .otp-inputs input.filled {
+      border-color: #10b981;
+      background: white;
+      color: #059669;
+    }
 
-        .info-box strong {
-            font-weight: 600;
-        }
+    .otp-inputs input.error-input {
+      border-color: #ef4444;
+      background: #fef2f2;
+      animation: shake 0.4s ease;
+    }
 
-        .spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid #E5E7EB;
-            border-top: 3px solid #10B981;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-6px); }
+      75%       { transform: translateX(6px); }
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    /* ---- Timer ---- */
+    .timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
 
-        .footer {
-            background: #F9FAFB;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #E5E7EB;
-        }
+    .timer-ring {
+      width: 40px;
+      height: 40px;
+      position: relative;
+    }
 
-        .footer p {
-            margin: 0;
-            color: #6B7280;
-            font-size: 13px;
-        }
+    .timer-ring svg { transform: rotate(-90deg); }
 
-        .footer a {
-            color: #10B981;
-            text-decoration: none;
-            font-weight: 500;
-        }
+    .timer-ring circle {
+      fill: none;
+      stroke: #e5e7eb;
+      stroke-width: 3;
+    }
 
-        .footer a:hover {
-            text-decoration: underline;
-        }
+    .timer-ring circle.progress {
+      stroke: #10b981;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 0;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+    }
 
-        .icon-success {
-            color: #10B981;
-        }
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      font-weight: 700;
+      color: #10b981;
+    }
 
-        .icon-error {
-            color: #EF4444;
-        }
-    </style>
+    .timer-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .timer-label span {
+      font-weight: 600;
+      color: #10b981;
+    }
+
+    .timer-label.expired span { color: #ef4444; }
+
+    /* ---- Alerts ---- */
+    .alert-box {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .alert-error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    /* ---- Buttons ---- */
+    .btn-verify {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(151deg, rgba(93,156,245,1) 0%, rgba(44,170,154,1) 60%, rgba(35,195,101,1) 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 14px;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-verify:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-verify:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-resend {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-resend:hover:not(:disabled) {
+      background: #f9fafb;
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .btn-resend:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ---- Footer ---- */
+    .card-footer {
+      background: #f9fafb;
+      padding: 16px 32px;
+      text-align: center;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .card-footer p { font-size: 13px; color: #9ca3af; }
+    .card-footer a { color: #10b981; text-decoration: none; font-weight: 500; }
+    .card-footer a:hover { text-decoration: underline; }
+
+    /* ---- Success overlay ---- */
+    .success-overlay {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      text-align: center;
+    }
+
+    .success-circle {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-circle i { font-size: 36px; color: white; }
+
+    .success-overlay h3 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+    .success-overlay p  { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
+
+    .redirect-bar-wrap {
+      width: 100%;
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .redirect-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .redirect-text { font-size: 13px; color: #9ca3af; }
+  </style>
 </head>
 <body>
-    <div class="verification-container">
-        <!-- Header -->
-        <div class="nav-left login-logo">
-          <img src="../IMG/Logo/ZiyoAILogo.png" alt="" />
-          <a class="navbar-brand"><h3 class="nav-title">iyoAI</h3></a>
-        </div>
+  <div class="card">
 
-        <!-- Content -->
-        <div class="content">
-            <!-- Loading State -->
-            <div id="loadingState">
-                <div class="status-icon status-loading">
-                    <div class="spinner"></div>
-                </div>
-                <h2 class="status-title">Verifying Your Email</h2>
-                <p class="status-message">
-                    Please wait while we verify your email address.
-                </p>
-            </div>
-
-            <!-- Success State -->
-            <div id="successState" style="display: none;">
-                <div class="status-icon status-success">
-                    <i class="bi bi-check-circle-fill icon-success"></i>
-                </div>
-                <h2 class="status-title">Email Verified</h2>
-                <p class="status-message">
-                    Your email has been successfully verified. You can now log in to your account.
-                </p>
-                <button class="btn-primary" onclick="goToLogin()">
-                    Continue to Login
-                </button>
-                <div class="info-box">
-                    <p>
-                        <strong>Next Step:</strong> Log in with your email and password to access your ZiyoAI account.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Error State -->
-            <div id="errorState" style="display: none;">
-                <div class="status-icon status-error">
-                    <i class="bi bi-x-circle-fill icon-error"></i>
-                </div>
-                <h2 class="status-title">Verification Failed</h2>
-                <p class="status-message" id="errorMessage">
-                    We couldn't verify your email. The link may have expired or is invalid.
-                </p>
-                <button class="btn-primary" onclick="resendEmail()">
-                    Resend Verification Email
-                </button>
-                <button class="btn-secondary" onclick="goToLogin()">
-                    Back to Login
-                </button>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p>
-                Need help? <a href="mailto:ziyoaiuz@gmail.com">Contact Support</a>
-            </p>
-        </div>
+    <!-- Header -->
+    <div class="card-header">
+      <div class="logo-row">
+        <img src="../IMG/Logo/ZiyoAILogo.png" alt="ZiyoAI" />
+        <span>ZiyoAI</span>
+      </div>
+      <div class="envelope-icon">
+        <i class="bi bi-envelope-check"></i>
+      </div>
+      <h2>Emailni tasdiqlang</h2>
+      <p>Tasdiqlash kodi quyidagi manzilga yuborildi</p>
+      <div class="email-badge" id="emailBadge">email@example.com</div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <!-- Body -->
+    <div class="card-body" id="mainBody">
 
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_w0n84YFtUYZgZodCn52lfYiqkL6v1HM",
-            authDomain: "zioai-96e9f.firebaseapp.com",
-            projectId: "zioai-96e9f",
-            storageBucket: "zioai-96e9f.firebasestorage.app",
-            messagingSenderId: "766076125152",
-            appId: "1:766076125152:web:9cd609efb7895386547585",
-        };
+      <!-- Alerts -->
+      <div class="alert-box alert-error"   id="errorAlert"></div>
+      <div class="alert-box alert-success" id="successAlert"></div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+      <!-- OTP Inputs -->
+      <p class="otp-label">6 xonali kodni kiriting</p>
+      <div class="otp-inputs" id="otpInputs">
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+        <input type="number" maxlength="1" inputmode="numeric" min="0" max="9" />
+      </div>
 
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-        const oobCode = urlParams.get('oobCode');
+      <!-- Timer -->
+      <div class="timer-row">
+        <div class="timer-ring">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" />
+            <circle class="progress" id="timerCircle" cx="20" cy="20" r="16"
+              stroke-dasharray="100.53" stroke-dashoffset="0" />
+          </svg>
+          <span class="timer-text" id="timerText">10:00</span>
+        </div>
+        <p class="timer-label" id="timerLabel">
+          Kod <span id="timerCountdown">10:00</span> da eskiradi
+        </p>
+      </div>
 
-        console.log('Mode:', mode);
-        console.log('Code:', oobCode);
+      <!-- Verify Button -->
+      <button class="btn-verify" id="verifyBtn" onclick="handleVerify()">
+        <i class="bi bi-shield-check me-2"></i>Tasdiqlash
+      </button>
 
-        // Verify email
-        async function verifyEmail() {
-            if (!oobCode) {
-                showError('Invalid verification link');
-                return;
-            }
+      <!-- Resend Button -->
+      <button class="btn-resend" id="resendBtn" onclick="handleResend()" disabled>
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        Yangi kod yuborish <span id="resendCountdown"></span>
+      </button>
+    </div>
 
-            try {
-                // Apply the action code
-                await applyActionCode(auth, oobCode);
-                console.log('✅ Email verified successfully');
-                
-                // Check if user is already signed in
-                const user = auth.currentUser;
-                if (user) {
-                    console.log('✅ User already signed in:', user.email);
-                    // Reload user to get updated emailVerified status
-                    await user.reload();
-                    console.log('✅ Email verified status:', user.emailVerified);
-                }
-                
-                showSuccess();
-            } catch (error) {
-                console.error('❌ Verification error:', error);
-                
-                let errorMsg = 'Verification failed. ';
-                if (error.code === 'auth/expired-action-code') {
-                    errorMsg += 'The link has expired.';
-                } else if (error.code === 'auth/invalid-action-code') {
-                    errorMsg += 'The link is invalid or already used.';
-                } else {
-                    errorMsg += error.message;
-                }
-                
-                showError(errorMsg);
-            }
-        }
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-circle">
+        <i class="bi bi-check-lg"></i>
+      </div>
+      <h3>Email tasdiqlandi! 🎉</h3>
+      <p>Hisobingiz muvaffaqiyatli faollashtirildi.<br>Dashboard ga yo'naltirilmoqda...</p>
+      <div class="redirect-bar-wrap">
+        <div class="redirect-bar" id="redirectBar"></div>
+      </div>
+      <p class="redirect-text">Iltimos kuting...</p>
+    </div>
 
-        function showSuccess() {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('successState').style.display = 'block';
-        }
+    <!-- Footer -->
+    <div class="card-footer">
+      <p>Yordam kerakmi? <a href="mailto:ziyoaiuz@gmail.com">Qo'llab-quvvatlash</a> &nbsp;|&nbsp;
+        <a href="./login.html">Loginga qaytish</a>
+      </p>
+    </div>
+  </div>
 
-        function showError(message) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('errorState').style.display = 'block';
-            document.getElementById('errorMessage').textContent = message;
-        }
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-        // Global functions
-        window.goToDashboard = function() {
-            const user = auth.currentUser;
-            if (user && user.emailVerified) {
-                console.log('✅ Redirecting to dashboard...');
-                window.location.href = './dashboard.html';
-            } else {
-                console.log('⚠️ User not signed in or email not verified');
-                alert('Please log in first to access dashboard');
-                window.location.href = './login.html';
-            }
-        };
+  <script>
+    // =============================================
+    // ⚙️ SOZLAMALAR — O'zgartiring!
+    // =============================================
+    const EMAILJS_PUBLIC_KEY  = "EOVuFtynDt_B3cg5v";
+    const EMAILJS_SERVICE_ID  = "service_o80q31v";
+    const EMAILJS_TEMPLATE_ID = "template_8qiy9hu";
+    // =============================================
 
-        window.goToLogin = function() {
-            // Add success parameter to show message on login page
-            window.location.href = './login.html?verified=true';
-        };
+    emailjs.init(EMAILJS_PUBLIC_KEY);
 
-        window.resendEmail = function() {
-            alert('Please log in to resend verification email');
-            window.location.href = './login.html';
-        };
+    // Session'dan ma'lumot olish
+    const savedOTP      = sessionStorage.getItem("ziyo_otp");
+    const savedOTPExp   = parseInt(sessionStorage.getItem("ziyo_otp_exp") || "0");
+    const savedEmail    = sessionStorage.getItem("ziyo_email")    || "";
+    const savedUsername = sessionStorage.getItem("ziyo_username") || "";
+    const savedUID      = sessionStorage.getItem("ziyo_uid")      || "";
 
-        // Auto-verify on page load
-        if (mode === 'verifyEmail' && oobCode) {
-            verifyEmail();
+    // Agar session yo'q bo'lsa — signup'ga qaytarish
+    if (!savedOTP || !savedEmail) {
+      window.location.href = "./signup.html";
+    }
+
+    // Email badge
+    document.getElementById("emailBadge").textContent = savedEmail;
+
+    // =============================================
+    // OTP Input Logic
+    // =============================================
+    const inputs = document.querySelectorAll(".otp-inputs input");
+
+    // Faqat 1 ta raqam qabul qilish
+    inputs.forEach((inp, idx) => {
+      // CSS number spinner ni yashirish
+      inp.style.cssText += "-moz-appearance:textfield;";
+
+      inp.addEventListener("input", (e) => {
+        // Faqat oxirgi belgini olish
+        let val = e.target.value.replace(/\D/g, "").slice(-1);
+        e.target.value = val;
+
+        if (val) {
+          inp.classList.add("filled");
+          inp.classList.remove("error-input");
+          if (idx < inputs.length - 1) inputs[idx + 1].focus();
+          // Agar oxirgi kiritilsa — avtomatik verify
+          if (idx === inputs.length - 1) {
+            const code = getOTPValue();
+            if (code.length === 6) handleVerify();
+          }
         } else {
-            showError('Invalid verification link');
+          inp.classList.remove("filled");
         }
-    </script>
+      });
+
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+          if (!e.target.value && idx > 0) {
+            inputs[idx - 1].value = "";
+            inputs[idx - 1].classList.remove("filled");
+            inputs[idx - 1].focus();
+          }
+          e.target.classList.remove("filled");
+        }
+      });
+
+      inp.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        paste.split("").forEach((char, i) => {
+          if (inputs[i]) {
+            inputs[i].value = char;
+            inputs[i].classList.add("filled");
+          }
+        });
+        if (paste.length === 6) {
+          inputs[5].focus();
+          handleVerify();
+        }
+      });
+
+      inp.addEventListener("focus", () => inp.select());
+    });
+
+    // Focus first input
+    inputs[0].focus();
+
+    function getOTPValue() {
+      return Array.from(inputs).map(i => i.value).join("");
+    }
+
+    function setInputError() {
+      inputs.forEach(i => {
+        i.classList.add("error-input");
+        i.classList.remove("filled");
+        setTimeout(() => i.classList.remove("error-input"), 500);
+      });
+    }
+
+    // =============================================
+    // Timer Logic (10 daqiqa)
+    // =============================================
+    const TOTAL_MS    = 10 * 60 * 1000;
+    const circumference = 2 * Math.PI * 16; // ~100.53
+    const timerCircle    = document.getElementById("timerCircle");
+    const timerText      = document.getElementById("timerText");
+    const timerLabel     = document.getElementById("timerLabel");
+    const timerCountdown = document.getElementById("timerCountdown");
+    const resendBtn      = document.getElementById("resendBtn");
+    const resendCountdown = document.getElementById("resendCountdown");
+    let timerInterval;
+    let resendInterval;
+
+    timerCircle.style.strokeDasharray = circumference;
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const remaining = savedOTPExp - Date.now();
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          timerText.textContent = "0:00";
+          timerCountdown.textContent = "0:00";
+          timerLabel.classList.add("expired");
+          timerLabel.innerHTML = "Kod eskirdi. <span>Yangi kod oling</span>";
+          timerCircle.style.stroke = "#ef4444";
+          timerText.style.color = "#ef4444";
+          document.getElementById("verifyBtn").disabled = true;
+          // Resend ni faollashtirish
+          enableResend();
+          return;
+        }
+
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        const formatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+        timerText.textContent = formatted;
+        timerCountdown.textContent = formatted;
+
+        // Circle progress
+        const progress = remaining / TOTAL_MS;
+        const offset   = circumference * (1 - progress);
+        timerCircle.style.strokeDashoffset = offset;
+
+        // Rang o'zgartirish
+        if (remaining < 60000) {
+          timerCircle.style.stroke = "#ef4444";
+          timerText.style.color    = "#ef4444";
+        } else if (remaining < 3 * 60000) {
+          timerCircle.style.stroke = "#f59e0b";
+          timerText.style.color    = "#f59e0b";
+        }
+      }, 1000);
+    }
+
+    startTimer();
+
+    // Resend countdown (30 sekund kutish)
+    let resendWait = 30;
+    function startResendCooldown() {
+      resendBtn.disabled = true;
+      resendCountdown.textContent = `(${resendWait}s)`;
+      resendInterval = setInterval(() => {
+        resendWait--;
+        resendCountdown.textContent = `(${resendWait}s)`;
+        if (resendWait <= 0) {
+          clearInterval(resendInterval);
+          enableResend();
+        }
+      }, 1000);
+    }
+
+    function enableResend() {
+      resendBtn.disabled = false;
+      resendCountdown.textContent = "";
+    }
+
+    startResendCooldown();
+
+    // =============================================
+    // Verify Logic
+    // =============================================
+    window.handleVerify = function () {
+      const entered = getOTPValue();
+
+      hideAlerts();
+
+      if (entered.length < 6) {
+        showError("Iltimos, 6 xonali kodni to'liq kiriting!");
+        return;
+      }
+
+      // Muddati o'tganmi?
+      if (Date.now() > savedOTPExp) {
+        showError("Kod muddati o'tdi! Yangi kod oling.");
+        setInputError();
+        return;
+      }
+
+      if (entered !== savedOTP) {
+        showError("Noto'g'ri kod! Iltimos, qaytadan urinib ko'ring.");
+        setInputError();
+        // Inputlarni tozalash
+        setTimeout(() => {
+          inputs.forEach(i => { i.value = ""; i.classList.remove("filled", "error-input"); });
+          inputs[0].focus();
+        }, 500);
+        return;
+      }
+
+      // ✅ Kod to'g'ri!
+      clearInterval(timerInterval);
+
+      // Session'ga verified flag qo'yish
+      sessionStorage.setItem("ziyo_verified", "true");
+      sessionStorage.removeItem("ziyo_otp");
+      sessionStorage.removeItem("ziyo_otp_exp");
+
+      showSuccessOverlay();
+    };
+
+    // =============================================
+    // Resend Logic
+    // =============================================
+    window.handleResend = async function () {
+      resendBtn.disabled = true;
+      hideAlerts();
+
+      // Yangi OTP
+      const newOTP    = generateOTP();
+      const newExpiry = Date.now() + TOTAL_MS;
+
+      sessionStorage.setItem("ziyo_otp",     newOTP);
+      sessionStorage.setItem("ziyo_otp_exp", newExpiry);
+
+      // Timer'ni restart qilish
+      clearInterval(timerInterval);
+      const newExpGlobal = Date.now() + TOTAL_MS;
+
+      // savedOTPExp ni yangilash (lokal var orqali)
+      Object.defineProperty(window, "savedOTPExp", { value: newExpiry, writable: true });
+      // Aslida sessionStoragedan o'qiymiz — refresh bo'lmasligi uchun boshqa yo'l:
+      location.reload(); // Eng oson: reload — yangi kod bilan
+
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_name:     savedUsername,
+          to_email:    savedEmail,
+          otp_code:    newOTP,
+          expire_time: "10 daqiqa",
+          app_name:    "ZiyoAI",
+        });
+        showSuccess("✅ Yangi kod yuborildi! Inbox va Spam papkalarni tekshiring.");
+      } catch (err) {
+        showError("Kod yuborishda xatolik. Internet aloqasini tekshiring.");
+        resendBtn.disabled = false;
+        return;
+      }
+
+      // Cooldown qayta
+      resendWait = 30;
+      startResendCooldown();
+
+      // Verify tugmasini qayta faollashtirish
+      document.getElementById("verifyBtn").disabled = false;
+    };
+
+    function generateOTP() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // =============================================
+    // Success Overlay
+    // =============================================
+    function showSuccessOverlay() {
+      document.getElementById("mainBody").style.display    = "none";
+      document.getElementById("successOverlay").style.display = "flex";
+
+      // Progress bar 3 soniyada to'ladi
+      const bar = document.getElementById("redirectBar");
+      let width = 0;
+      const interval = setInterval(() => {
+        width += 100 / 30; // 3 sekund = 30 ta step (100ms da bir)
+        bar.style.width = Math.min(width, 100) + "%";
+        if (width >= 100) {
+          clearInterval(interval);
+          window.location.href = "./login.html?verified=true";
+        }
+      }, 100);
+    }
+
+    // =============================================
+    // Alert Helpers
+    // =============================================
+    function hideAlerts() {
+      document.getElementById("errorAlert").style.display   = "none";
+      document.getElementById("successAlert").style.display = "none";
+    }
+    function showError(msg) {
+      const el = document.getElementById("errorAlert");
+      el.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>${msg}`;
+      el.style.display = "block";
+    }
+    function showSuccess(msg) {
+      const el = document.getElementById("successAlert");
+      el.innerHTML = `<i class="bi bi-check-circle me-2"></i>${msg}`;
+      el.style.display = "block";
+    }
+  </script>
 </body>
 </html>
