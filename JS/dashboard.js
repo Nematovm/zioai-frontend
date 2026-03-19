@@ -2633,9 +2633,12 @@ async function checkWriting() {
     console.log("Has Topic Image:", !!topicImageData);
     console.log("Has Chart Image:", !!chartImageData);
 
-    const API_URL = window.location.hostname.includes("onrender.com")
-      ? "https://zioai-backend.onrender.com/api"
-      : "http://localhost:3000/api";
+    const API_URL = (() => {
+  const hostname = window.location.hostname;
+  if (hostname.includes("ziyo-ai.uz")) return "https://zioai-backend.onrender.com/api";
+  if (hostname.includes("onrender.com")) return "https://zioai-backend.onrender.com/api";
+  return "http://localhost:3000/api";
+})();
 
     // ✅ Prepare request data
     let requestData = {
@@ -2983,9 +2986,12 @@ async function showModelAnswer() {
     console.log("📤 Requesting model answer...");
     console.log("📝 Task Type:", selectedTaskType);
 
-    const API_URL = window.location.hostname.includes("onrender.com")
-      ? "https://zioai-backend.onrender.com/api"
-      : "http://localhost:3000/api";
+    const API_URL = (() => {
+  const hostname = window.location.hostname;
+  if (hostname.includes("ziyo-ai.uz")) return "https://zioai-backend.onrender.com/api";
+  if (hostname.includes("onrender.com")) return "https://zioai-backend.onrender.com/api";
+  return "http://localhost:3000/api";
+})();
 
     // ✅ Prepare request data
     const requestData = {
