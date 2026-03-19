@@ -329,74 +329,261 @@
       // PASSWORD RESET HANDLER
       // ============================================
       window.handlePasswordReset = async function() {
-        const email = document.getElementById('resetEmail').value.trim();
-        const resetBtn = document.getElementById('resetBtn');
-        const errorAlert = document.getElementById('errorAlert');
-        const successAlert = document.getElementById('successAlert');
+  const email = document.getElementById('resetEmail').value.trim();
+  const resetBtn = document.getElementById('resetBtn');
 
-        errorAlert.style.display = 'none';
-        successAlert.style.display = 'none';
+  document.getElementById('errorAlert').style.display = 'none';
+  document.getElementById('successAlert').style.display = 'none';
 
-        if (!email) {
-          showError('Please enter your email address!');
-          return;
-        }
+  if (!email) { showError('Email kiriting!'); return; }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          showError('Please enter a valid email address!');
-          return;
-        }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) { showError("Email noto'g'ri!"); return; }
 
-        resetBtn.disabled = true;
-        resetBtn.textContent = 'Sending...';
+  resetBtn.disabled = true;
+  resetBtn.textContent = '⏳ Yuborilmoqda...';
 
-        try {
-          // IMPORTANT: Firebase will use the URL configured in your Firebase Console
-          // Make sure to add this URL in: Firebase Console > Authentication > Templates > Password reset
-          // The URL should point to: https://your-domain.com/Templates/reset-password.html
-          
-          const actionCodeSettings = {
-            url: window.location.origin + '/Templates/reset-password.html',
-            handleCodeInApp: true
-          };
-          
-          await sendPasswordResetEmail(auth, email, actionCodeSettings);
-          
-          showSuccess('✅ Password reset link sent! Please check your email (and spam folder).');
-          
-          // Clear the input
-          document.getElementById('resetEmail').value = '';
-          
-          // Go back to login after 3 seconds
-          setTimeout(() => {
-            showLoginForm();
-          }, 3000);
+  try {
+    const API_URL = window.location.hostname.includes("ziyo-ai.uz")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
 
-        } catch (error) {
-          console.error('Password reset error:', error);
+    const response = await fetch(`${API_URL}/send-reset-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
 
-          let errorMessage = 'Failed to send reset email!';
+    const data = await response.json();
 
-          if (error.code === 'auth/user-not-found') {
-            errorMessage = 'No account found with this email address!';
-          } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Invalid email format!';
-          } else if (error.code === 'auth/too-many-requests') {
-            errorMessage = 'Too many requests. Please try again later.';
-          } else if (error.code === 'auth/network-request-failed') {
-            errorMessage = 'Network error. Please check your internet connection!';
-          } else if (error.code === 'auth/unauthorized-continue-uri') {
-            errorMessage = 'Please configure the password reset URL in Firebase Console.';
-            console.error('IMPORTANT: Add this URL to authorized domains in Firebase Console:', window.location.origin);
-          }
+    if (!data.success) throw new Error(data.error);
 
-          showError(errorMessage);
-        } finally {
-          resetBtn.disabled = false;
-          resetBtn.textContent = 'Send Reset Link';
-        }
-      };
+    // Email saqlash va OTP formani ko'rsatish
+    localStorage.setItem('resetEmail', email);
+    showResetOTPForm(email);
+
+  } catch (error) {
+    showError(error.message || 'Xatolik yuz berdi!');
+    resetBtn.disabled = false;
+    resetBtn.textContent = 'Tiklash havolasini yuborish';
+  }
+};
+
+// OTP FORM KO'RSATISH
+window.showResetOTPForm = function(email) {
+  document.querySelector('.auth-card').innerHTML = `
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:56px; margin-bottom:12px;">🔑</div>
+      <h3 style="margin:0 0 8px; color:#1f2937; font-size:20px; font-weight:700;">Kodni kiriting</h3>
+      <p style="margin:0; color:#6b7280; font-size:14px; line-height:1.6;">
+        <strong style="color:#ef4444;">${email}</strong> manziliga<br>6 raqamli kod yuborildi
+      </p>
+    </div>
+
+    <div id="resetOtpError" style="display:none; background:#fee; color:#c33; padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px; text-align:center;"></div>
+    <div id="resetOtpSuccess" style="display:none; background:#efe; color:#3c3; padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px; text-align:center;"></div>
+
+    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:24px;">
+      ${[1,2,3,4,5,6].map(i => `
+        <input type="text" id="rotp${i}" maxlength="1"
+          style="width:48px; height:56px; text-align:center; font-size:24px; font-weight:700; color:#1f2937; border:2px solid #e5e7eb; border-radius:12px; outline:none; transition:all 0.2s;"
+          oninput="rotpMove(this, ${i})"
+          onkeydown="rotpBack(event, ${i})"
+          onfocus="this.style.borderColor='#ef4444'"
+          onblur="this.style.borderColor='#e5e7eb'"
+        />
+      `).join('')}
+    </div>
+
+    <button onclick="verifyResetOTP()" id="verifyResetBtn" class="btn-primary" style="margin-bottom:16px;">
+      ✅ Tasdiqlash
+    </button>
+
+    <div style="text-align:center; margin-bottom:12px;">
+      <span style="font-size:14px; color:#6b7280;">Kod kelmadimi? </span>
+      <button onclick="resendResetOTP('${email}')" id="resendResetBtn"
+        style="background:none; border:none; color:#ef4444; font-size:14px; font-weight:600; cursor:pointer;">
+        Qayta yuborish
+      </button>
+      <span id="resetTimer" style="font-size:13px; color:#9ca3af; margin-left:6px;"></span>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="./login.html" style="font-size:13px; color:#9ca3af;">← Orqaga</a>
+    </div>
+  `;
+
+  setTimeout(() => document.getElementById('rotp1')?.focus(), 100);
+  startResetTimer();
+};
+
+window.rotpMove = function(input, index) {
+  input.value = input.value.replace(/[^0-9]/g, '');
+  if (input.value && index < 6) document.getElementById(`rotp${index+1}`)?.focus();
+  const allFilled = [1,2,3,4,5,6].every(i => document.getElementById(`rotp${i}`)?.value);
+  if (allFilled) verifyResetOTP();
+};
+
+window.rotpBack = function(e, index) {
+  if (e.key === 'Backspace' && !e.target.value && index > 1) {
+    document.getElementById(`rotp${index-1}`)?.focus();
+  }
+};
+
+window.verifyResetOTP = async function() {
+  const otp = [1,2,3,4,5,6].map(i => document.getElementById(`rotp${i}`)?.value || '').join('');
+  const email = localStorage.getItem('resetEmail');
+  const verifyBtn = document.getElementById('verifyResetBtn');
+  const errorEl = document.getElementById('resetOtpError');
+
+  if (otp.length !== 6) { errorEl.style.display='block'; errorEl.textContent='6 ta raqam kiriting!'; return; }
+
+  verifyBtn.disabled = true;
+  verifyBtn.textContent = '⏳ Tekshirilmoqda...';
+  errorEl.style.display = 'none';
+
+  try {
+    const API_URL = window.location.hostname.includes("ziyo-ai.uz")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+
+    const response = await fetch(`${API_URL}/verify-reset-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error);
+
+    // OTP to'g'ri - yangi parol kiritish formani ko'rsat
+    showNewPasswordForm(email);
+
+  } catch (error) {
+    errorEl.style.display = 'block';
+    errorEl.textContent = error.message;
+    verifyBtn.disabled = false;
+    verifyBtn.textContent = '✅ Tasdiqlash';
+  }
+};
+
+window.showNewPasswordForm = function(email) {
+  // Butun auth-card ni to'liq almashtirish
+  document.querySelector('.auth-card').innerHTML = `
+    <div style="text-align:center; margin-bottom:28px;">
+      <div style="font-size:64px; margin-bottom:16px;">🔒</div>
+      <h3 style="margin:0 0 8px; color:#1f2937; font-size:22px; font-weight:700;">Yangi parol</h3>
+      <p style="margin:0; color:#6b7280; font-size:14px;">Yangi parolingizni kiriting</p>
+    </div>
+
+    <div id="newPwdError" style="display:none; background:#fee; color:#c33; padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;"></div>
+
+    <div class="input-box">
+      <input type="password" id="newPwd" placeholder=" " required />
+      <label>Yangi parol</label>
+    </div>
+
+    <div class="input-box">
+      <input type="password" id="confirmPwd" placeholder=" " required />
+      <label>Parolni tasdiqlang</label>
+    </div>
+
+    <button onclick="submitNewPassword('${email}')" id="submitPwdBtn" class="btn-primary">
+      ✅ Parolni o'zgartirish
+    </button>
+  `;
+};
+
+window.submitNewPassword = async function(email) {
+  const newPwd = document.getElementById('newPwd').value;
+  const confirmPwd = document.getElementById('confirmPwd').value;
+  const btn = document.getElementById('submitPwdBtn');
+  const errorEl = document.getElementById('newPwdError');
+
+  errorEl.style.display = 'none';
+
+  if (!newPwd || !confirmPwd) { errorEl.style.display='block'; errorEl.textContent='Barcha maydonlarni to\'ldiring!'; return; }
+  if (newPwd !== confirmPwd) { errorEl.style.display='block'; errorEl.textContent='Parollar mos kelmayapti!'; return; }
+  if (newPwd.length < 6) { errorEl.style.display='block'; errorEl.textContent='Parol kamida 6 ta belgidan iborat bo\'lishi kerak!'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ O\'zgartirilmoqda...';
+
+  try {
+    const API_URL = window.location.hostname.includes("ziyo-ai.uz")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+
+    const response = await fetch(`${API_URL}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, newPassword: newPwd })
+    });
+
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error);
+
+    localStorage.removeItem('resetEmail');
+
+    // Success - login ga yo'naltirish
+// Success bo'lganda
+document.querySelector('.auth-card').innerHTML = `
+  <div style="text-align:center; padding:20px;">
+    <div style="font-size:64px; margin-bottom:16px;">🎉</div>
+    <h3 style="color:#1f2937; margin-bottom:8px;">Parol muvaffaqiyatli o'zgartirildi!</h3>
+    <p style="color:#6b7280; margin-bottom:24px;">Endi yangi parolingiz bilan kiring.</p>
+    <button onclick="window.location.href='./login.html'" class="btn-primary">
+      Kirish
+    </button>
+  </div>
+`;
+
+  } catch (error) {
+    errorEl.style.display = 'block';
+    errorEl.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = "✅ Parolni o'zgartirish";
+  }
+};
+
+function startResetTimer() {
+  const btn = document.getElementById('resendResetBtn');
+  const timerEl = document.getElementById('resetTimer');
+  if (!btn || !timerEl) return;
+  btn.disabled = true;
+  let seconds = 60;
+  const interval = setInterval(() => {
+    seconds--;
+    timerEl.textContent = `(${seconds}s)`;
+    if (seconds <= 0) {
+      clearInterval(interval);
+      btn.disabled = false;
+      timerEl.textContent = '';
+    }
+  }, 1000);
+}
+
+window.resendResetOTP = async function(email) {
+  const btn = document.getElementById('resendResetBtn');
+  btn.disabled = true;
+  try {
+    const API_URL = window.location.hostname.includes("ziyo-ai.uz")
+      ? "https://zioai-backend.onrender.com/api"
+      : "http://localhost:3000/api";
+    await fetch(`${API_URL}/send-reset-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const successEl = document.getElementById('resetOtpSuccess');
+    successEl.style.display = 'block';
+    successEl.textContent = '✅ Yangi kod yuborildi!';
+    setTimeout(() => { successEl.style.display = 'none'; }, 3000);
+    startResetTimer();
+  } catch(e) {
+    btn.disabled = false;
+  }
+};
 
       // Email/Password Login
       window.handleLogin = async function () {

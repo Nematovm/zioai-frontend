@@ -412,6 +412,13 @@ async function giveWelcomeCoinsToNewUser(userId) {
     
     const rootRef = window.firebaseRef(db, '/');
     await window.firebaseUpdate(rootRef, updates);
+
+    await window.firebaseUpdate(rootRef, updates);
+
+// ✅ Mana shu qatorni qo'shing:
+const verifyRef = window.firebaseRef(db, `users/${userId}/coins`);
+const verifySnap = await window.firebaseGet(verifyRef);
+console.log('✅ VERIFIED coins in DB after welcome:', verifySnap.val());
     
     console.log(`✅ Welcome coins given: ${currentCoins} → ${newCoins}`);
     
@@ -770,14 +777,9 @@ async function claimDailyCoinsNow() {
   }
 }
 
-// ============================================
-// 🆕 SHOW DAILY COINS SUCCESS NOTIFICATION ✅
-// ============================================
 function showDailyCoinsNotification(amount, subType) {
   const oldNotification = document.querySelector('.daily-coins-notification');
-  if (oldNotification) {
-    oldNotification.remove();
-  }
+  if (oldNotification) oldNotification.remove();
   
   const notification = document.createElement('div');
   notification.className = 'daily-coins-notification';
@@ -789,8 +791,7 @@ function showDailyCoinsNotification(amount, subType) {
     color: white;
     padding: 20px 25px;
     border-radius: 16px;
-    box-shadow: 0 10px 30
-    px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
     z-index: 10000;
     font-weight: 600;
     animation: slideInRight 0.5s ease;
@@ -803,14 +804,10 @@ function showDailyCoinsNotification(amount, subType) {
     <div style="display: flex; align-items: center; gap: 15px;">
       <div style="font-size: 40px;">🎁</div>
       <div style="flex: 1;">
-        <div style="font-size: 18px; font-weight: 700; margin-bottom: 5px;">
-          Daily Bonus!
-        </div>
-        <div style="font-size: 15px; opacity: 0.95;">
-          ${subEmoji} +${amount} coins (${subType})
-        </div>
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 5px;">Daily Bonus!</div>
+        <div style="font-size: 15px; opacity: 0.95;">${subEmoji} +${amount} coins (${subType})</div>
       </div>
-      <button onclick="this.closest('.daily-coins-notification').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">×</button>
+      <button onclick="this.closest('.daily-coins-notification').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">×</button>
     </div>
   `;
   
@@ -818,14 +815,12 @@ function showDailyCoinsNotification(amount, subType) {
   
   setTimeout(() => {
     if (notification && notification.parentNode) {
-      notification.style.animation = 'slideOutRight 0.5s ease';
-      setTimeout(() => notification.remove(), 500);
+      notification.remove();
     }
   }, 5000);
   
-  if (typeof showCoinEarnAnimation === 'function') {
-    showCoinEarnAnimation(amount);
-  }
+  // ✅ showCoinEarnAnimation o'rniga oddiy log
+  console.log(`✅ Daily coins animation: +${amount}`);
 }
 
 // ============================================
@@ -1286,49 +1281,106 @@ async function canClaimDailyBonus() {
   }
 }
 
-// ============================================
-// INITIALIZE ON AUTH ✅
-// ============================================
 if (window.firebaseAuth) {
   window.firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
-      console.log('👤 User authenticated, initializing coin system...');
-      
-      // ✅ WAIT FOR DOM TO BE READY
+      console.log('👤 User logged in:', user.uid);
+
+      // DOM tayyor bo'lsin
       await new Promise(resolve => {
-        if (document.readyState === 'complete') {
-          resolve();
-        } else {
-          window.addEventListener('load', resolve);
-        }
+        if (document.readyState === 'complete') resolve();
+        else window.addEventListener('load', resolve);
       });
-      
-      // ✅ WAIT 1 SECOND (ensure Firebase DB is ready)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ✅ INITIALIZE COIN SYSTEM
-      if (typeof initCoinSystem === 'function') {
-        const success = await initCoinSystem();
-        
-        if (success) {
-          console.log('✅ Coin system initialized successfully');
-          
-          // ✅ UPDATE COIN DISPLAY
-          if (typeof updateCoinDisplay === 'function') {
-            await updateCoinDisplay();
-            console.log('✅ Initial coin display updated');
-          }
-        } else {
-          console.error('❌ Coin system initialization failed');
-        }
+
+      // Firebase tayyor bo'lsin
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const db = window.firebaseDatabase;
+      if (!db) { console.error('❌ DB not ready'); return; }
+
+      // ✅ welcomeCoinReceived tekshirish
+      const welcomeRef = window.firebaseRef(db, `users/${user.uid}/welcomeCoinReceived`);
+      const welcomeSnap = await window.firebaseGet(welcomeRef);
+
+      if (!welcomeSnap.exists() || welcomeSnap.val() !== true) {
+        // ✅ YANGI USER - 10 coins ber
+        console.log('🎁 NEW USER - auto giving 10 welcome coins...');
+        await giveWelcomeCoinsToNewUser(user.uid);
       } else {
-        console.error('❌ initCoinSystem function not found!');
+        console.log('⏭️ Already received welcome coins');
       }
-    } else {
-      console.log('❌ No user logged in');
+
+      // Coin system ishga tushur
+      await new Promise(resolve => setTimeout(resolve, 300));
+      listenToCoins();
+      await updateCoinDisplay();
+
+      // Daily bonus tekshir
+      setTimeout(() => checkAndGiveDailyCoins(), 1000);
+      startDailyCoinChecker();
+
+      console.log('✅ Coin system fully ready');
     }
   });
 }
+
+async function claimDailyBonusFromUI() {
+  await claimDailyCoinsNow();
+}
+
+// ✅ MISSING FUNCTION - prevents ReferenceError
+function showCoinEarnAnimation(amount) {
+  console.log(`🪙 +${amount} coins earned!`);
+  
+  const el = document.createElement('div');
+  el.style.cssText = `
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 18px;
+    z-index: 99999;
+    animation: slideInRight 0.4s ease;
+    pointer-events: none;
+  `;
+  el.textContent = `+${amount} 🪙`;
+  document.body.appendChild(el);
+  
+  setTimeout(() => el.remove(), 2500);
+}
+
+window.showCoinEarnAnimation = showCoinEarnAnimation;
+window.claimDailyBonusFromUI = async function() {
+  await claimDailyCoinsNow();
+};
+
+// ✅ BACKUP: Page load da ham tekshir
+window.addEventListener('load', async () => {
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) return;
+  
+  const db = window.firebaseDatabase;
+  if (!db) return;
+  
+  console.log('🔄 Backup welcome coin check...');
+  
+  const welcomeRef = window.firebaseRef(db, `users/${user.uid}/welcomeCoinReceived`);
+  const snap = await window.firebaseGet(welcomeRef);
+  
+  if (!snap.exists() || snap.val() !== true) {
+    console.log('🎁 Backup: giving welcome coins...');
+    await giveWelcomeCoinsToNewUser(user.uid);
+  }
+  
+  await updateCoinDisplay();
+  checkAndGiveDailyCoins();
+});
 
 // ============================================
 // GLOBAL EXPORTS ✅
